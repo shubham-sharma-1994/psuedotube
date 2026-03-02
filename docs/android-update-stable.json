@@ -1,0 +1,40 @@
+{
+  "latestVersion": "0.0.1",
+  "versionCode": 1,
+  "abis": {
+    "arm64-v8a": {
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-arm64-v8a.apk",
+      "size": "25.6 MB",
+      "checksum": "sha256:abcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab"
+    },
+    "armeabi-v7a": {
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-armeabi-v7a.apk",
+      "size": "22.3 MB",
+      "checksum": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    },
+    "x86_64": {
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-x86_64.apk",
+      "size": "27.1 MB",
+      "checksum": "sha256:ef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd"
+    }
+  },
+  "releaseDate": "2026-03-02T12:00:00Z",
+  "updateLog": [
+    "� Initial release of Noize",
+    "🎵 Stream songs, albums, artists, and playlists from YouTube Music",
+    "📥 Download tracks and playlists for offline listening",
+    "🎤 Synced lyrics support via YouTube Music and LRCLib"
+  ],
+  "features": [
+    "YouTube Music streaming with search and discovery",
+    "Background playback with media session integration",
+    "Download songs and playlists for offline use",
+    "Built-in equalizer, sleep timer, and playback stats",
+    "Local music library management",
+    "Synced and plain lyrics support",
+    "Light, Dark, and System theme modes",
+    "Multi-language support"
+  ],
+  "bugFixes": [],
+  "releaseNotes": "Welcome to Noize! This is the first public release of your privacy-first YouTube Music client for Android."
+}

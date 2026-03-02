@@ -1,0 +1,26 @@
+{
+  "latestVersion": "0.0.1",
+  "versionCode": 1,
+  "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1.msix",
+  "releaseDate": "2026-03-02T12:00:00Z",
+  "updateLog": [
+    "� Initial release of Noize for Windows",
+    "🎵 Stream songs, albums, artists, and playlists from YouTube Music",
+    "📥 Download tracks and playlists for offline listening",
+    "🎤 Synced lyrics support via YouTube Music and LRCLib"
+  ],
+  "features": [
+    "YouTube Music streaming with search and discovery",
+    "Background playback with Windows SMTC integration",
+    "Download songs and playlists for offline use",
+    "Built-in equalizer, sleep timer, and playback stats",
+    "Local music library management",
+    "Synced and plain lyrics support",
+    "Light, Dark, and System theme modes",
+    "Multi-language support"
+  ],
+  "bugFixes": [],
+  "size": "32.1 MB",
+  "checksum": "sha256:ef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+  "releaseNotes": "Welcome to Noize! This is the first public release of your privacy-first YouTube Music client for Windows."
+}
