@@ -208,7 +208,7 @@ class _OTAScreenState extends State<OTAScreen>
             : MainScreenColors.lightSurfaceColor,
         borderRadius: BorderRadius.circular(AppDimens.radiusXl),
         border: Border.all(
-          color: accentColor.withOpacity(0.3),
+          color: accentColor.withValues(alpha: 0.3),
           width: AppDimens.dividerHeight,
         ),
       ),
@@ -220,7 +220,7 @@ class _OTAScreenState extends State<OTAScreen>
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingMd),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 ),
                 child: Icon(
@@ -246,7 +246,7 @@ class _OTAScreenState extends State<OTAScreen>
                         isDarkMode: isDarkMode,
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.7),
+                        ).withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -258,7 +258,7 @@ class _OTAScreenState extends State<OTAScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: accentColor, width: 1),
                 ),
@@ -312,7 +312,9 @@ class _OTAScreenState extends State<OTAScreen>
           Container(
             width: 1,
             height: 40,
-            color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.2),
+            color: MainScreenColors.getTextColor(
+              isDarkMode,
+            ).withValues(alpha: 0.2),
           ),
           Expanded(
             child: _buildDetailItem(
@@ -342,7 +344,9 @@ class _OTAScreenState extends State<OTAScreen>
         Text(
           title,
           style: GoogleFonts.poppins(
-            color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+            color: MainScreenColors.getTextColor(
+              isDarkMode,
+            ).withValues(alpha: 0.7),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -505,7 +509,7 @@ class _OTAScreenState extends State<OTAScreen>
               style: TextButton.styleFrom(
                 foregroundColor: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 ),
@@ -562,7 +566,7 @@ class _OTAScreenState extends State<OTAScreen>
                       value: progress != null ? progress.percentage / 100 : 0,
                       strokeWidth: AppDimens.progressStrokeLg,
                       color: accentColor,
-                      backgroundColor: accentColor.withOpacity(0.2),
+                      backgroundColor: accentColor.withValues(alpha: 0.2),
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -580,7 +584,7 @@ class _OTAScreenState extends State<OTAScreen>
                                 .copyWith(
                                   color: MainScreenColors.getTextColor(
                                     isDarkMode,
-                                  ).withOpacity(0.7),
+                                  ).withValues(alpha: 0.7),
                                 ),
                           ),
                       ],
@@ -644,7 +648,7 @@ class _OTAScreenState extends State<OTAScreen>
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingXxl),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.1),
+                color: accentColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -667,7 +671,7 @@ class _OTAScreenState extends State<OTAScreen>
               style: GoogleFonts.poppins(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
                 fontSize: 16,
                 height: 1.5,
               ),
@@ -733,7 +737,7 @@ class _OTAScreenState extends State<OTAScreen>
                 style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -752,7 +756,7 @@ class _OTAScreenState extends State<OTAScreen>
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingXxl),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -773,7 +777,7 @@ class _OTAScreenState extends State<OTAScreen>
               style: AppTextStyles.subtitle(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -798,7 +802,7 @@ class _OTAScreenState extends State<OTAScreen>
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingXxl),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -821,7 +825,7 @@ class _OTAScreenState extends State<OTAScreen>
               style: AppTextStyles.subtitle(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -869,7 +873,7 @@ class _OTAScreenState extends State<OTAScreen>
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingXxl),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -890,7 +894,7 @@ class _OTAScreenState extends State<OTAScreen>
                 style: AppTextStyles.subtitle(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                   height: 1.5,
                 ),
               ),
@@ -938,7 +942,7 @@ class _OTAScreenState extends State<OTAScreen>
                   style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(0.7),
+                    ).withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: AppDimens.spacingXxxl),
@@ -1002,7 +1006,7 @@ class _OTAScreenState extends State<OTAScreen>
                 style: AppTextStyles.subtitle(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                   height: 1.5,
                 ),
               ),

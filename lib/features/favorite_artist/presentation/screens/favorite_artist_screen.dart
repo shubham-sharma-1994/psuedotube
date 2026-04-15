@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:dart_ytmusic_api/yt_music.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -191,7 +192,7 @@ class _FavoriteArtistsScreenState extends State<FavoriteArtistsScreen>
                                     onPressed: () => Navigator.pop(context),
                                     style: OutlinedButton.styleFrom(
                                       side: BorderSide(
-                                        color: accent.withOpacity(0.9),
+                                        color: accent.withValues(alpha: 0.9),
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
@@ -242,7 +243,7 @@ class _FavoriteArtistsScreenState extends State<FavoriteArtistsScreen>
                                       onPressed: () => Navigator.pop(context),
                                       style: OutlinedButton.styleFrom(
                                         side: BorderSide(
-                                          color: accent.withOpacity(0.9),
+                                          color: accent.withValues(alpha: 0.9),
                                         ),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
@@ -333,7 +334,7 @@ class _FavoriteArtistsScreenState extends State<FavoriteArtistsScreen>
               hintStyle: AppTextStyles.caption(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
               prefixIcon: Icon(Icons.search, color: accentColor),
               suffixIcon: _searchController.text.isNotEmpty
@@ -518,20 +519,13 @@ class _FavoriteArtistsScreenState extends State<FavoriteArtistsScreen>
                     action: SnackBarAction(
                       label: 'Undo',
                       onPressed: () async {
-                        final prefs =
-                            await Provider.of<FavoriteArtistProvider>(
-                                  context,
-                                  listen: false,
-                                )
-                                .loadFavoriteArtists(notify: false)
-                                .then((_) => SharedPreferences.getInstance());
-                        final list = await SharedPreferences.getInstance();
-                        final favs =
-                            list.getStringList('favorite_artists') ?? [];
-                        favs.add(
-                          '{"name": "${removed['name']}", "artistId": "${removed['artistId']}", "thumbnailUrl": ${removed['thumbnailUrl'] != null ? '"${removed['thumbnailUrl']}"' : 'null'}}',
+                        final favoritesBox = Hive.box<String>(
+                          'favorite_artists',
                         );
-                        await list.setStringList('favorite_artists', favs);
+                        final key = removed['artistId']?.toString();
+                        if (key != null && key.isNotEmpty) {
+                          await favoritesBox.put(key, jsonEncode(removed));
+                        }
                         await Provider.of<FavoriteArtistProvider>(
                           context,
                           listen: false,
@@ -620,7 +614,7 @@ class _FavoriteArtistsScreenState extends State<FavoriteArtistsScreen>
                   labelColor: accentColor,
                   unselectedLabelColor: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.6),
+                  ).withValues(alpha: 0.6),
                   tabs: [
                     Tab(icon: Icon(Icons.search), text: 'search'.tr()),
                     Tab(icon: Icon(Icons.favorite), text: 'favorites'.tr()),

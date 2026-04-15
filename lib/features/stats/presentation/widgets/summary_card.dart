@@ -38,7 +38,9 @@ class SummaryCard extends StatelessWidget {
         title: Text(
           title,
           style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
-            color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+            color: MainScreenColors.getTextColor(
+              isDarkMode,
+            ).withValues(alpha: 0.7),
           ),
         ),
         subtitle: Text(

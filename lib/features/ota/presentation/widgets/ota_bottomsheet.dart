@@ -77,7 +77,7 @@ class OTABottomSheet extends StatelessWidget {
               style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: AppDimens.spacingLg),
@@ -143,7 +143,7 @@ class OTABottomSheet extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(0.7),
+                    ).withValues(alpha: 0.7),
                   ),
                   child: Text(
                     'skip_this_version'.tr(),

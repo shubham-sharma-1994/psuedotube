@@ -34,13 +34,15 @@ class SongSearchDelegate extends SearchDelegate<SongInfo?> {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
-          color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.6),
+          color: MainScreenColors.getTextColor(
+            isDarkMode,
+          ).withValues(alpha: 0.6),
         ),
         border: InputBorder.none,
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: accentColor,
-        selectionColor: accentColor.withOpacity(0.3),
+        selectionColor: accentColor.withValues(alpha: 0.3),
         selectionHandleColor: accentColor,
       ),
     );
@@ -120,7 +122,7 @@ class SongSearchDelegate extends SearchDelegate<SongInfo?> {
                       borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: AppDimens.elevationLow * 2,
                           offset: Offset(0, AppDimens.elevationLow),
                         ),
@@ -229,12 +231,12 @@ class SongSearchDelegate extends SearchDelegate<SongInfo?> {
                     margin: EdgeInsets.only(bottom: AppDimens.spacingSm),
                     decoration: BoxDecoration(
                       color: isCurrentlyPlaying
-                          ? accentColor.withOpacity(0.2)
+                          ? accentColor.withValues(alpha: 0.2)
                           : MainScreenColors.getSurfaceColor(isDarkMode),
                       borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: AppDimens.elevationLow * 2,
                           offset: Offset(0, AppDimens.elevationLow),
                         ),

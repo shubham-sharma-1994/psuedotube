@@ -16,7 +16,6 @@ import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
 import '../../../../core/services/content_details_service.dart';
 import '../../../../core/services/local_songs_service.dart';
-import 'package:dart_ytmusic_api/dart_ytmusic_api.dart' as yt;
 
 final ContentDetailsService _contentService = ContentDetailsService();
 

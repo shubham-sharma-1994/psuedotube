@@ -105,8 +105,8 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
                         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                         side: BorderSide(
                           color: isDarkMode
-                              ? Colors.white.withOpacity(0.08)
-                              : Colors.black.withOpacity(0.08),
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.08),
                           width: AppDimens.borderWidthThin,
                         ),
                       ),
@@ -147,8 +147,8 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
                         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                         side: BorderSide(
                           color: isDarkMode
-                              ? Colors.white.withOpacity(0.08)
-                              : Colors.black.withOpacity(0.08),
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.08),
                           width: AppDimens.borderWidthThin,
                         ),
                       ),
@@ -186,8 +186,8 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
                   color: isDarkMode
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.08),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08),
                   width: AppDimens.borderWidthThin,
                 ),
               ),
@@ -202,13 +202,13 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
                   labelStyle: GoogleFonts.poppins(
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(0.7),
+                    ).withValues(alpha: 0.7),
                   ),
                   hintText: 'e.g., sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
                   hintStyle: GoogleFonts.poppins(
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(0.5),
+                    ).withValues(alpha: 0.5),
                   ),
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -317,8 +317,8 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         border: Border.all(
           color: isDarkMode
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.1),
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.black.withValues(alpha: 0.1),
           width: AppDimens.borderWidthThin,
         ),
       ),

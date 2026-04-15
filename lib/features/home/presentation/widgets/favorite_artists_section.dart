@@ -215,7 +215,9 @@ class _ArtistAvatarWithPlayButtonState
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
-      color: widget.accentColor.withOpacity(widget.isDarkMode ? 0.06 : 0.36),
+      color: widget.accentColor.withValues(
+        alpha: widget.isDarkMode ? 0.06 : 0.36,
+      ),
       child: SizedBox(
         width: AppDimens.headerImageSm,
         height: AppDimens.headerImageSm,

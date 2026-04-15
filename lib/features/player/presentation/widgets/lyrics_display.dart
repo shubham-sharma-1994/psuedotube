@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -185,8 +186,8 @@ class _LyricsDisplayState extends State<LyricsDisplay> {
         if (key.currentContext != null) {
           Scrollable.ensureVisible(
             key.currentContext!,
-            duration: AppDimens.animSlow,
-            curve: Curves.easeInOutCubic,
+            duration: AppDimens.animSmooth,
+            curve: Curves.easeInOut,
             alignment: 0.5,
           );
         }
@@ -253,58 +254,21 @@ class _LyricsDisplayState extends State<LyricsDisplay> {
 
     for (int i = 0; i < _parsedLyrics.length; i++) {
       final isCurrentLine = i == _currentLineIndex;
-      final isPreviousLine = i == _currentLineIndex - 1;
-      final isNextLine = i == _currentLineIndex + 1;
 
       lines.add(
         AnimatedContainer(
           key: _lineKeys[i],
-          duration: AppDimens.animSlow,
-          curve: Curves.easeInOutCubic,
+          duration: AppDimens.animDefault,
+          curve: Curves.easeInOut,
           margin: EdgeInsets.symmetric(
-            horizontal: isCurrentLine
-                ? AppDimens.paddingMd
-                : AppDimens.paddingXl,
-            vertical: isCurrentLine ? AppDimens.spacingSm : AppDimens.spacingXs,
+            horizontal: AppDimens.paddingXl,
+            vertical: AppDimens.spacingXs,
           ),
           padding: EdgeInsets.symmetric(
-            horizontal: isCurrentLine
-                ? AppDimens.paddingXxl
-                : AppDimens.paddingXl,
-            vertical: isCurrentLine ? AppDimens.paddingMd : AppDimens.spacingLg,
+            horizontal: AppDimens.paddingXl,
+            vertical: AppDimens.spacingLg,
           ),
-          decoration: isCurrentLine
-              ? BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      accentColor.withOpacity(0.3),
-                      accentColor.withOpacity(0.15),
-                      accentColor.withOpacity(0.05),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(AppDimens.radiusXl),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accentColor.withOpacity(0.4),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                )
-              : (isPreviousLine || isNextLine)
-              ? BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(AppDimens.radiusLg),
-                )
-              : null,
+          decoration: null,
           child: GestureDetector(
             onTap: () => _seekToLine(i),
             child: AnimatedDefaultTextStyle(
@@ -318,19 +282,15 @@ class _LyricsDisplayState extends State<LyricsDisplay> {
                       letterSpacing: 0.5,
                       shadows: [
                         Shadow(
-                          color: accentColor.withOpacity(0.6),
+                          color: accentColor.withValues(alpha: 0.6),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     )
-                  : (isPreviousLine || isNextLine)
-                  ? AppTextStyles.titleSm(
-                      isDarkMode: true,
-                    ).copyWith(color: Colors.white.withOpacity(0.8))
                   : AppTextStyles.subtitle(
                       isDarkMode: true,
-                    ).copyWith(color: Colors.white.withOpacity(0.5)),
+                    ).copyWith(color: Colors.white.withValues(alpha: 0.5)),
               child: Text(_parsedLyrics[i].text, textAlign: TextAlign.center),
             ),
           ),
@@ -390,507 +350,511 @@ class _LyricsDisplayState extends State<LyricsDisplay> {
         playerProvider.lastPlayedSong != null ||
         playerProvider.currentLocalSong != null;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withOpacity(0.9),
-            Colors.grey[900]!.withOpacity(0.95),
-            Colors.black.withOpacity(0.98),
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusXxxl),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            spreadRadius: 5,
-            offset: const Offset(0, -5),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppDimens.radiusXxxl),
       ),
-      child: Stack(
-        children: [
-          Column(
-            children: [
-              Container(
-                margin: EdgeInsets.only(
-                  top: AppDimens.spacingSm,
-                  bottom: AppDimens.spacingS,
-                ),
-                child: Container(
-                  width: AppDimens.dragHandleWidth,
-                  height: AppDimens.dragHandleHeight,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        accentColor.withOpacity(0.6),
-                        accentColor.withOpacity(0.3),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withOpacity(0.18),
-                        blurRadius: 6,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.45),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.68),
+                Colors.grey[900]!.withValues(alpha: 0.75),
+                Colors.black.withValues(alpha: 0.82),
+              ],
+            ),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(AppDimens.radiusXxxl),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 20,
+                spreadRadius: 5,
+                offset: const Offset(0, -5),
               ),
-
-              Center(
-                child: Container(
-                  margin: EdgeInsets.symmetric(vertical: AppDimens.spacingSm),
-                  child: Consumer<SettingsProvider>(
-                    builder: (context, settings, child) {
-                      final isLocalSong =
-                          playerProvider.currentLocalSong != null;
-                      final currentProvider = settings.lyricsProvider;
-
-                      List<String> availableProviders = ['LRCLib', 'AI'];
-                      if (!isLocalSong) {
-                        availableProviders = ['LRCLib', 'YT Music', 'AI'];
-                      }
-
-                      double highlightWidth = 0;
-                      double highlightLeft = 0;
-                      final double totalWidth = AppDimens.buttonWidthMedium;
-                      double itemWidth = totalWidth / availableProviders.length;
-
-                      int selectedIndex = availableProviders.indexOf(
-                        currentProvider,
-                      );
-                      if (selectedIndex == -1) {
-                        selectedIndex = 0;
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          settings.lyricsProvider = 'LRCLib';
-                          _lyricsProvider.fetchLyricsForCurrentSong();
-                        });
-                      }
-
-                      highlightWidth = itemWidth - AppDimens.spacingS;
-                      highlightLeft =
-                          (selectedIndex * itemWidth) + AppDimens.spacingXs;
-
-                      final double providerTextScale = mq.textScaleFactor > 1.0
-                          ? (1.0 / mq.textScaleFactor)
-                                .clamp(0.70, 1.0)
-                                .toDouble()
-                          : 1.0;
-
-                      return Container(
-                        width: totalWidth,
-                        height: AppDimens.buttonSizeCompact,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.grey[800]!.withOpacity(0.8),
-                              Colors.grey[900]!.withOpacity(0.9),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppDimens.radiusXxl,
-                          ),
-                          border: Border.all(
-                            color: accentColor.withOpacity(0.3),
-                            width: AppDimens.borderWidthThin,
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            AnimatedPositioned(
-                              duration: AppDimens.animSmooth,
-                              curve: Curves.elasticOut,
-                              left: highlightLeft,
-                              top: AppDimens.spacingXs,
-                              width: highlightWidth,
-                              child: Container(
-                                height: AppDimens.iconXl,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      accentColor,
-                                      accentColor.withOpacity(0.8),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppDimens.radiusMdLg,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: accentColor.withOpacity(0.32),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned.fill(
-                              child: Row(
-                                children: availableProviders.map((provider) {
-                                  final isSelected =
-                                      currentProvider == provider;
-                                  return Expanded(
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        final alreadyTried = _lyricsProvider
-                                            .hasTriedProvider(provider);
-
-                                        settings.lyricsProvider = provider;
-                                        setState(() {});
-
-                                        if (alreadyTried) {
-                                          await _lyricsProvider
-                                              .loadCachedLyricsForProvider(
-                                                provider,
-                                              );
-                                        } else {
-                                          await _lyricsProvider
-                                              .fetchLyricsForCurrentSong();
-                                        }
-                                      },
-                                      child: Center(
-                                        child: Text(
-                                          provider,
-                                          textScaleFactor: providerTextScale,
-                                          style: isSelected
-                                              ? AppTextStyles.caption(
-                                                  isDarkMode: true,
-                                                  color: Colors.white,
-                                                ).copyWith(
-                                                  fontWeight: AppTextStyles
-                                                      .weightSemiBold,
-                                                )
-                                              : AppTextStyles.caption(
-                                                  isDarkMode: true,
-                                                ).copyWith(
-                                                  color: Colors.white
-                                                      .withOpacity(0.7),
-                                                ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: AppDimens.spacingSm,
+                      bottom: AppDimens.spacingS,
+                    ),
+                    child: Container(
+                      width: AppDimens.dragHandleWidth,
+                      height: AppDimens.dragHandleHeight,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            accentColor.withValues(alpha: 0.6),
+                            accentColor.withValues(alpha: 0.3),
                           ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              SizedBox(height: AppDimens.spacingSm),
-
-              Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
-                      width: AppDimens.borderWidthThin,
+                        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withValues(alpha: 0.18),
+                            blurRadius: 6,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: IconButton(
-                    icon: Icon(
-                      _showPlainLyrics
-                          ? Icons.format_list_bulleted
-                          : Icons.lyrics_outlined,
-                      color: Colors.white,
-                      size: AppDimens.iconSm,
-                    ),
-                    onPressed: _togglePlainLyrics,
-                    padding: EdgeInsets.all(AppDimens.spacingS),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    if (_lyricsProvider.isLoading)
-                      SizedBox.expand(
-                        child: Center(
-                          child: CircularProgressIndicator(color: accentColor),
-                        ),
-                      )
-                    else if (_lyricsProvider.lyricsResponse?.lyrics == null ||
-                        _lyricsProvider.lyricsResponse!.lyrics!.isEmpty)
-                      SizedBox.expand(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.music_off,
-                                color: Colors.white.withOpacity(0.5),
-                                size: AppDimens.iconHero,
+
+                  Center(
+                    child: Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: AppDimens.spacingSm,
+                      ),
+                      child: Consumer<SettingsProvider>(
+                        builder: (context, settings, child) {
+                          final isLocalSong =
+                              playerProvider.currentLocalSong != null;
+                          final currentProvider = settings.lyricsProvider;
+
+                          List<String> availableProviders = ['LRCLib', 'AI'];
+                          if (!isLocalSong) {
+                            availableProviders = ['LRCLib', 'YT Music', 'AI'];
+                          }
+
+                          double highlightWidth = 0;
+                          double highlightLeft = 0;
+                          final double totalWidth = AppDimens.buttonWidthMedium;
+                          double itemWidth =
+                              totalWidth / availableProviders.length;
+
+                          int selectedIndex = availableProviders.indexOf(
+                            currentProvider,
+                          );
+                          if (selectedIndex == -1) {
+                            selectedIndex = 0;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              settings.lyricsProvider = 'LRCLib';
+                              _lyricsProvider.fetchLyricsForCurrentSong();
+                            });
+                          }
+
+                          highlightWidth = itemWidth - AppDimens.spacingS;
+                          highlightLeft =
+                              (selectedIndex * itemWidth) + AppDimens.spacingXs;
+
+                          final double providerTextScale =
+                              mq.textScaleFactor > 1.0
+                              ? (1.0 / mq.textScaleFactor)
+                                    .clamp(0.70, 1.0)
+                                    .toDouble()
+                              : 1.0;
+
+                          return Container(
+                            width: totalWidth,
+                            height: AppDimens.buttonSizeCompact,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.grey[800]!.withValues(alpha: 0.8),
+                                  Colors.grey[900]!.withValues(alpha: 0.9),
+                                ],
                               ),
-                              SizedBox(height: AppDimens.spacingLg),
-                              Text(
-                                _formatLyricsError(
-                                  _lyricsProvider.error,
-                                  settingsProvider.lyricsProvider,
-                                ),
-                                style: AppTextStyles.bodyLg(
-                                  isDarkMode: true,
-                                ).copyWith(color: Colors.white),
-                                textAlign: TextAlign.center,
+                              borderRadius: BorderRadius.circular(
+                                AppDimens.radiusXxl,
                               ),
-                              SizedBox(height: AppDimens.spacingSm),
-                              if (_lyricsProvider.error != null &&
-                                  _lyricsProvider.error!.length > 120)
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: accentColor,
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.3),
+                                width: AppDimens.borderWidthThin,
+                              ),
+                            ),
+                            child: Stack(
+                              children: [
+                                AnimatedPositioned(
+                                  duration: AppDimens.animSmooth,
+                                  curve: Curves.elasticOut,
+                                  left: highlightLeft,
+                                  top: AppDimens.spacingXs,
+                                  width: highlightWidth,
+                                  child: Container(
+                                    height: AppDimens.iconXl,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          accentColor,
+                                          accentColor.withValues(alpha: 0.8),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                        AppDimens.radiusMdLg,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: accentColor.withValues(
+                                            alpha: 0.32,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  onPressed: () => showDialog<void>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Error details'),
-                                      content: SingleChildScrollView(
-                                        child: SelectableText(
-                                          _lyricsProvider.error!,
-                                          style: AppTextStyles.finePrintBase()
-                                              .copyWith(
-                                                fontSize:
-                                                    AppTextStyles.fontSizeXs,
+                                ),
+                                Positioned.fill(
+                                  child: Row(
+                                    children: availableProviders.map((
+                                      provider,
+                                    ) {
+                                      final isSelected =
+                                          currentProvider == provider;
+                                      return Expanded(
+                                        child: GestureDetector(
+                                          onTap: () async {
+                                            final alreadyTried = _lyricsProvider
+                                                .hasTriedProvider(provider);
+
+                                            settings.lyricsProvider = provider;
+                                            setState(() {});
+
+                                            if (alreadyTried) {
+                                              await _lyricsProvider
+                                                  .loadCachedLyricsForProvider(
+                                                    provider,
+                                                  );
+                                            } else {
+                                              await _lyricsProvider
+                                                  .fetchLyricsForCurrentSong();
+                                            }
+                                          },
+                                          child: Center(
+                                            child: Text(
+                                              provider,
+                                              textScaleFactor:
+                                                  providerTextScale,
+                                              style: isSelected
+                                                  ? AppTextStyles.caption(
+                                                      isDarkMode: true,
+                                                      color: Colors.white,
+                                                    ).copyWith(
+                                                      fontWeight: AppTextStyles
+                                                          .weightSemiBold,
+                                                    )
+                                                  : AppTextStyles.caption(
+                                                      isDarkMode: true,
+                                                    ).copyWith(
+                                                      color: Colors.white
+                                                          .withValues(
+                                                            alpha: 0.7,
+                                                          ),
+                                                    ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: AppDimens.spacingSm),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          width: AppDimens.borderWidthThin,
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          _showPlainLyrics
+                              ? Icons.format_list_bulleted
+                              : Icons.lyrics_outlined,
+                          color: Colors.white,
+                          size: AppDimens.iconSm,
+                        ),
+                        onPressed: _togglePlainLyrics,
+                        padding: EdgeInsets.all(AppDimens.spacingS),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        if (_lyricsProvider.isLoading)
+                          SizedBox.expand(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: accentColor,
+                              ),
+                            ),
+                          )
+                        else if (_lyricsProvider.lyricsResponse?.lyrics ==
+                                null ||
+                            _lyricsProvider.lyricsResponse!.lyrics!.isEmpty)
+                          SizedBox.expand(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.music_off,
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    size: AppDimens.iconHero,
+                                  ),
+                                  SizedBox(height: AppDimens.spacingLg),
+                                  Text(
+                                    _formatLyricsError(
+                                      _lyricsProvider.error,
+                                      settingsProvider.lyricsProvider,
+                                    ),
+                                    style: AppTextStyles.bodyLg(
+                                      isDarkMode: true,
+                                    ).copyWith(color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: AppDimens.spacingSm),
+                                  if (_lyricsProvider.error != null &&
+                                      _lyricsProvider.error!.length > 120)
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: accentColor,
+                                      ),
+                                      onPressed: () => showDialog<void>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Error details'),
+                                          content: SingleChildScrollView(
+                                            child: SelectableText(
+                                              _lyricsProvider.error!,
+                                              style:
+                                                  AppTextStyles.finePrintBase()
+                                                      .copyWith(
+                                                        fontSize: AppTextStyles
+                                                            .fontSizeXs,
+                                                      ),
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                              child: Text(
+                                                'Close',
+                                                style: TextStyle(
+                                                  color: accentColor,
+                                                  fontWeight: AppTextStyles
+                                                      .weightSemiBold,
+                                                ),
                                               ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(),
-                                          child: Text(
-                                            'Close',
-                                            style: TextStyle(
+                                      child: Text(
+                                        'Show details',
+                                        style:
+                                            AppTextStyles.caption(
+                                              isDarkMode: true,
+                                            ).copyWith(
                                               color: accentColor,
                                               fontWeight:
                                                   AppTextStyles.weightSemiBold,
                                             ),
+                                      ),
+                                    ),
+                                  Consumer<SettingsProvider>(
+                                    builder: (context, settings, child) {
+                                      final isAiProvider =
+                                          settings.lyricsProvider == 'AI';
+                                      final isApiKeyError =
+                                          _lyricsProvider.error != null &&
+                                          (_lyricsProvider.error!.contains(
+                                                'API Key is not set',
+                                              ) ||
+                                              _lyricsProvider.error!.contains(
+                                                'API Key cannot be empty',
+                                              ));
+                                      return Column(
+                                        children: [
+                                          Text(
+                                            'from ${settings.lyricsProvider}',
+                                            style:
+                                                AppTextStyles.bodyMd(
+                                                  isDarkMode: true,
+                                                ).copyWith(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.6),
+                                                ),
+                                            textAlign: TextAlign.center,
                                           ),
-                                        ),
+                                          if (isAiProvider &&
+                                              isApiKeyError) ...[
+                                            SizedBox(
+                                              height: AppDimens.spacingLg,
+                                            ),
+                                            ElevatedButton.icon(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const AiApiConfigScreen(),
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(
+                                                Icons.settings,
+                                                color: Colors.white,
+                                              ),
+                                              label: Text(
+                                                'Configure AI API',
+                                                style: AppTextStyles.button()
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                      fontWeight: AppTextStyles
+                                                          .weightBold,
+                                                    ),
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: accentColor,
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal:
+                                                      AppDimens.paddingXl,
+                                                  vertical: AppDimens.paddingMd,
+                                                ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        AppDimens.radiusLg,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            child: _showPlainLyrics
+                                ? SingleChildScrollView(
+                                    padding: EdgeInsets.all(
+                                      AppDimens.paddingXxl,
+                                    ),
+                                    child: Text(
+                                      _lyricsProvider.lyricsResponse!.lyrics!,
+                                      style:
+                                          AppTextStyles.bodyLg(
+                                            isDarkMode: true,
+                                          ).copyWith(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.9,
+                                            ),
+                                            height:
+                                                AppTextStyles.lineHeightRelaxed,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  )
+                                : SingleChildScrollView(
+                                    controller: _scrollController,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(height: mq.size.height / 2),
+                                        ..._buildLyricsLines(),
+                                        SizedBox(height: mq.size.height / 2),
                                       ],
                                     ),
                                   ),
-                                  child: Text(
-                                    'Show details',
-                                    style:
-                                        AppTextStyles.caption(
-                                          isDarkMode: true,
-                                        ).copyWith(
-                                          color: accentColor,
-                                          fontWeight:
-                                              AppTextStyles.weightSemiBold,
-                                        ),
-                                  ),
-                                ),
-                              Consumer<SettingsProvider>(
-                                builder: (context, settings, child) {
-                                  final isAiProvider =
-                                      settings.lyricsProvider == 'AI';
-                                  final isApiKeyError =
-                                      _lyricsProvider.error != null &&
-                                      (_lyricsProvider.error!.contains(
-                                            'API Key is not set',
-                                          ) ||
-                                          _lyricsProvider.error!.contains(
-                                            'API Key cannot be empty',
-                                          ));
-                                  return Column(
-                                    children: [
-                                      Text(
-                                        'from ${settings.lyricsProvider}',
-                                        style:
-                                            AppTextStyles.bodyMd(
-                                              isDarkMode: true,
-                                            ).copyWith(
-                                              color: Colors.white.withOpacity(
-                                                0.6,
-                                              ),
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      if (isAiProvider && isApiKeyError) ...[
-                                        SizedBox(height: AppDimens.spacingLg),
-                                        ElevatedButton.icon(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const AiApiConfigScreen(),
-                                              ),
-                                            );
-                                          },
-                                          icon: const Icon(
-                                            Icons.settings,
-                                            color: Colors.white,
-                                          ),
-                                          label: Text(
-                                            'Configure AI API',
-                                            style: AppTextStyles.button()
-                                                .copyWith(
-                                                  color: Colors.white,
-                                                  fontWeight:
-                                                      AppTextStyles.weightBold,
-                                                ),
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: accentColor,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: AppDimens.paddingXl,
-                                              vertical: AppDimens.paddingMd,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimens.radiusLg,
-                                                  ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
                           ),
+                      ],
+                    ),
+                  ),
+
+                  if (hasPlayer)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).appBarTheme.backgroundColor,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppDimens.radiusMd),
                         ),
-                      )
-                    else
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: Alignment.center,
-                            radius: 1.0,
-                            colors: [
-                              accentColor.withOpacity(0.1),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                        child: _showPlainLyrics
-                            ? Container(
-                                margin: EdgeInsets.all(AppDimens.paddingXl),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      accentColor.withOpacity(0.05),
-                                      Colors.transparent,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppDimens.radiusXl,
-                                  ),
-                                  border: Border.all(
-                                    color: accentColor.withOpacity(0.1),
-                                    width: AppDimens.borderWidthThin,
-                                  ),
-                                ),
-                                child: SingleChildScrollView(
-                                  padding: EdgeInsets.all(AppDimens.paddingXxl),
-                                  child: Text(
-                                    _lyricsProvider.lyricsResponse!.lyrics!,
-                                    style:
-                                        AppTextStyles.bodyLg(
-                                          isDarkMode: true,
-                                        ).copyWith(
-                                          color: Colors.white.withOpacity(0.9),
-                                          height:
-                                              AppTextStyles.lineHeightRelaxed,
-                                        ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              )
-                            : SingleChildScrollView(
-                                controller: _scrollController,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: mq.size.height / 2),
-                                    ..._buildLyricsLines(),
-                                    SizedBox(height: mq.size.height / 2),
-                                  ],
-                                ),
-                              ),
                       ),
-                  ],
+                      child: SafeArea(
+                        top: false,
+                        child: SizedBox(
+                          height: AppDimens.miniPlayerHeight * navIconScale,
+                          child: PlayerUI(
+                            showFullScreen: false,
+                            isEmbedded: true,
+                            onMinimize: () {},
+                            onExpand: () => widget.onClose(),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              Positioned(
+                top: AppDimens.spacingS,
+                left: AppDimens.spacingSm,
+                child: SafeArea(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.white,
+                      size: AppDimens.iconSm,
+                    ),
+                    onPressed: () async {
+                      setState(() {});
+                      await _lyricsProvider.fetchLyricsForCurrentSong(
+                        forceRefresh: true,
+                      );
+                    },
+                    padding: EdgeInsets.all(AppDimens.spacingS),
+                  ),
                 ),
               ),
-
-              if (hasPlayer)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).appBarTheme.backgroundColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppDimens.radiusMd),
+              Positioned(
+                top: AppDimens.spacingS,
+                right: AppDimens.spacingSm,
+                child: SafeArea(
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: AppDimens.iconSm,
                     ),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: SizedBox(
-                      height: AppDimens.miniPlayerHeight * navIconScale,
-                      child: PlayerUI(
-                        showFullScreen: false,
-                        isEmbedded: true,
-                        onMinimize: () {},
-                        onExpand: () => widget.onClose(),
-                      ),
-                    ),
+                    onPressed: widget.onClose,
+                    padding: EdgeInsets.all(AppDimens.spacingS),
                   ),
                 ),
+              ),
             ],
           ),
-          Positioned(
-            top: AppDimens.spacingS,
-            left: AppDimens.spacingSm,
-            child: SafeArea(
-              child: IconButton(
-                icon: Icon(
-                  Icons.refresh_rounded,
-                  color: Colors.white,
-                  size: AppDimens.iconSm,
-                ),
-                onPressed: () async {
-                  setState(() {});
-                  await _lyricsProvider.fetchLyricsForCurrentSong(
-                    forceRefresh: true,
-                  );
-                },
-                padding: EdgeInsets.all(AppDimens.spacingS),
-              ),
-            ),
-          ),
-          Positioned(
-            top: AppDimens.spacingS,
-            right: AppDimens.spacingSm,
-            child: SafeArea(
-              child: IconButton(
-                icon: Icon(
-                  Icons.close_rounded,
-                  color: Colors.white,
-                  size: AppDimens.iconSm,
-                ),
-                onPressed: widget.onClose,
-                padding: EdgeInsets.all(AppDimens.spacingS),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

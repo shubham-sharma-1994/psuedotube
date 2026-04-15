@@ -205,10 +205,10 @@ class ContentDetailsService {
         (sum, song) => sum + (song.duration?.inSeconds ?? 0),
       );
 
-      final String rawTitle = playlist.title ?? '';
+      final String rawTitle = playlist.title;
       String contentType = 'Playlist';
       String name = rawTitle;
-      String artist = playlist.author ?? '';
+      String artist = playlist.author;
 
       if (rawTitle.toLowerCase().startsWith('album - ')) {
         contentType = 'Album';

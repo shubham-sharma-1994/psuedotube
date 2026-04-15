@@ -1,9 +1,3 @@
-# just_audio rules
--keep class com.ryanheise.just_audio.** { *; }
--keep class com.google.android.exoplayer2.** { *; }
--keep class com.google.android.exoplayer2.ext.ffmpeg.** { *; }
--keep class com.google.android.exoplayer2.upstream.cache.** { *; }
-
 
 # flutter_local_notifications rules
 -keep class com.dexterous.flutterlocalnotifications.** { *; }

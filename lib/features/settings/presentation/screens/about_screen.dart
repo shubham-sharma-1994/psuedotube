@@ -127,17 +127,23 @@ class AboutSettingsScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDarkMode
-              ? [accentColor.withOpacity(0.08), accentColor.withOpacity(0.03)]
-              : [accentColor.withOpacity(0.05), accentColor.withOpacity(0.02)],
+              ? [
+                  accentColor.withValues(alpha: 0.08),
+                  accentColor.withValues(alpha: 0.03),
+                ]
+              : [
+                  accentColor.withValues(alpha: 0.05),
+                  accentColor.withValues(alpha: 0.02),
+                ],
         ),
         borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
         border: Border.all(
-          color: accentColor.withOpacity(AppDimens.opacityLight),
+          color: accentColor.withValues(alpha: AppDimens.opacityLight),
           width: AppDimens.borderWidthThin,
         ),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withOpacity(0.05),
+            color: accentColor.withValues(alpha: 0.05),
             blurRadius: AppDimens.paddingMd,
             offset: const Offset(0, 4),
           ),
@@ -162,13 +168,13 @@ class AboutSettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(AppDimens.paddingXl),
         decoration: BoxDecoration(
           color: isDarkMode
-              ? Colors.white.withOpacity(0.03)
-              : Colors.black.withOpacity(0.02),
+              ? Colors.white.withValues(alpha: 0.03)
+              : Colors.black.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(AppDimens.radiusXl),
           border: Border.all(
             color: isDarkMode
-                ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                ? Colors.white.withValues(alpha: AppDimens.opacitySubtle)
+                : Colors.black.withValues(alpha: AppDimens.opacitySubtle),
           ),
         ),
         child: Row(
@@ -177,12 +183,14 @@ class AboutSettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(AppDimens.paddingMd),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [accentColor, accentColor.withOpacity(0.7)],
+                  colors: [accentColor, accentColor.withValues(alpha: 0.7)],
                 ),
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 boxShadow: [
                   BoxShadow(
-                    color: accentColor.withOpacity(AppDimens.opacityOverlay),
+                    color: accentColor.withValues(
+                      alpha: AppDimens.opacityOverlay,
+                    ),
                     blurRadius: AppDimens.spacingSm,
                     offset: const Offset(0, 4),
                   ),
@@ -206,7 +214,7 @@ class AboutSettingsScreen extends StatelessWidget {
                         .copyWith(
                           color: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(AppDimens.opacityMid),
+                          ).withValues(alpha: AppDimens.opacityMid),
                         ),
                   ),
                 ],
@@ -241,13 +249,13 @@ class AboutSettingsScreen extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                accentColor.withOpacity(0.15),
-                accentColor.withOpacity(0.08),
+                accentColor.withValues(alpha: 0.15),
+                accentColor.withValues(alpha: 0.08),
               ],
             ),
             borderRadius: BorderRadius.circular(AppDimens.radiusXl),
             border: Border.all(
-              color: accentColor.withOpacity(AppDimens.opacityMedium),
+              color: accentColor.withValues(alpha: AppDimens.opacityMedium),
               width: AppDimens.borderWidthThick,
             ),
           ),
@@ -256,7 +264,7 @@ class AboutSettingsScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingMd),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.15),
+                  color: accentColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: accentColor, size: AppDimens.iconXl),
@@ -288,6 +296,7 @@ class AboutSettingsScreen extends StatelessWidget {
         final isTablet =
             screenWidth >= AppDimens.breakpointTabletShort &&
             screenWidth < AppDimens.breakpointDesktop;
+        final isMobile = !isDesktop && !isTablet;
 
         final horizontalPadding = isDesktop
             ? AppDimens.spacing4Xl
@@ -306,7 +315,7 @@ class AboutSettingsScreen extends StatelessWidget {
             ? 330.0
             : isTablet
             ? 310.0
-            : 290.0;
+            : 320.0;
 
         return SafeArea(
           top: false,
@@ -339,7 +348,9 @@ class AboutSettingsScreen extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            accentColor.withOpacity(AppDimens.opacityMedium),
+                            accentColor.withValues(
+                              alpha: AppDimens.opacityMedium,
+                            ),
                             isDarkMode
                                 ? MainScreenColors.darkBackgroundColor
                                 : MainScreenColors.lightBackgroundColor,
@@ -352,7 +363,11 @@ class AboutSettingsScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SizedBox(height: AppDimens.spacing4Xl),
+                              SizedBox(
+                                height: isMobile
+                                    ? AppDimens.spacingXxl
+                                    : AppDimens.spacing4Xl,
+                              ),
                               Hero(
                                 tag: 'app_logo',
                                 child: Container(
@@ -363,8 +378,8 @@ class AboutSettingsScreen extends StatelessWidget {
                                     gradient: LinearGradient(
                                       colors: [
                                         accentColor,
-                                        accentColor.withOpacity(
-                                          AppDimens.opacityMid,
+                                        accentColor.withValues(
+                                          alpha: AppDimens.opacityMid,
                                         ),
                                       ],
                                     ),
@@ -373,7 +388,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: accentColor.withOpacity(0.4),
+                                        color: accentColor.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         blurRadius: AppDimens.paddingXl,
                                         spreadRadius: 2,
                                       ),
@@ -412,9 +429,12 @@ class AboutSettingsScreen extends StatelessWidget {
                                       AppTextStyles.bodyLg(
                                         isDarkMode: isDarkMode,
                                       ).copyWith(
-                                        color: MainScreenColors.getTextColor(
-                                          isDarkMode,
-                                        ).withOpacity(AppDimens.opacityMuted),
+                                        color:
+                                            MainScreenColors.getTextColor(
+                                              isDarkMode,
+                                            ).withValues(
+                                              alpha: AppDimens.opacityMuted,
+                                            ),
                                       ),
                                 ),
                               ),
@@ -428,14 +448,16 @@ class AboutSettingsScreen extends StatelessWidget {
                                       snapshot.data?.buildNumber ?? '';
                                   return Container(
                                     padding: EdgeInsets.symmetric(
-                                      vertical: AppDimens.paddingSm,
+                                      vertical: isMobile
+                                          ? AppDimens.paddingXs
+                                          : AppDimens.paddingSm,
                                       horizontal: AppDimens.paddingXl,
                                     ),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
                                           accentColor,
-                                          accentColor.withOpacity(0.8),
+                                          accentColor.withValues(alpha: 0.8),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(
@@ -443,8 +465,8 @@ class AboutSettingsScreen extends StatelessWidget {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: accentColor.withOpacity(
-                                            AppDimens.opacityOverlay,
+                                          color: accentColor.withValues(
+                                            alpha: AppDimens.opacityOverlay,
                                           ),
                                           blurRadius: AppDimens.spacingSm,
                                           offset: const Offset(0, 4),
@@ -453,15 +475,20 @@ class AboutSettingsScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       'v$version${buildNumber.isNotEmpty ? ' (${'build'.tr()} $buildNumber)' : ''}',
-                                      style: AppTextStyles.body2().copyWith(
-                                        color: Colors.white,
-                                        fontWeight:
-                                            AppTextStyles.weightSemiBold,
-                                      ),
+                                      style:
+                                          (isMobile
+                                                  ? AppTextStyles.caption()
+                                                  : AppTextStyles.body2())
+                                              .copyWith(
+                                                color: Colors.white,
+                                                fontWeight: AppTextStyles
+                                                    .weightSemiBold,
+                                              ),
                                     ),
                                   );
                                 },
                               ),
+                              SizedBox(height: AppDimens.spacingMd),
                             ],
                           ),
                         ),
@@ -494,7 +521,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                       AppDimens.paddingMd,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withOpacity(0.15),
+                                      color: accentColor.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(
                                         AppDimens.radiusLg,
                                       ),
@@ -527,8 +556,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                                 color:
                                                     MainScreenColors.getTextColor(
                                                       isDarkMode,
-                                                    ).withOpacity(
-                                                      AppDimens.opacityMid,
+                                                    ).withValues(
+                                                      alpha:
+                                                          AppDimens.opacityMid,
                                                     ),
                                               ),
                                         ),
@@ -557,7 +587,7 @@ class AboutSettingsScreen extends StatelessWidget {
                               padding: EdgeInsets.all(
                                 isDesktop
                                     ? AppDimens.paddingXxl
-                                    : AppDimens.paddingXxl,
+                                    : AppDimens.paddingXl,
                               ),
                               child: Column(
                                 children: [
@@ -571,15 +601,19 @@ class AboutSettingsScreen extends StatelessWidget {
                                           gradient: LinearGradient(
                                             colors: [
                                               accentColor,
-                                              accentColor.withOpacity(
-                                                AppDimens.opacityMid,
+                                              accentColor.withValues(
+                                                alpha: AppDimens.opacityMid,
                                               ),
                                             ],
                                           ),
                                           shape: BoxShape.circle,
                                         ),
                                         child: CircleAvatar(
-                                          radius: isDesktop ? 36 : 32,
+                                          radius: isDesktop
+                                              ? 36
+                                              : isTablet
+                                              ? 32
+                                              : 28,
                                           backgroundColor: isDarkMode
                                               ? MainScreenColors
                                                     .darkBackgroundColor
@@ -614,32 +648,37 @@ class AboutSettingsScreen extends StatelessWidget {
                                                 padding:
                                                     const EdgeInsets.symmetric(
                                                       horizontal:
-                                                          AppDimens.paddingMd,
+                                                          AppDimens.paddingSm,
                                                       vertical:
-                                                          AppDimens.paddingXs,
+                                                          AppDimens.spacingXxs,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: accentColor
-                                                      .withOpacity(0.15),
+                                                  color: accentColor.withValues(
+                                                    alpha: 0.15,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                        AppDimens.radiusXl,
+                                                        AppDimens.radiusLg,
                                                       ),
                                                   border: Border.all(
                                                     color: accentColor
-                                                        .withOpacity(0.3),
+                                                        .withValues(alpha: 0.3),
                                                     width: 1,
                                                   ),
                                                 ),
                                                 child: Text(
                                                   'lead_developer'.tr(),
-                                                  style: AppTextStyles.caption()
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  softWrap: false,
+                                                  style: AppTextStyles.finePrint()
                                                       .copyWith(
                                                         color: accentColor,
                                                         fontWeight:
                                                             AppTextStyles
                                                                 .weightSemiBold,
-                                                        letterSpacing: 0.3,
+                                                        letterSpacing: 0.1,
                                                       ),
                                                 ),
                                               ),
@@ -655,14 +694,18 @@ class AboutSettingsScreen extends StatelessWidget {
                                           AppDimens.radiusLg,
                                         ),
                                         child: Container(
-                                          padding: const EdgeInsets.all(
-                                            AppDimens.paddingMd,
+                                          padding: EdgeInsets.all(
+                                            isMobile
+                                                ? AppDimens.paddingSm
+                                                : AppDimens.paddingMd,
                                           ),
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
                                                 accentColor,
-                                                accentColor.withOpacity(0.8),
+                                                accentColor.withValues(
+                                                  alpha: 0.8,
+                                                ),
                                               ],
                                             ),
                                             borderRadius: BorderRadius.circular(
@@ -670,8 +713,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: accentColor.withOpacity(
-                                                  AppDimens.opacityOverlay,
+                                                color: accentColor.withValues(
+                                                  alpha:
+                                                      AppDimens.opacityOverlay,
                                                 ),
                                                 blurRadius: AppDimens.spacingSm,
                                                 offset: const Offset(0, 4),
@@ -681,7 +725,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                           child: Icon(
                                             Icons.code_rounded,
                                             color: Colors.white,
-                                            size: AppDimens.iconMd,
+                                            size: isMobile
+                                                ? AppDimens.iconSm
+                                                : AppDimens.iconMd,
                                           ),
                                         ),
                                       ),
@@ -690,11 +736,11 @@ class AboutSettingsScreen extends StatelessWidget {
                                   SizedBox(height: AppDimens.paddingXl),
                                   Divider(
                                     color: isDarkMode
-                                        ? Colors.white.withOpacity(
-                                            AppDimens.opacityLight,
+                                        ? Colors.white.withValues(
+                                            alpha: AppDimens.opacityLight,
                                           )
-                                        : Colors.black.withOpacity(
-                                            AppDimens.opacityLight,
+                                        : Colors.black.withValues(
+                                            alpha: AppDimens.opacityLight,
                                           ),
                                   ),
                                   SizedBox(height: AppDimens.spacingLg),
@@ -704,9 +750,12 @@ class AboutSettingsScreen extends StatelessWidget {
                                         AppTextStyles.bodyMd(
                                           isDarkMode: isDarkMode,
                                         ).copyWith(
-                                          color: MainScreenColors.getTextColor(
-                                            isDarkMode,
-                                          ).withOpacity(AppDimens.opacityMuted),
+                                          color:
+                                              MainScreenColors.getTextColor(
+                                                isDarkMode,
+                                              ).withValues(
+                                                alpha: AppDimens.opacityMuted,
+                                              ),
                                           height:
                                               AppTextStyles.lineHeightRelaxed,
                                         ),
@@ -731,18 +780,18 @@ class AboutSettingsScreen extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: isDarkMode
-                                    ? Colors.white.withOpacity(0.03)
-                                    : Colors.black.withOpacity(0.02),
+                                    ? Colors.white.withValues(alpha: 0.03)
+                                    : Colors.black.withValues(alpha: 0.02),
                                 borderRadius: BorderRadius.circular(
                                   AppDimens.radiusXl,
                                 ),
                                 border: Border.all(
                                   color: isDarkMode
-                                      ? Colors.white.withOpacity(
-                                          AppDimens.opacitySubtle,
+                                      ? Colors.white.withValues(
+                                          alpha: AppDimens.opacitySubtle,
                                         )
-                                      : Colors.black.withOpacity(
-                                          AppDimens.opacitySubtle,
+                                      : Colors.black.withValues(
+                                          alpha: AppDimens.opacitySubtle,
                                         ),
                                 ),
                               ),
@@ -753,7 +802,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                       AppDimens.paddingMd,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withOpacity(0.15),
+                                      color: accentColor.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(
                                         AppDimens.radiusLg,
                                       ),
@@ -786,8 +837,9 @@ class AboutSettingsScreen extends StatelessWidget {
                                                 color:
                                                     MainScreenColors.getTextColor(
                                                       isDarkMode,
-                                                    ).withOpacity(
-                                                      AppDimens.opacityMid,
+                                                    ).withValues(
+                                                      alpha:
+                                                          AppDimens.opacityMid,
                                                     ),
                                               ),
                                         ),
@@ -829,7 +881,7 @@ class AboutSettingsScreen extends StatelessWidget {
                           _buildActionCard(
                             icon: Icons.volunteer_activism_rounded,
                             title: 'contribute'.tr(),
-                            subtitle: 'Help improve Noize',
+                            subtitle: 'help_improve_noize'.tr(),
                             onTap: () => _launchURL(
                               'https://github.com/anandssm/noize/blob/main/CONTRIBUTING.md',
                             ),
@@ -911,9 +963,12 @@ class AboutSettingsScreen extends StatelessWidget {
                                         AppTextStyles.bodyMd(
                                           isDarkMode: isDarkMode,
                                         ).copyWith(
-                                          color: MainScreenColors.getTextColor(
-                                            isDarkMode,
-                                          ).withOpacity(AppDimens.opacityMuted),
+                                          color:
+                                              MainScreenColors.getTextColor(
+                                                isDarkMode,
+                                              ).withValues(
+                                                alpha: AppDimens.opacityMuted,
+                                              ),
                                           height: AppTextStyles.lineHeightBody,
                                         ),
                                   ),
@@ -1009,9 +1064,12 @@ class AboutSettingsScreen extends StatelessWidget {
                                       AppTextStyles.caption(
                                         isDarkMode: isDarkMode,
                                       ).copyWith(
-                                        color: MainScreenColors.getTextColor(
-                                          isDarkMode,
-                                        ).withOpacity(AppDimens.opacitySemi),
+                                        color:
+                                            MainScreenColors.getTextColor(
+                                              isDarkMode,
+                                            ).withValues(
+                                              alpha: AppDimens.opacitySemi,
+                                            ),
                                       ),
                                 ),
                                 SizedBox(height: AppDimens.spacingSm),
@@ -1021,8 +1079,8 @@ class AboutSettingsScreen extends StatelessWidget {
                                       AppTextStyles.finePrint(
                                         isDarkMode: isDarkMode,
                                       ).copyWith(
-                                        color: accentColor.withOpacity(
-                                          AppDimens.opacityMuted,
+                                        color: accentColor.withValues(
+                                          alpha: AppDimens.opacityMuted,
                                         ),
                                         fontWeight: AppTextStyles.weightMedium,
                                       ),
@@ -1131,7 +1189,7 @@ class _ReleaseNotesSheetState extends State<_ReleaseNotesSheet> {
               decoration: BoxDecoration(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(AppDimens.opacityOverlay),
+                ).withValues(alpha: AppDimens.opacityOverlay),
                 borderRadius: BorderRadius.circular(AppDimens.radiusFull),
               ),
             ),
@@ -1184,8 +1242,8 @@ class _ReleaseNotesSheetState extends State<_ReleaseNotesSheet> {
                       ),
                       selectedColor: accentColor,
                       backgroundColor: isDarkMode
-                          ? Colors.white.withOpacity(0.05)
-                          : Colors.black.withOpacity(0.05),
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.05),
                       side: BorderSide(
                         color: isSelected ? accentColor : Colors.transparent,
                       ),
@@ -1208,7 +1266,7 @@ class _ReleaseNotesSheetState extends State<_ReleaseNotesSheet> {
             Divider(
               color: MainScreenColors.getTextColor(
                 isDarkMode,
-              ).withOpacity(AppDimens.opacityLight),
+              ).withValues(alpha: AppDimens.opacityLight),
             ),
             Expanded(
               child: _loading
@@ -1240,12 +1298,12 @@ class _ReleaseNotesSheetState extends State<_ReleaseNotesSheet> {
                         code: AppTextStyles.bodyMd(isDarkMode: isDarkMode)
                             .copyWith(
                               fontFamily: 'monospace',
-                              backgroundColor: widget.accentColor.withOpacity(
-                                0.1,
+                              backgroundColor: widget.accentColor.withValues(
+                                alpha: 0.1,
                               ),
                             ),
                         codeblockDecoration: BoxDecoration(
-                          color: widget.accentColor.withOpacity(0.08),
+                          color: widget.accentColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(
                             AppDimens.radiusMd,
                           ),
@@ -1266,7 +1324,7 @@ class _ReleaseNotesSheetState extends State<_ReleaseNotesSheet> {
                             top: BorderSide(
                               color: MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(AppDimens.opacityLight),
+                              ).withValues(alpha: AppDimens.opacityLight),
                             ),
                           ),
                         ),

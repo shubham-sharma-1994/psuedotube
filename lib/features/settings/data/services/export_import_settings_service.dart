@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/settings_storage_service.dart';
 
 class ExportImportSettingsService {
   Future<Map<String, dynamic>> exportSelectedData({
@@ -202,22 +202,23 @@ class ExportImportSettingsService {
   }
 
   Future<Map<String, dynamic>> _exportAppSettingsData() async {
-    final prefs = await SharedPreferences.getInstance();
+    final box = await SettingsStorageService.getBox();
     return {
-      'audioQuality': prefs.getString('audioQuality'),
-      'headsetControls': prefs.getBool('headsetControls'),
-      'theme': prefs.getString('theme'),
-      'notifications': prefs.getBool('notifications'),
-      'language': prefs.getString('language'),
-      'accentColor': prefs.getInt('accentColor'),
-      'streamingQuality': prefs.getString('streamingQuality'),
-      'downloadingQuality': prefs.getString('downloadingQuality'),
-      'playbackHistoryEnabled': prefs.getBool('playbackHistoryEnabled'),
-      'searchHistoryEnabled': prefs.getBool('searchHistoryEnabled'),
-      'lyricsProvider': prefs.getString('lyricsProvider'),
-      'progressBarStyle': prefs.getString('progressBarStyle'),
-      'backgroundAnimationType': prefs.getString('backgroundAnimationType'),
-      'selectedCountryPlaylistId': prefs.getString('selectedCountryPlaylistId'),
+      'audioQuality': box.get('audioQuality'),
+      'headsetControls': box.get('headsetControls'),
+      'theme': box.get('theme'),
+      'notifications': box.get('notifications'),
+      'language': box.get('language'),
+      'accentColor': box.get('accentColor'),
+      'streamingQuality': box.get('streamingQuality'),
+      'downloadingQuality': box.get('downloadingQuality'),
+      'wifiOnlyDownloads': box.get('wifiOnlyDownloads'),
+      'playbackHistoryEnabled': box.get('playbackHistoryEnabled'),
+      'searchHistoryEnabled': box.get('searchHistoryEnabled'),
+      'lyricsProvider': box.get('lyricsProvider'),
+      'progressBarStyle': box.get('progressBarStyle'),
+      'backgroundAnimationType': box.get('animationType'),
+      'selectedCountryPlaylistId': box.get('selectedCountryPlaylistId'),
     };
   }
 
@@ -375,73 +376,64 @@ class ExportImportSettingsService {
   }
 
   Future<void> _importAppSettingsData(Map<String, dynamic> data) async {
-    final prefs = await SharedPreferences.getInstance();
+    final box = await SettingsStorageService.getBox();
 
     if (data.containsKey('audioQuality')) {
-      await prefs.setString('audioQuality', data['audioQuality'] ?? 'High');
+      await box.put('audioQuality', data['audioQuality'] ?? 'High');
     }
     if (data.containsKey('headsetControls')) {
-      await prefs.setBool('headsetControls', data['headsetControls'] ?? true);
+      await box.put('headsetControls', data['headsetControls'] ?? true);
     }
     if (data.containsKey('theme')) {
-      await prefs.setString('theme', data['theme'] ?? 'Dark');
+      await box.put('theme', data['theme'] ?? 'Dark');
     }
     if (data.containsKey('notifications')) {
-      await prefs.setBool('notifications', data['notifications'] ?? true);
+      await box.put('notifications', data['notifications'] ?? true);
     }
     if (data.containsKey('language')) {
-      await prefs.setString('language', data['language'] ?? 'English');
+      await box.put('language', data['language'] ?? 'English');
     }
     if (data.containsKey('accentColor')) {
-      await prefs.setInt(
+      await box.put(
         'accentColor',
         data['accentColor'] ?? MainScreenColors.secondaryPink.value,
       );
     }
     if (data.containsKey('streamingQuality')) {
-      await prefs.setString(
-        'streamingQuality',
-        data['streamingQuality'] ?? 'High',
-      );
+      await box.put('streamingQuality', data['streamingQuality'] ?? 'High');
     }
     if (data.containsKey('downloadingQuality')) {
-      await prefs.setString(
-        'downloadingQuality',
-        data['downloadingQuality'] ?? 'High',
-      );
+      await box.put('downloadingQuality', data['downloadingQuality'] ?? 'High');
+    }
+    if (data.containsKey('wifiOnlyDownloads')) {
+      await box.put('wifiOnlyDownloads', data['wifiOnlyDownloads'] ?? false);
     }
     if (data.containsKey('playbackHistoryEnabled')) {
-      await prefs.setBool(
+      await box.put(
         'playbackHistoryEnabled',
         data['playbackHistoryEnabled'] ?? true,
       );
     }
     if (data.containsKey('searchHistoryEnabled')) {
-      await prefs.setBool(
+      await box.put(
         'searchHistoryEnabled',
         data['searchHistoryEnabled'] ?? true,
       );
     }
     if (data.containsKey('lyricsProvider')) {
-      await prefs.setString(
-        'lyricsProvider',
-        data['lyricsProvider'] ?? 'LRCLib',
-      );
+      await box.put('lyricsProvider', data['lyricsProvider'] ?? 'LRCLib');
     }
     if (data.containsKey('progressBarStyle')) {
-      await prefs.setString(
-        'progressBarStyle',
-        data['progressBarStyle'] ?? 'Default',
-      );
+      await box.put('progressBarStyle', data['progressBarStyle'] ?? 'Default');
     }
     if (data.containsKey('backgroundAnimationType')) {
-      await prefs.setString(
-        'backgroundAnimationType',
+      await box.put(
+        'animationType',
         data['backgroundAnimationType'] ?? 'mixed',
       );
     }
     if (data.containsKey('selectedCountryPlaylistId')) {
-      await prefs.setString(
+      await box.put(
         'selectedCountryPlaylistId',
         data['selectedCountryPlaylistId'] ?? '',
       );

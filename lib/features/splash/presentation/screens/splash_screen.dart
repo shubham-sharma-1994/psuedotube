@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../onboarding/presentation/screens/intro_screen.dart';
 import '../../../main_screen/router/display_route.dart';
+import '../../../../core/services/settings_storage_service.dart';
 
 class NoizeColors {
   static const Color primaryPurple = Color(0xFF6C63FF);
@@ -46,10 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkFirstTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool isFirstTime = prefs.getBool('first_time') ?? true;
-
-    await Future.delayed(const Duration(seconds: 3));
+    final box = await SettingsStorageService.getBox();
+    final bool isFirstTime = (box.get('first_time') as bool?) ?? true;
 
     if (mounted) {
       Navigator.pushReplacement(
@@ -108,16 +106,18 @@ class _SplashScreenState extends State<SplashScreen>
                                   boxShadow: [
                                     BoxShadow(
                                       color: NoizeColors.primaryPurple
-                                          .withOpacity(
-                                            0.35 * _opacityAnimation.value,
+                                          .withValues(
+                                            alpha:
+                                                0.35 * _opacityAnimation.value,
                                           ),
                                       blurRadius: 30.0,
                                       spreadRadius: 6.0,
                                     ),
                                     BoxShadow(
                                       color: NoizeColors.secondaryPink
-                                          .withOpacity(
-                                            0.25 * _opacityAnimation.value,
+                                          .withValues(
+                                            alpha:
+                                                0.25 * _opacityAnimation.value,
                                           ),
                                       blurRadius: 60.0,
                                       spreadRadius: 14.0,

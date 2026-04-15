@@ -1,7 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart' as just_audio;
-import 'package:audioplayers/audioplayers.dart' as audio_players;
 import 'package:provider/provider.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -19,8 +16,12 @@ class VolumeCircularSlider extends StatefulWidget {
 
 class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
   double _volume = 1.0;
-  just_audio.AudioPlayer? _justAudioPlayer;
-  audio_players.AudioPlayer? _audioPlayersPlayer;
+
+  Color _volumeColor(double value) {
+    if (value <= 0.6) return Colors.green;
+    if (value <= 1.0) return Colors.amber;
+    return Colors.red;
+  }
 
   @override
   void initState() {
@@ -29,38 +30,30 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
   }
 
   void _initVolume() {
-    final playerProvider = Provider.of<PlayerProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(
       context,
       listen: false,
     );
-    if (Platform.isAndroid) {
-      final p = playerProvider.playerService.justAudioPlayer;
-      _justAudioPlayer = p;
-    } else {
-      final p = playerProvider.playerService.audioPlayer;
-      _audioPlayersPlayer = p;
-    }
-    _volume = settingsProvider.volumeLevel;
+    _volume = settingsProvider.volumeLevel.clamp(0.0, 1.5);
   }
 
   void _setVolume(double value) {
     setState(() {
-      _volume = value;
-      if (Platform.isAndroid) {
-        _justAudioPlayer?.setVolume(value);
-      } else {
-        _audioPlayersPlayer?.setVolume(value);
-      }
-      Provider.of<SettingsProvider>(context, listen: false).volumeLevel = value;
+      _volume = value.clamp(0.0, 1.5);
+      final playerProvider = Provider.of<PlayerProvider>(
+        context,
+        listen: false,
+      );
+      playerProvider.playerService.setVolume(_volume);
+      Provider.of<SettingsProvider>(context, listen: false).volumeLevel =
+          _volume;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-    final accentColor = settingsProvider.accentColor;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final volumeColor = _volumeColor(_volume);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -90,13 +83,9 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    accentColor.withOpacity(0.1),
-                    accentColor.withOpacity(0.05),
+                    volumeColor.withValues(alpha: 0.12),
+                    volumeColor.withValues(alpha: 0.05),
                   ],
-                ),
-                border: Border.all(
-                  color: accentColor.withOpacity(0.2),
-                  width: 1,
                 ),
               ),
               child: SizedBox(
@@ -108,7 +97,7 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                       children: [
                         Icon(
                           Icons.volume_up_rounded,
-                          color: accentColor,
+                          color: volumeColor,
                           size: AppDimens.iconXs,
                         ),
                         SizedBox(width: AppDimens.spacingXs),
@@ -130,7 +119,7 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: accentColor.withOpacity(0.2),
+                            color: volumeColor.withValues(alpha: 0.24),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -148,11 +137,11 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                                 ? Colors.grey[800]!
                                 : Colors.grey[300]!,
                             progressBarColors: [
-                              accentColor.withOpacity(0.7),
-                              accentColor,
-                              accentColor.withOpacity(0.9),
+                              volumeColor.withValues(alpha: 0.7),
+                              volumeColor,
+                              volumeColor.withValues(alpha: 0.9),
                             ],
-                            shadowColor: accentColor.withOpacity(0.4),
+                            shadowColor: volumeColor.withValues(alpha: 0.4),
                             shadowMaxOpacity: 0.6,
                             dotColor: Colors.white,
                           ),
@@ -196,7 +185,7 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                                         isDarkMode: isDarkMode,
                                       ).copyWith(
                                         fontWeight: AppTextStyles.weightMedium,
-                                        color: accentColor,
+                                        color: volumeColor,
                                       ),
                                 ),
                               ],
@@ -204,7 +193,7 @@ class _VolumeCircularSliderState extends State<VolumeCircularSlider> {
                           );
                         },
                         min: 0.0,
-                        max: 1.0,
+                        max: 1.5,
                         initialValue: _volume,
                         onChange: _setVolume,
                         onChangeStart: (double value) {},

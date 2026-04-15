@@ -146,7 +146,7 @@ class _ConstellationPainter extends CustomPainter {
         if (distSq < thresholdSq) {
           final dist = sqrt(distSq);
           final opacity = (1.0 - dist / thresholdPx) * 0.35;
-          linePaint.color = accentColor.withOpacity(opacity);
+          linePaint.color = accentColor.withValues(alpha: opacity);
           canvas.drawLine(positions[i], positions[j], linePaint);
         }
       }
@@ -155,7 +155,7 @@ class _ConstellationPainter extends CustomPainter {
     final dotPaint = Paint()..style = PaintingStyle.fill;
     for (int i = 0; i < particles.length; i++) {
       final pulse = 0.5 + 0.5 * sin(t * 2 + particles[i].phaseX);
-      dotPaint.color = accentColor.withOpacity(pulse * 0.8);
+      dotPaint.color = accentColor.withValues(alpha: pulse * 0.8);
       canvas.drawCircle(positions[i], particles[i].radius, dotPaint);
     }
   }

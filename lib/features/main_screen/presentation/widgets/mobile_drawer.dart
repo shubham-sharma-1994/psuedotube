@@ -84,7 +84,7 @@ class MainDrawer extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [accentColor.withOpacity(0.8), accentColor],
+          colors: [accentColor.withValues(alpha: 0.8), accentColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -203,7 +203,7 @@ class MainDrawer extends StatelessWidget {
               style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -306,7 +306,7 @@ class MainDrawer extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(AppDimens.paddingMd * iconScale),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: AppDimens.iconMd * iconScale),
@@ -327,9 +327,12 @@ class MainDrawer extends StatelessWidget {
   }
 
   Future<void> _shareApp() async {
-    await Share.share(
-      'Check out Noize - Your personal music companion!\nhttps://noizeapp.netlify.app/',
-      subject: 'Noize Music App',
+    await SharePlus.instance.share(
+      ShareParams(
+        text:
+            'Check out Noize - Your personal music companion!\nhttps://noizeapp.netlify.app/',
+        subject: 'Noize Music App',
+      ),
     );
   }
 

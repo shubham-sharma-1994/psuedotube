@@ -184,7 +184,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                 borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -236,7 +236,9 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
           Text(
             _provider.contentDescription,
             style: subtitleStyle.copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.7),
               height: 1.4,
             ),
             maxLines: 3,
@@ -247,7 +249,9 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
           Text(
             '${_provider.songs.length} songs • ${_provider.formatTotalDuration()}',
             style: subtitleStyle.copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.7),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
@@ -265,7 +269,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -323,7 +327,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                       style: subtitleStyle.copyWith(
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.7),
+                        ).withValues(alpha: 0.7),
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -339,7 +343,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                       style: subtitleStyle.copyWith(
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.7),
+                        ).withValues(alpha: 0.7),
                         height: 1.4,
                       ),
                     ),
@@ -365,7 +369,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
         borderRadius: BorderRadius.circular(AppDimens.radiusXl),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -395,7 +399,9 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
               icon: const Icon(Icons.play_arrow, color: Colors.black),
               label: Text(
                 'Play All',
-                style: AppTextStyles.bodyLg(color: Colors.black),
+                style: AppTextStyles.bodyLg(
+                  color: Colors.white,
+                ).copyWith(fontWeight: FontWeight.w500),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: accentColor,
@@ -614,7 +620,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.1),
+        color: MainScreenColors.getTextColor(isDarkMode).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
       child: IconButton(
@@ -641,7 +647,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
           style: ElevatedButton.styleFrom(
             backgroundColor: MainScreenColors.getTextColor(
               isDarkMode,
-            ).withOpacity(0.1),
+            ).withValues(alpha: 0.1),
             foregroundColor: MainScreenColors.getTextColor(isDarkMode),
             padding: const EdgeInsets.symmetric(
               horizontal: AppDimens.spacingXxl,
@@ -748,7 +754,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                   return Container(
                     decoration: BoxDecoration(
                       color: isCurrentlyPlaying
-                          ? accentColor.withOpacity(0.2)
+                          ? accentColor.withValues(alpha: 0.2)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                     ),
@@ -805,7 +811,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                 height: double.infinity,
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.1),
+                ).withValues(alpha: 0.1),
               ),
               Expanded(child: _buildSongList(playerProvider, isDarkMode)),
             ],
@@ -840,7 +846,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                       return Container(
                         decoration: BoxDecoration(
                           color: isCurrentlyPlaying
-                              ? accentColor.withOpacity(0.2)
+                              ? accentColor.withValues(alpha: 0.2)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(
                             AppDimens.radiusLg,

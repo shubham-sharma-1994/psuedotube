@@ -20,8 +20,8 @@ import '../../../library/presentation/screens/library_screen.dart';
 import '../../../playlists/presentation/screens/playlists_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../widgets/mobile_drawer.dart';
-import '../../../ota/presentation/widgets/ota_dialog.dart';
 import '../../../ota/presentation/widgets/ota_bottomsheet.dart';
+import 'full_player_screen.dart';
 
 class MobileMainScreen extends StatefulWidget {
   const MobileMainScreen({super.key});
@@ -39,22 +39,14 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<OTAProvider>(context, listen: false).checkForUpdates();
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+      if (settingsProvider.updateCheckEnabled) {
+        Provider.of<OTAProvider>(context, listen: false).checkForUpdates();
+      }
     });
-  }
-
-  Future<void> _showAudioOutputSheet() async {
-    final settingsProvider = Provider.of<SettingsProvider>(
-      context,
-      listen: false,
-    );
-    final isDarkMode = settingsProvider.themeMode == ThemeMode.dark;
-    final accentColor = settingsProvider.accentColor;
-    await showAudioOutputBottomSheet(
-      context,
-      isDarkMode: isDarkMode,
-      accentColor: accentColor,
-    );
   }
 
   @override
@@ -109,8 +101,8 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         title: 'home'.tr(),
                         activeForegroundColor: accentColor,
                         inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withOpacity(
-                              0.6,
+                            theme.textTheme.bodyLarge?.color?.withValues(
+                              alpha: 0.6,
                             ) ??
                             Colors.grey,
                       ),
@@ -128,8 +120,8 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         title: 'search'.tr(),
                         activeForegroundColor: accentColor,
                         inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withOpacity(
-                              0.6,
+                            theme.textTheme.bodyLarge?.color?.withValues(
+                              alpha: 0.6,
                             ) ??
                             Colors.grey,
                       ),
@@ -149,8 +141,8 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         title: 'playlists'.tr(),
                         activeForegroundColor: accentColor,
                         inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withOpacity(
-                              0.6,
+                            theme.textTheme.bodyLarge?.color?.withValues(
+                              alpha: 0.6,
                             ) ??
                             Colors.grey,
                       ),
@@ -170,8 +162,8 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         title: 'library'.tr(),
                         activeForegroundColor: accentColor,
                         inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withOpacity(
-                              0.6,
+                            theme.textTheme.bodyLarge?.color?.withValues(
+                              alpha: 0.6,
                             ) ??
                             Colors.grey,
                       ),
@@ -221,7 +213,9 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, -2),
                                     ),
@@ -244,14 +238,6 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
           },
         );
       },
-    );
-  }
-
-  void _showOTADialog(BuildContext context, OTAUpdateInfo updateInfo) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => OTADialog(updateInfo: updateInfo),
     );
   }
 
@@ -431,8 +417,8 @@ class _TabWrapper extends StatelessWidget {
                                 color:
                                     Theme.of(context).brightness ==
                                         Brightness.dark
-                                    ? Colors.white.withOpacity(0.1)
-                                    : Colors.black.withOpacity(0.05),
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(
                                   AppDimens.radiusFull,
                                 ),
@@ -459,7 +445,7 @@ class _TabWrapper extends StatelessWidget {
                                             .textTheme
                                             .bodyMedium
                                             ?.color
-                                            ?.withOpacity(0.7),
+                                            ?.withValues(alpha: 0.7),
                                       ),
                                       overflow: TextOverflow.ellipsis,
                                     ),

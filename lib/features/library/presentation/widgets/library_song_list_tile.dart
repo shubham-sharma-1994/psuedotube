@@ -50,25 +50,6 @@ class LibrarySongListTile extends StatelessWidget {
     return '';
   }
 
-  String _getThumbnailUrl() {
-    if (song['thumbnailUrl'] != null) {
-      return song['thumbnailUrl'];
-    }
-
-    if (song['thumbnail'] != null) {
-      return song['thumbnail'];
-    }
-
-    if (song['thumbnails'] != null && song['thumbnails'] is List) {
-      final thumbnails = song['thumbnails'] as List;
-      if (thumbnails.isNotEmpty) {
-        return thumbnails[0]['url'];
-      }
-    }
-
-    return 'assets/default_artwork.png';
-  }
-
   String _getArtistDisplayName() {
     String display;
     if (song['artists'] != null && song['artists'] is List) {
@@ -170,7 +151,7 @@ class LibrarySongListTile extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: AppDimens.elevationMedium * uiScale,
                       offset: Offset(0, AppDimens.spacingXxs * uiScale),
                     ),
@@ -184,7 +165,7 @@ class LibrarySongListTile extends StatelessWidget {
                 width: AppDimens.thumbnailDefault * uiScale,
                 height: AppDimens.thumbnailDefault * uiScale,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(
                     AppDimens.radiusSm * uiScale,
                   ),
@@ -218,8 +199,8 @@ class LibrarySongListTile extends StatelessWidget {
                   style: AppTextStyles.body2(
                     isDarkMode: isDarkMode,
                     color: isPlaying
-                        ? accentColor.withOpacity(0.7)
-                        : textColor.withOpacity(0.7),
+                        ? accentColor.withValues(alpha: 0.7)
+                        : textColor.withValues(alpha: 0.7),
                   ).copyWith(height: AppTextStyles.lineHeightDefault),
                   speedPxPerSecond: marqueeSpeed,
                   pauseDuration: const Duration(milliseconds: 300),
@@ -231,8 +212,8 @@ class LibrarySongListTile extends StatelessWidget {
               _formatDuration(song['duration']),
               style: AppTextStyles.caption(isDarkMode: isDarkMode).copyWith(
                 color: isPlaying
-                    ? accentColor.withOpacity(0.7)
-                    : textColor.withOpacity(0.5),
+                    ? accentColor.withValues(alpha: 0.7)
+                    : textColor.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -273,7 +254,7 @@ class LibrarySongListTile extends StatelessWidget {
                       value: downloadProgress.progress,
                       strokeWidth: AppDimens.progressStroke * uiScale,
                       valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                      backgroundColor: textColor.withOpacity(0.3),
+                      backgroundColor: textColor.withValues(alpha: 0.3),
                     ),
                     Text(
                       '${(downloadProgress.progress * 100).toInt()}%',

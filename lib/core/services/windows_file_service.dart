@@ -8,15 +8,13 @@ import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../providers/player_provider.dart';
-import '../providers/queued_provider.dart';
 
 class WindowsFileService {
   static const _channel = MethodChannel('com.anand.noize/file_open');
 
   final PlayerProvider _playerProvider;
-  final QueueProvider _queueProvider;
 
-  WindowsFileService(this._playerProvider, this._queueProvider);
+  WindowsFileService(this._playerProvider);
 
   Future<void> init() async {
     _channel.setMethodCallHandler((call) async {
@@ -63,11 +61,7 @@ class WindowsFileService {
         Uint8List? artwork;
         final picData = metadata.picture?.data;
         if (picData != null) {
-          if (picData is Uint8List) {
-            artwork = picData;
-          } else {
-            artwork = Uint8List.fromList(List<int>.from(picData));
-          }
+          artwork = picData;
         }
 
         String? thumbnailUri;

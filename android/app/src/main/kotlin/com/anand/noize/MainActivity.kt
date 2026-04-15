@@ -25,13 +25,16 @@ import java.io.ByteArrayOutputStream
 class MainActivity : com.ryanheise.audioservice.AudioServiceActivity() {
     private val CHANNEL = "com.anand.noize/audio_output"
     private val LOCAL_SONGS_CHANNEL = "com.anand.noize/local_songs"
+    private val BATTERY_OPTIMIZATION_CHANNEL = "com.anand.noize/battery_optimization"
     private var bluetoothA2dp: BluetoothA2dp? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val batteryOptimizationHelper by lazy { BatteryOptimizationHelper(this) }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         setupBluetoothProxy()
         setupLocalSongsChannel(flutterEngine)
+        setupBatteryOptimizationChannel(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -60,6 +63,21 @@ class MainActivity : com.ryanheise.audioservice.AudioServiceActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun setupBatteryOptimizationChannel(flutterEngine: FlutterEngine) {
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_OPTIMIZATION_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "isBatteryOptimizationDisabled" -> {
+                        result.success(batteryOptimizationHelper.isBatteryOptimizationDisabled())
+                    }
+                    "openDisableRestrictionsSettings" -> {
+                        result.success(batteryOptimizationHelper.openDisableRestrictionsSettings())
+                    }
+                    else -> result.notImplemented()
+                }
+            }
     }
 
     // ── Local Songs Method Channel ────────────────────────────────────────
@@ -239,7 +257,7 @@ class MainActivity : com.ryanheise.audioservice.AudioServiceActivity() {
     private fun setupBluetoothProxy() {
         try {
             val bm = getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-            bm?.adapter?.getProfileProxy(this, object : BluetoothProfile.ServiceListener {
+            bm?.adapter?.getProfileProxy(applicationContext, object : BluetoothProfile.ServiceListener {
                 override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
                     if (profile == BluetoothProfile.A2DP) {
                         bluetoothA2dp = proxy as BluetoothA2dp

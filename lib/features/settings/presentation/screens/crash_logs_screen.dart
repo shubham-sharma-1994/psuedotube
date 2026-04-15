@@ -229,8 +229,8 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                           ),
                           border: Border.all(
                             color: themeData.isDarkMode
-                                ? Colors.white.withOpacity(0.06)
-                                : Colors.black.withOpacity(0.06),
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.06),
                             width: AppDimens.borderWidthThin,
                           ),
                         ),
@@ -319,7 +319,7 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                                           ? themeData.accentColor
                                           : MainScreenColors.getTextColor(
                                               themeData.isDarkMode,
-                                            ).withOpacity(0.7),
+                                            ).withValues(alpha: 0.7),
                                     ),
                               ),
                             ],
@@ -348,8 +348,8 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                             ),
                             border: Border.all(
                               color: themeData.isDarkMode
-                                  ? Colors.white.withOpacity(0.06)
-                                  : Colors.black.withOpacity(0.06),
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.06),
                               width: AppDimens.borderWidthThin,
                             ),
                           ),
@@ -393,7 +393,7 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                                         ).copyWith(
                                           color: MainScreenColors.getTextColor(
                                             themeData.isDarkMode,
-                                          ).withOpacity(0.5),
+                                          ).withValues(alpha: 0.5),
                                         ),
                                   );
                                 }
@@ -409,7 +409,7 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                                       ).copyWith(
                                         color: MainScreenColors.getTextColor(
                                           themeData.isDarkMode,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ),
                                 );
                               },
@@ -731,7 +731,7 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                           ).copyWith(
                             color: MainScreenColors.getTextColor(
                               themeData.isDarkMode,
-                            ).withOpacity(0.4),
+                            ).withValues(alpha: 0.4),
                           ),
                       border: InputBorder.none,
                       isDense: true,
@@ -851,8 +851,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                             ),
                             border: Border.all(
                               color: themeData.isDarkMode
-                                  ? Colors.white.withOpacity(0.06)
-                                  : Colors.black.withOpacity(0.06),
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.06),
                               width: AppDimens.borderWidthThin,
                             ),
                           ),
@@ -862,8 +862,8 @@ class _LogViewerScreenState extends State<LogViewerScreen> {
                                     content: _content,
                                     query: _searchQuery,
                                     baseStyle: baseTextStyle,
-                                    matchBg: themeData.accentColor.withOpacity(
-                                      0.35,
+                                    matchBg: themeData.accentColor.withValues(
+                                      alpha: 0.35,
                                     ),
                                     currentMatchBg: themeData.accentColor,
                                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -32,14 +33,14 @@ class CustomDropdown<T> extends StatelessWidget {
       onTap: () => _showDropdownDialog(context, textColor, surfaceColor),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingMd,
-          vertical: AppDimens.paddingSm,
+          horizontal: AppDimens.paddingSm,
+          vertical: AppDimens.paddingXs,
         ),
         decoration: BoxDecoration(
-          color: accentColor.withOpacity(0.1),
+          color: accentColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
           border: Border.all(
-            color: accentColor.withOpacity(0.3),
+            color: accentColor.withValues(alpha: 0.3),
             width: AppDimens.borderWidthThin,
           ),
         ),
@@ -56,8 +57,8 @@ class CustomDropdown<T> extends StatelessWidget {
             const SizedBox(width: 4),
             Icon(
               Icons.arrow_drop_down,
-              color: textColor.withOpacity(0.7),
-              size: AppDimens.iconMd,
+              color: textColor.withValues(alpha: 0.7),
+              size: AppDimens.iconSm,
             ),
           ],
         ),
@@ -79,7 +80,7 @@ class CustomDropdown<T> extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimens.radiusXl),
           ),
           title: Text(
-            subtitle ?? 'Select Option',
+            subtitle ?? 'select_option'.tr(),
             style: AppTextStyles.titleSm(
               isDarkMode: isDarkMode,
               color: textColor,
@@ -107,7 +108,7 @@ class CustomDropdown<T> extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? accentColor.withOpacity(0.2)
+                            ? accentColor.withValues(alpha: 0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppDimens.radiusMd),
                       ),
@@ -145,7 +146,7 @@ class CustomDropdown<T> extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                'cancel'.tr(),
                 style: AppTextStyles.bodyMd(
                   isDarkMode: isDarkMode,
                   color: accentColor,

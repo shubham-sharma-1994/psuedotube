@@ -165,7 +165,7 @@ class PlaylistAlbumContentProvider extends ChangeNotifier {
         : 'album';
     final shareText =
         'Check out this ${contentType}: ${content.name} : https://www.music.youtube.com/playlist?list=${content.playlistId}';
-    Share.share(shareText);
+    SharePlus.instance.share(ShareParams(text: shareText));
   }
 
   Future<void> downloadPlaylist(DownloadProvider downloadProvider) async {

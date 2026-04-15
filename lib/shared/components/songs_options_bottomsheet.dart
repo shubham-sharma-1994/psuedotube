@@ -14,6 +14,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/favorite_song_provider.dart';
 import '../../core/providers/player_provider.dart';
 import '../../core/providers/queued_provider.dart';
+import '../../core/providers/settings_provider.dart';
 import '../../core/providers/download_provider.dart';
 import 'add_to_playlist_bottomsheet.dart';
 import 'app_snackbar.dart';
@@ -36,7 +37,6 @@ class SongOptionsBottomSheet extends StatefulWidget {
 class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
   late FavoriteSongProvider _favoriteSongProvider;
   late QueueProvider _queueProvider;
-  late PlayerProvider _playerProvider;
   late DownloadProvider _downloadProvider;
 
   @override
@@ -44,7 +44,6 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
     super.initState();
     _favoriteSongProvider = context.read<FavoriteSongProvider>();
     _queueProvider = context.read<QueueProvider>();
-    _playerProvider = context.read<PlayerProvider>();
     _downloadProvider = context.read<DownloadProvider>();
   }
 
@@ -173,7 +172,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             height: AppDimens.dragHandleHeight,
             margin: EdgeInsets.only(bottom: AppDimens.spacingLg),
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
             ),
           ),
@@ -224,7 +223,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
                       _getArtistsText(),
                       style: AppTextStyles.bodyMd(
                         isDarkMode: widget.isDarkMode,
-                        color: textColor.withOpacity(0.7),
+                        color: textColor.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -254,6 +253,9 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
                   const SizedBox(width: 8),
                   Consumer<DownloadProvider>(
                     builder: (context, provider, child) {
+                      final accentColor = context.select(
+                        (SettingsProvider settings) => settings.accentColor,
+                      );
                       final isDownloaded = provider.downloadedSongs.any(
                         (s) => s['id'] == widget.song.videoId,
                       );
@@ -287,9 +289,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
                                 value: progress.progress,
                                 strokeWidth: AppDimens.progressStroke,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  MainScreenColors.getSecondaryColor(
-                                    widget.isDarkMode,
-                                  ),
+                                  accentColor,
                                 ),
                               ),
                               Text(
@@ -306,9 +306,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
                           child: CircularProgressIndicator(
                             strokeWidth: AppDimens.progressStroke,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              MainScreenColors.getSecondaryColor(
-                                widget.isDarkMode,
-                              ),
+                              accentColor,
                             ),
                           ),
                         );
@@ -455,7 +453,11 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             final artistsText = widget.song.artists.isNotEmpty
                 ? widget.song.artists.map((a) => a.name).join(', ')
                 : 'Unknown Artist';
-            Share.share('Check out this song: $youtubeUrl by $artistsText');
+            SharePlus.instance.share(
+              ShareParams(
+                text: 'Check out this song: $youtubeUrl by $artistsText',
+              ),
+            );
             Navigator.pop(context);
           },
           textColor: textColor,
@@ -471,18 +473,20 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
           icon: Icons.person,
           text: 'view_artist'.tr() + ' (Unknown Artist)',
           onTap: () {},
-          textColor: textColor.withOpacity(0.5),
+          textColor: textColor.withValues(alpha: 0.5),
         ),
       ];
     }
 
     return widget.song.artists.map((artist) {
-      final isArtistIdNull = artist.id == null || artist.id.isEmpty;
+      final isArtistIdNull = artist.id.isEmpty;
       return _buildOption(
         icon: Icons.person,
         text: 'view_artist'.tr() + ' (${artist.name})',
         onTap: isArtistIdNull ? () {} : () => _viewArtist(artist),
-        textColor: isArtistIdNull ? textColor.withOpacity(0.5) : textColor,
+        textColor: isArtistIdNull
+            ? textColor.withValues(alpha: 0.5)
+            : textColor,
       );
     }).toList();
   }

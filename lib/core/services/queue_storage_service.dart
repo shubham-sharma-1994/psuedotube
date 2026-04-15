@@ -68,7 +68,7 @@ class QueueStorage {
       }
 
       final existingQueueKeys = box.keys
-          .where((k) => k is String && (k as String).startsWith('q_'))
+          .where((k) => k is String && (k).startsWith('q_'))
           .toList();
 
       for (final key in existingQueueKeys) {
@@ -102,9 +102,7 @@ class QueueStorage {
 
       final entries = <Map<String, dynamic>>[];
       final keys =
-          box.keys
-              .where((k) => k is String && (k as String).startsWith('q_'))
-              .toList()
+          box.keys.where((k) => k is String && (k).startsWith('q_')).toList()
             ..sort((a, b) {
               final ai = int.tryParse((a as String).substring(2)) ?? 0;
               final bi = int.tryParse((b as String).substring(2)) ?? 0;

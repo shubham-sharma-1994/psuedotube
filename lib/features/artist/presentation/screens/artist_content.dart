@@ -53,9 +53,6 @@ class _ArtistContentState extends State<ArtistContent>
   List<dynamic> _allSingles = [];
   List<ArtistInfo> _similarArtists = [];
 
-  int _currentAlbumPage = 0;
-  int _currentSongPage = 0;
-
   @override
   void initState() {
     super.initState();
@@ -164,7 +161,7 @@ class _ArtistContentState extends State<ArtistContent>
                 borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -213,7 +210,9 @@ class _ArtistContentState extends State<ArtistContent>
           Text(
             _contentDescription,
             style: AppTextStyles.subtitle(isDarkMode: isDarkMode).copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.7),
               height: AppTextStyles.lineHeightBody,
             ),
             maxLines: 3,
@@ -238,10 +237,12 @@ class _ArtistContentState extends State<ArtistContent>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  MainScreenColors.getPrimaryColor(isDarkMode).withOpacity(0.2),
+                  MainScreenColors.getPrimaryColor(
+                    isDarkMode,
+                  ).withValues(alpha: 0.2),
                   Provider.of<SettingsProvider>(
                     context,
-                  ).accentColor.withOpacity(0.1),
+                  ).accentColor.withValues(alpha: 0.1),
                 ],
               ),
             ),
@@ -258,7 +259,7 @@ class _ArtistContentState extends State<ArtistContent>
                       borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -309,7 +310,7 @@ class _ArtistContentState extends State<ArtistContent>
                             .copyWith(
                               color: MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.7),
+                              ).withValues(alpha: 0.7),
                               height: AppTextStyles.lineHeightBody,
                             ),
                         maxLines: 2,
@@ -334,7 +335,7 @@ class _ArtistContentState extends State<ArtistContent>
         borderRadius: BorderRadius.circular(AppDimens.radiusXl),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -605,7 +606,7 @@ class _ArtistContentState extends State<ArtistContent>
         'Check out this artist: ${widget.artist.name} \n'
         'on YouTube Music!\n'
         'https://music.youtube.com/channel/${widget.artist.artistId}';
-    Share.share(shareText);
+    SharePlus.instance.share(ShareParams(text: shareText));
   }
 
   Widget _buildPopularSongsSection() {
@@ -803,7 +804,7 @@ class _ArtistContentState extends State<ArtistContent>
                 style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -969,7 +970,7 @@ class _ArtistContentState extends State<ArtistContent>
                 height: double.infinity,
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.1),
+                ).withValues(alpha: 0.1),
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -1116,7 +1117,7 @@ class ArtistCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimens.radiusLg),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

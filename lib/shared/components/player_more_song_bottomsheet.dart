@@ -17,6 +17,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimens.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/providers/settings_provider.dart';
+import '../../core/services/audio_url_service.dart';
 import 'app_snackbar.dart';
 import 'marquee_text.dart';
 import '../../core/providers/player_provider.dart';
@@ -245,7 +246,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           await Share.shareXFiles([XFile(path)], text: shareText);
           return;
         }
-        Share.share(shareText);
+        SharePlus.instance.share(ShareParams(text: shareText));
         return;
       }
 
@@ -266,9 +267,11 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           return;
         }
       }
-      Share.share('$shareText\n\nDownload Noize: $appLink');
+      SharePlus.instance.share(
+        ShareParams(text: '$shareText\n\nDownload Noize: $appLink'),
+      );
     } catch (_) {
-      Share.share(shareText);
+      SharePlus.instance.share(ShareParams(text: shareText));
     }
   }
 
@@ -303,7 +306,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
       listen: false,
     );
     final pp = Provider.of<PlayerProvider>(context, listen: false);
-    final accentColor = settingsProvider.accentColor ?? Colors.blueAccent;
+    final accentColor = settingsProvider.accentColor;
 
     final currentSong = pp.currentSong;
     final currentLocalSong = pp.currentLocalSong;
@@ -321,14 +324,28 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           : 'Unknown Artist';
       videoId = currentSong.videoId;
       try {
-        final cachedJson = Hive.box<String>('audio_url_cache').get(videoId);
-        if (cachedJson != null) {
+        final cacheBox = Hive.box<String>('audio_url_cache');
+        final cacheKeys = AudioUrlService.buildLookupCacheKeys(
+          videoId: videoId,
+          streamingQuality: settingsProvider.streamingQuality,
+          jioSaavnEnabled: settingsProvider.jioSaavnEnabled,
+        );
+
+        for (final cacheKey in cacheKeys) {
+          final cachedJson = cacheBox.get(cacheKey);
+          if (cachedJson == null) continue;
+
           final data = json.decode(cachedJson) as Map<String, dynamic>;
+          final source = AudioUrlService.normalizeProvider(
+            data['source'] as String? ?? '',
+          );
           final cachedUrl = data['url'] as String?;
-          if (cachedUrl != null &&
-              (cachedUrl.contains('saavncdn.com') ||
-                  cachedUrl.contains('jiosaavn'))) {
+          if (source == 'jiosaavn' ||
+              (cachedUrl != null &&
+                  (cachedUrl.contains('saavncdn.com') ||
+                      cachedUrl.contains('jiosaavn')))) {
             isJioSaavn = true;
+            break;
           }
         }
       } catch (_) {}
@@ -359,7 +376,9 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
         child: SlideTransition(
           position: _slideAnim,
           child: Container(
-            height: size.height,
+            constraints: BoxConstraints(
+              maxHeight: size.height * AppDimens.sheetHeightFactor,
+            ),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: const BorderRadius.only(
@@ -368,7 +387,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: Colors.black.withValues(alpha: 0.18),
                   blurRadius: 32,
                   offset: const Offset(0, -4),
                 ),
@@ -378,7 +397,8 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               children: [
                 _buildTopBar(textColor),
 
-                Expanded(
+                Flexible(
+                  fit: FlexFit.loose,
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(
@@ -444,34 +464,37 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
 
                         if (isLocalSong)
                           _buildLocalMetadataSection(
-                            currentLocalSong!,
+                            pp,
+                            currentLocalSong,
                             isDarkMode,
                             accentColor,
                             textColor,
-                            textColor.withOpacity(0.55),
+                            textColor.withValues(alpha: 0.55),
                             size.width,
+                            shareText,
                           ),
                       ],
                     ),
                   ),
                 ),
 
-                _buildActionBar(
-                  isDarkMode: isDarkMode,
-                  isLocalSong: isLocalSong,
-                  accentColor: accentColor,
-                  textColor: textColor,
-                  bgColor: bgColor,
-                  bottomPad: bottomPad,
-                  pp: pp,
-                  currentSong: currentSong,
-                  currentLocalSong: currentLocalSong,
-                  songTitle: songTitle,
-                  songArtist: songArtist,
-                  videoId: videoId,
-                  youtubeLink: youtubeLink,
-                  shareText: shareText,
-                ),
+                if (!isLocalSong)
+                  _buildActionBar(
+                    isDarkMode: isDarkMode,
+                    isLocalSong: isLocalSong,
+                    accentColor: accentColor,
+                    textColor: textColor,
+                    bgColor: bgColor,
+                    bottomPad: bottomPad,
+                    pp: pp,
+                    currentSong: currentSong,
+                    currentLocalSong: currentLocalSong,
+                    songTitle: songTitle,
+                    songArtist: songArtist,
+                    videoId: videoId,
+                    youtubeLink: youtubeLink,
+                    shareText: shareText,
+                  ),
               ],
             ),
           ),
@@ -491,7 +514,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
             width: AppDimens.dragHandleWidth,
             height: AppDimens.dragHandleHeight,
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.22),
+              color: textColor.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -518,7 +541,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
     final bg = MainScreenColors.getSurfaceColor(isDarkMode);
     final iconColor = MainScreenColors.getTextColor(
       isDarkMode,
-    ).withOpacity(0.22);
+    ).withValues(alpha: 0.22);
 
     Widget art;
     if (isLocalSong && _localMeta?.coverArt != null) {
@@ -556,7 +579,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
         borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.28),
+            color: Colors.black.withValues(alpha: 0.28),
             blurRadius: 28,
             offset: const Offset(0, 10),
           ),
@@ -585,7 +608,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
       final artists = pp.currentSong!.artists;
       if (artists.isEmpty) {
         return Text(
-          pp.currentArtist ?? '',
+          pp.currentArtist,
           style: AppTextStyles.settingsSubtitle(isDarkMode: isDarkMode),
         );
       }
@@ -594,7 +617,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
         spacing: 8,
         runSpacing: 8,
         children: artists.map<Widget>((artist) {
-          final hasId = artist?.id != null && (artist.id as String).isNotEmpty;
+          final hasId = (artist.id).isNotEmpty;
           return InkWell(
             onTap: hasId ? () => _openArtistDetail(artist, pp) : null,
             borderRadius: BorderRadius.circular(20),
@@ -602,11 +625,11 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: hasId
-                    ? accentColor.withOpacity(0.1)
+                    ? accentColor.withValues(alpha: 0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: hasId
-                    ? Border.all(color: accentColor.withOpacity(0.3))
+                    ? Border.all(color: accentColor.withValues(alpha: 0.3))
                     : null,
               ),
               child: Row(
@@ -625,7 +648,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: sw * 0.35),
                     child: Text(
-                      artist?.name ?? '',
+                      artist.name,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.settingsSubtitle(
                         isDarkMode: isDarkMode,
@@ -637,7 +660,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
                     Icon(
                       Icons.chevron_right,
                       size: 14,
-                      color: accentColor.withOpacity(0.7),
+                      color: accentColor.withValues(alpha: 0.7),
                     ),
                   ],
                 ],
@@ -648,10 +671,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
       );
     }
 
-    final raw =
-        pp.currentLocalSong?['artist'] as String? ??
-        pp.currentArtist ??
-        'Unknown Artist';
+    final raw = pp.currentLocalSong?['artist'] as String? ?? pp.currentArtist;
     final artistList = raw
         .split(',')
         .map((a) => a.trim())
@@ -671,7 +691,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           label: Text(a, style: AppTextStyles.caption(isDarkMode: isDarkMode)),
           backgroundColor: MainScreenColors.getTextColor(
             isDarkMode,
-          ).withOpacity(0.08),
+          ).withValues(alpha: 0.08),
           side: BorderSide.none,
           padding: const EdgeInsets.symmetric(horizontal: 4),
         );
@@ -683,14 +703,14 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
     final iconSz = sw < 400 ? 14.0 : 15.0;
     final style = TextStyle(
       fontSize: iconSz * 0.86,
-      color: Colors.white.withOpacity(0.9),
+      color: Colors.white.withValues(alpha: 0.9),
       fontWeight: FontWeight.w500,
     );
 
     Widget cell(IconData icon, String val) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: iconSz, color: Colors.white.withOpacity(0.88)),
+        Icon(icon, size: iconSz, color: Colors.white.withValues(alpha: 0.88)),
         SizedBox(width: iconSz * 0.3),
         Text(val, style: style),
       ],
@@ -703,7 +723,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           horizontal: iconSz * 0.9,
           vertical: iconSz * 0.65,
         ),
-        color: Colors.black.withOpacity(0.36),
+        color: Colors.black.withValues(alpha: 0.36),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -723,17 +743,19 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
   Widget _vDivider() => Container(
     height: 16,
     width: 1,
-    color: Colors.white.withOpacity(0.18),
+    color: Colors.white.withValues(alpha: 0.18),
     margin: const EdgeInsets.symmetric(horizontal: 4),
   );
 
   Widget _buildLocalMetadataSection(
+    PlayerProvider pp,
     Map<String, dynamic> ls,
     bool isDarkMode,
     Color accent,
     Color tc,
     Color sc,
     double sw,
+    String shareText,
   ) {
     if (_loadingMeta) {
       return Padding(
@@ -849,7 +871,6 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
           _row(Icons.audio_file_outlined, 'Format', format, tc, sc),
           if (localPath.isNotEmpty) ...[
             _divider(tc),
-
             _tappableRow(
               Icons.folder_open_outlined,
               'File Path',
@@ -858,6 +879,16 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               tc,
               sc,
               accent,
+            ),
+            _divider(tc),
+            _actionRow(
+              Icons.share_outlined,
+              'Share',
+              'Share file',
+              tc,
+              sc,
+              accent,
+              () => _shareSong(pp, shareText, null),
             ),
           ],
         ]),
@@ -884,11 +915,11 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
 
   Widget _card(bool isDarkMode, List<Widget> children) {
     final bg = isDarkMode
-        ? Colors.white.withOpacity(0.05)
-        : Colors.black.withOpacity(0.04);
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.04);
     final border = isDarkMode
-        ? Colors.white.withOpacity(0.09)
-        : Colors.black.withOpacity(0.08);
+        ? Colors.white.withValues(alpha: 0.09)
+        : Colors.black.withValues(alpha: 0.08);
     return Container(
       decoration: BoxDecoration(
         color: bg,
@@ -901,7 +932,7 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
   }
 
   Widget _divider(Color tc) =>
-      Divider(color: tc.withOpacity(0.07), height: 1, thickness: 1);
+      Divider(color: tc.withValues(alpha: 0.07), height: 1, thickness: 1);
 
   Widget _row(IconData icon, String label, String value, Color tc, Color sc) =>
       Padding(
@@ -973,7 +1004,53 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
                 color: accent,
                 fontWeight: FontWeight.w500,
                 decoration: TextDecoration.underline,
-                decorationColor: accent.withOpacity(0.35),
+                decorationColor: accent.withValues(alpha: 0.35),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _actionRow(
+    IconData icon,
+    String label,
+    String value,
+    Color tc,
+    Color sc,
+    Color accent,
+    VoidCallback onTap,
+  ) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 11),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 15, color: sc),
+        const SizedBox(width: 11),
+        SizedBox(
+          width: 98,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: AppTextStyles.fontSizeBody2,
+              color: sc,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: onTap,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: AppTextStyles.fontSizeBody2,
+                color: accent,
+                fontWeight: FontWeight.w500,
+                decoration: TextDecoration.underline,
+                decorationColor: accent.withValues(alpha: 0.35),
               ),
             ),
           ),
@@ -985,9 +1062,9 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
   Widget _badge(String text, Color accent) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: accent.withOpacity(0.14),
+      color: accent.withValues(alpha: 0.14),
       borderRadius: BorderRadius.circular(4),
-      border: Border.all(color: accent.withOpacity(0.42)),
+      border: Border.all(color: accent.withValues(alpha: 0.42)),
     ),
     child: Text(
       text,
@@ -1033,15 +1110,15 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               width: AppDimens.iconStatus,
               height: AppDimens.iconStatus,
               decoration: BoxDecoration(
-                color: color.withOpacity(enabled ? 0.12 : 0.05),
+                color: color.withValues(alpha: enabled ? 0.12 : 0.05),
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
-                  color: color.withOpacity(enabled ? 0.26 : 0.09),
+                  color: color.withValues(alpha: enabled ? 0.26 : 0.09),
                 ),
               ),
               child: Icon(
                 icon,
-                color: enabled ? color : color.withOpacity(0.3),
+                color: enabled ? color : color.withValues(alpha: 0.3),
                 size: AppDimens.iconXxl,
               ),
             ),
@@ -1053,8 +1130,8 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: enabled
-                  ? textColor.withOpacity(0.72)
-                  : textColor.withOpacity(0.28),
+                  ? textColor.withValues(alpha: 0.72)
+                  : textColor.withValues(alpha: 0.28),
             ),
           ),
         ],
@@ -1066,12 +1143,14 @@ class _PlayerMoreSongBottomSheetState extends State<PlayerMoreSongBottomSheet>
         color: bgColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
         ],
-        border: Border(top: BorderSide(color: textColor.withOpacity(0.06))),
+        border: Border(
+          top: BorderSide(color: textColor.withValues(alpha: 0.06)),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(
         AppDimens.paddingXl,

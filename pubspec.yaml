@@ -3,11 +3,11 @@ description: "Your ultimate groove companion – a powerful, privacy‑first You
 
 publish_to: none
 
-version: 0.0.1+1
+version: 1.0.0+2
 license: GPL-3.0-or-later
 
 environment:
-  sdk: ^3.10.4
+  sdk: ^3.11.4
 
 # ─────────────────────────────────────────────
 # Dependencies
@@ -18,13 +18,13 @@ dependencies:
 
   # Audio – playback, session & background service
   audio_service: ^0.18.18
-  audio_service_mpris: ^0.2.0        # Linux MPRIS integration
-  audio_session: ^0.2.2
+  audio_session: ^0.2.3
   audio_video_progress_bar: ^2.0.3
-  audioplayers: ^6.5.1
-  just_audio: ^0.10.5
-  just_audio_background: ^0.0.1-beta.17
-  just_audio_media_kit: ^2.1.0       # Linux/Windows backend
+  media_kit: ^1.2.6
+  media_kit_libs_android_audio: ^1.3.8
+  media_kit_libs_ios_audio: ^1.1.4
+  media_kit_libs_windows_audio: ^1.0.9
+  media_kit_libs_linux: ^1.2.1
   sleek_circular_slider: ^2.1.0
   smtc_windows: ^1.1.0               # Windows SMTC integration
 
@@ -39,15 +39,16 @@ dependencies:
       ref: 1d9ec9baa806705b1d859260eeb389ec28c6b024
   youtube_player_flutter: ^9.1.3
   flutter_inappwebview: ^6.1.5
+  speech_to_text: ^7.3.0
 
   # Networking & HTTP
-  connectivity_plus: ^7.0.0
-  dio: ^5.9.1
+  connectivity_plus: ^7.1.1
+  dio: ^5.9.2
 
   # Storage & persistence
   hive_ce: ^2.19.3
   path_provider: ^2.1.5
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.5
 
   # Navigation & routing
   go_router: ^17.1.0
@@ -55,16 +56,15 @@ dependencies:
   # UI – components & theming
   cached_network_image: ^3.4.1
   dynamic_color: ^1.8.1
-  fl_chart: ^1.1.1
+  fl_chart: ^1.2.0
   flutter_animate: ^4.5.2
   flutter_markdown_plus: ^1.0.7
-  flutter_svg: ^2.2.3
-  google_fonts: ^8.0.1
+  flutter_svg: ^2.2.4
+  google_fonts: ^8.0.2
   palette_generator: ^0.3.3+7
   persistent_bottom_nav_bar_v2: ^6.2.0
-  pull_to_refresh: ^2.0.0
   shimmer: ^3.0.0
-
+  flutter_native_splash: ^2.4.7
   # Localisation
   easy_localization: ^3.0.8
 
@@ -73,15 +73,15 @@ dependencies:
   android_package_installer: ^0.0.3
   device_info_plus: ^12.3.0
   duration_picker: ^1.2.0
-  file_picker: ^10.3.10
-  flutter_local_notifications: ^20.1.0
+  file_picker: ^11.0.2
+  flutter_local_notifications: ^21.0.0
   package_info_plus: ^9.0.0
   permission_handler: ^12.0.0+1
   receive_sharing_intent:
     git:
       url: https://github.com/KasemJaffer/receive_sharing_intent
   share_plus: ^12.0.1
-  terminate_restart: ^1.0.11
+  terminate_restart: ^1.1.0
   url_launcher: ^6.3.2
 
   # General utilities
@@ -89,10 +89,10 @@ dependencies:
   collection: ^1.19.1
   crypto: ^3.0.7
   cupertino_icons: ^1.0.8
-  get_it: ^9.2.0
+  get_it: ^9.2.1
   provider: ^6.1.5
   synchronized: ^3.4.0
-  talker_flutter: ^5.1.14
+  talker_flutter: ^5.1.16
 
 # ─────────────────────────────────────────────
 # Dependency overrides
@@ -108,7 +108,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  build_runner: ^2.9.0
+  build_runner: ^2.13.1
   flutter_lints: ^6.0.0
   hive_ce_generator: ^1.9.3
   msix: ^3.16.12
@@ -120,7 +120,7 @@ msix_config:
   display_name: Noize
   publisher_display_name: Anand Kumar
   identity_name: com.anand.noize
-  msix_version: 0.0.1.1
+  msix_version: 1.0.0.2
   logo_path: assets/default_artwork.png
   capabilities: internetClient,musicLibrary
   store: false
@@ -139,17 +139,42 @@ flutter:
     - assets/images/intro_download.svg
 
     # Translations
+    - assets/translations/ar.json        # Arabic
     - assets/translations/bn.json        # Bengali
     - assets/translations/de.json        # German
     - assets/translations/en.json        # English
     - assets/translations/es.json        # Spanish
     - assets/translations/fr.json        # French
+    - assets/translations/gu.json        # Gujarati
     - assets/translations/hi.json        # Hindi
+    - assets/translations/id.json        # Indonesian
     - assets/translations/ja.json        # Japanese
+    - assets/translations/kn.json        # Kannada
+    - assets/translations/ko.json        # Korean
+    - assets/translations/pt.json        # Portuguese
     - assets/translations/mr.json        # Marathi
     - assets/translations/ru.json        # Russian
     - assets/translations/ta.json        # Tamil
+    - assets/translations/tr.json        # Turkish
     - assets/translations/te.json        # Telugu
     - assets/translations/uk.json        # Ukrainian
     - assets/translations/ur.json        # Urdu
+    - assets/translations/vi.json        # Vietnamese
     - assets/translations/zh.json        # Chinese
+
+
+flutter_native_splash:
+  # The color of the background
+  color: "#000000" # Standard Black (or use "#E0E0E0" for Light Grey)
+  
+  # The main splash image
+  image: assets/default_artwork.png
+
+  # Keep fullscreen true if you want to hide the status bar during splash
+  fullscreen: true
+
+  # Android 12+ specific configuration (Crucial for newer phones)
+  android_12:
+    color: "#000000"
+    image: assets/default_artwork.png
+    

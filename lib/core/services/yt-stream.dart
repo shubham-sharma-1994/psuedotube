@@ -27,15 +27,15 @@ class StreamProvider {
         for (final e in audio) {
           formats.add(
             Audio(
-              itag: e.tag ?? 0,
-              audioCodec: (e.audioCodec ?? '').contains('mp')
+              itag: e.tag,
+              audioCodec: (e.audioCodec).contains('mp')
                   ? Codec.mp4a
                   : Codec.opus,
-              bitrate: e.bitrate?.bitsPerSecond ?? 0,
+              bitrate: e.bitrate.bitsPerSecond,
               duration: e.duration ?? 0,
-              loudnessDb: e.loudnessDb ?? 0.0,
-              url: e.url?.toString() ?? '',
-              size: e.size?.totalBytes ?? 0,
+              loudnessDb: e.loudnessDb,
+              url: e.url.toString(),
+              size: e.size.totalBytes,
             ),
           );
         }
@@ -72,10 +72,7 @@ class StreamProvider {
           statusMSG: "Song is unavailable",
         );
       } else if (e is YoutubeExplodeException) {
-        return StreamProvider(
-          playable: false,
-          statusMSG: e.message ?? e.toString(),
-        );
+        return StreamProvider(playable: false, statusMSG: e.message);
       } else {
         return StreamProvider(playable: false, statusMSG: e.toString());
       }

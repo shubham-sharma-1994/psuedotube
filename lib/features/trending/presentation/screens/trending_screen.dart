@@ -155,7 +155,7 @@ class _TrendingScreenState extends State<TrendingScreen>
                     borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -167,7 +167,7 @@ class _TrendingScreenState extends State<TrendingScreen>
                       Container(
                         padding: const EdgeInsets.all(AppDimens.paddingXl),
                         decoration: BoxDecoration(
-                          color: accentColor.withOpacity(0.1),
+                          color: accentColor.withValues(alpha: 0.1),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(AppDimens.radiusXxl),
                             topRight: Radius.circular(AppDimens.radiusXxl),
@@ -198,8 +198,8 @@ class _TrendingScreenState extends State<TrendingScreen>
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDarkMode
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.black.withOpacity(0.05),
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusSm,
                                   ),
@@ -239,7 +239,7 @@ class _TrendingScreenState extends State<TrendingScreen>
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? accentColor.withOpacity(0.1)
+                                      ? accentColor.withValues(alpha: 0.1)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusLg,
@@ -349,7 +349,7 @@ class _TrendingScreenState extends State<TrendingScreen>
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
-                        color: accentColor.withOpacity(0.22),
+                        color: accentColor.withValues(alpha: 0.22),
                         borderRadius: BorderRadius.circular(
                           AppDimens.radiusFull,
                         ),
@@ -610,7 +610,7 @@ class _TrendingScreenState extends State<TrendingScreen>
                     return Container(
                       decoration: BoxDecoration(
                         color: isPlayingSong
-                            ? accentColor.withOpacity(0.2)
+                            ? accentColor.withValues(alpha: 0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                       ),

@@ -364,7 +364,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   },
                   child: Container(
                     color: _selectedSongs.contains(song['id'].toString())
-                        ? accentColor.withOpacity(0.3)
+                        ? accentColor.withValues(alpha: 0.3)
                         : Colors.transparent,
                     child: LibrarySongListTile(
                       song: song,
@@ -727,11 +727,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
             Icon(
               Icons.music_note_rounded,
               size: 72,
-              color: accentColor.withOpacity(0.7),
+              color: accentColor.withValues(alpha: 0.7),
             ),
             const SizedBox(height: AppDimens.spacingMd),
             Text(
-              'Audio Permission Required',
+              'local_music_permission_required'.tr(),
               style: AppTextStyles.titleSm(
                 isDarkMode: isDarkMode,
                 color: accentColor,
@@ -740,9 +740,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             const SizedBox(height: AppDimens.spacingSm),
             Text(
-              isPermanentlyDenied
-                  ? 'Permission permanently denied. Please enable audio access in app settings.'
-                  : 'Noize needs access to your audio files to display and play local music.',
+              'local_music_permission_description'.tr(),
               style: AppTextStyles.bodyMd(isDarkMode: isDarkMode),
               textAlign: TextAlign.center,
             ),

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/models/song_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/providers/favorite_song_provider.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
+import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/providers/download_provider.dart';
 import '../../../../shared/components/add_to_playlist_bottomsheet.dart';
 import '../../../../shared/components/app_snackbar.dart';
@@ -36,7 +38,6 @@ class _SongOptionsBottomSheetlibraryState
     extends State<SongOptionsBottomSheetlibrary> {
   late FavoriteSongProvider _favoriteSongProvider;
   late QueueProvider _queueProvider;
-  late PlayerProvider _playerProvider;
   late DownloadProvider _downloadProvider;
   late SongInfo _songInfo;
 
@@ -45,7 +46,6 @@ class _SongOptionsBottomSheetlibraryState
     super.initState();
     _favoriteSongProvider = context.read<FavoriteSongProvider>();
     _queueProvider = context.read<QueueProvider>();
-    _playerProvider = context.read<PlayerProvider>();
     _downloadProvider = context.read<DownloadProvider>();
 
     List<Artist> artists = [];
@@ -170,18 +170,20 @@ class _SongOptionsBottomSheetlibraryState
           icon: Icons.person,
           text: 'view_artist'.tr() + ' (Unknown Artist)',
           onTap: () {},
-          textColor: textColor.withOpacity(0.5),
+          textColor: textColor.withValues(alpha: 0.5),
         ),
       ];
     }
 
     return _songInfo.artists.map((artist) {
-      final isArtistIdNull = artist.id == null || artist.id.isEmpty;
+      final isArtistIdNull = artist.id.isEmpty;
       return _buildOption(
         icon: Icons.person,
         text: 'view_artist'.tr() + ' (${artist.name})',
         onTap: isArtistIdNull ? () {} : () => _viewArtist(artist),
-        textColor: isArtistIdNull ? textColor.withOpacity(0.5) : textColor,
+        textColor: isArtistIdNull
+            ? textColor.withValues(alpha: 0.5)
+            : textColor,
       );
     }).toList();
   }
@@ -231,7 +233,7 @@ class _SongOptionsBottomSheetlibraryState
             height: AppDimens.dragHandleHeight,
             margin: const EdgeInsets.only(bottom: AppDimens.paddingLg),
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
             ),
           ),
@@ -280,7 +282,7 @@ class _SongOptionsBottomSheetlibraryState
                       _getArtistsText(),
                       style: AppTextStyles.bodyMd(
                         isDarkMode: isDarkMode,
-                        color: textColor.withOpacity(0.7),
+                        color: textColor.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -310,6 +312,9 @@ class _SongOptionsBottomSheetlibraryState
                   SizedBox(width: AppDimens.spacingSm),
                   Consumer<DownloadProvider>(
                     builder: (context, provider, child) {
+                      final accentColor = context.select(
+                        (SettingsProvider settings) => settings.accentColor,
+                      );
                       final isDownloaded = provider.downloadedSongs.any(
                         (s) => s['id'] == _songInfo.videoId,
                       );
@@ -342,9 +347,7 @@ class _SongOptionsBottomSheetlibraryState
                                 value: progress.progress,
                                 strokeWidth: AppDimens.progressStroke,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  MainScreenColors.getSecondaryColor(
-                                    widget.isDarkMode,
-                                  ),
+                                  accentColor,
                                 ),
                               ),
                               Text(
@@ -364,9 +367,7 @@ class _SongOptionsBottomSheetlibraryState
                           child: CircularProgressIndicator(
                             strokeWidth: AppDimens.progressStroke,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              MainScreenColors.getSecondaryColor(
-                                widget.isDarkMode,
-                              ),
+                              accentColor,
                             ),
                           ),
                         );
@@ -537,8 +538,11 @@ class _SongOptionsBottomSheetlibraryState
           text: 'share'.tr(),
           onTap: () {
             final youtubeUrl = 'https://youtu.be/${_songInfo.videoId}';
-            Share.share(
-              'Check out this song: $youtubeUrl by ${_getArtistsText()}',
+            SharePlus.instance.share(
+              ShareParams(
+                text:
+                    'Check out this song: $youtubeUrl by ${_getArtistsText()}',
+              ),
             );
             Navigator.pop(context);
           },
@@ -585,7 +589,12 @@ class _SongOptionsBottomSheetlibraryState
                 size: AppDimens.iconMd,
               ),
             ),
-            onPressed: null,
+            onPressed: () async {
+              final youtubeUrl = 'https://youtu.be/${_songInfo.videoId}';
+              if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
+                await launchUrl(Uri.parse(youtubeUrl));
+              }
+            },
             tooltip: 'open_in_youtube'.tr(),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -597,7 +606,13 @@ class _SongOptionsBottomSheetlibraryState
               color: Colors.red[700],
               size: AppDimens.iconXl,
             ),
-            onPressed: null,
+            onPressed: () async {
+              final youtubeMusicUrl =
+                  'https://music.youtube.com/watch?v=${_songInfo.videoId}';
+              if (await canLaunchUrl(Uri.parse(youtubeMusicUrl))) {
+                await launchUrl(Uri.parse(youtubeMusicUrl));
+              }
+            },
             tooltip: 'open_in_youtube_music'.tr(),
           ),
         ],

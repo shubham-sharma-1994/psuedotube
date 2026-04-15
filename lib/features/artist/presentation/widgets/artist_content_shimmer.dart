@@ -27,7 +27,7 @@ class ArtistContentShimmer {
           borderRadius: BorderRadius.circular(AppDimens.radiusXl),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -155,7 +155,7 @@ class ArtistContentShimmer {
             color: MainScreenColors.getTextColor(
               Provider.of<SettingsProvider>(context, listen: false).themeMode ==
                   ThemeMode.dark,
-            ).withOpacity(0.1),
+            ).withValues(alpha: 0.1),
           ),
           Expanded(
             child: SingleChildScrollView(

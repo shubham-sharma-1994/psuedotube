@@ -18,6 +18,10 @@ class SongSearchDelegate extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    ).accentColor;
     return Theme.of(context).copyWith(
       appBarTheme: AppBarTheme(
         backgroundColor: MainScreenColors.getSurfaceColor(isDarkMode),
@@ -31,10 +35,13 @@ class SongSearchDelegate extends SearchDelegate {
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: AppTextStyles.caption(
-          color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.6),
+          color: MainScreenColors.getTextColor(
+            isDarkMode,
+          ).withValues(alpha: 0.6),
         ),
         border: InputBorder.none,
       ),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: accentColor),
       textTheme: TextTheme(
         titleLarge: AppTextStyles.titleLg(
           color: MainScreenColors.getTextColor(isDarkMode),
@@ -86,7 +93,9 @@ class SongSearchDelegate extends SearchDelegate {
             Icon(
               Icons.search_off,
               size: AppDimens.iconStatus,
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.5),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.5),
             ),
             SizedBox(height: AppDimens.spacingLg),
             Text(
@@ -94,7 +103,7 @@ class SongSearchDelegate extends SearchDelegate {
               style: AppTextStyles.titleLg(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -124,7 +133,7 @@ class SongSearchDelegate extends SearchDelegate {
                       ? Provider.of<SettingsProvider>(
                           context,
                           listen: false,
-                        ).accentColor.withOpacity(0.2)
+                        ).accentColor.withValues(alpha: 0.2)
                       : MainScreenColors.getSurfaceColor(isDarkMode),
                   borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 ),
@@ -165,7 +174,9 @@ class SongSearchDelegate extends SearchDelegate {
             Icon(
               Icons.search_off,
               size: AppDimens.iconStatus,
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.5),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.5),
             ),
             SizedBox(height: AppDimens.spacingLg),
             Text(
@@ -173,7 +184,7 @@ class SongSearchDelegate extends SearchDelegate {
               style: AppTextStyles.titleLg(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -203,7 +214,7 @@ class SongSearchDelegate extends SearchDelegate {
                       ? Provider.of<SettingsProvider>(
                           context,
                           listen: false,
-                        ).accentColor.withOpacity(0.2)
+                        ).accentColor.withValues(alpha: 0.2)
                       : MainScreenColors.getSurfaceColor(isDarkMode),
                   borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 ),

@@ -66,7 +66,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
           boxShadow: [
             BoxShadow(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               blurRadius: AppDimens.elevationHigh,
               offset: const Offset(0, AppDimens.spacingSmMd),
             ),
@@ -96,7 +96,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             ? []
             : [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   blurRadius: AppDimens.elevationHigh,
                   offset: const Offset(0, AppDimens.spacingSmMd),
                 ),

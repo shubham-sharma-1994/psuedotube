@@ -16,6 +16,7 @@ class PlaylistAlbumLibraryProvider with ChangeNotifier {
   List<Map<String, dynamic>> _savedPlaylists = [];
   List<Map<String, dynamic>> _savedAlbums = [];
   List<Map<String, dynamic>> _createdPlaylists = [];
+  bool _hasLoadedCreatedPlaylists = false;
 
   bool isPlaylistsLoading = false;
   bool isAlbumsLoading = false;
@@ -24,6 +25,7 @@ class PlaylistAlbumLibraryProvider with ChangeNotifier {
   List<Map<String, dynamic>> get savedPlaylists => _savedPlaylists;
   List<Map<String, dynamic>> get savedAlbums => _savedAlbums;
   List<Map<String, dynamic>> get createdPlaylists => _createdPlaylists;
+  bool get hasLoadedCreatedPlaylists => _hasLoadedCreatedPlaylists;
 
   Future<void> loadSavedPlaylists({bool notify = true}) async {
     if (notify) {
@@ -120,6 +122,7 @@ class PlaylistAlbumLibraryProvider with ChangeNotifier {
       debugPrint('Error loading created playlists: $e');
       _createdPlaylists = [];
     } finally {
+      _hasLoadedCreatedPlaylists = true;
       if (notify) {
         isCreatedPlaylistsLoading = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -368,6 +371,7 @@ class PlaylistAlbumLibraryProvider with ChangeNotifier {
       debugPrint('Error loading created playlists: $e');
       _createdPlaylists = [];
     } finally {
+      _hasLoadedCreatedPlaylists = true;
       if (notify) {
         isCreatedPlaylistsLoading = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {

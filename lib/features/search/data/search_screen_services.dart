@@ -1,13 +1,14 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Thumbnail;
 
 import '../../../core/models/song_model.dart';
 import '../../../core/services/related_song_service.dart';
+import '../../../core/services/settings_storage_service.dart';
 import '../../../core/services/yt-music-api.dart' as ytApi;
 
 enum SearchMode { youtubeMusic, youtube }
@@ -23,19 +24,25 @@ class SearchScreenServices {
 
   static const String SEARCH_HISTORY_KEY = 'search_history';
   static const String SEARCH_HISTORY_ENABLED_KEY = 'searchHistoryEnabled';
+  static const int _maxSearchQueueSize = 250;
+  static const int _initialRadioBatchLimit = 50;
+  static const int _extraRadioFetchCount = 6;
 
   Future<List<String>> loadSearchHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isEnabled = prefs.getBool(SEARCH_HISTORY_ENABLED_KEY) ?? true;
+    final box = await SettingsStorageService.getBox();
+    final isEnabled = (box.get(SEARCH_HISTORY_ENABLED_KEY) as bool?) ?? true;
     if (!isEnabled) return [];
-    return prefs.getStringList(SEARCH_HISTORY_KEY) ?? [];
+    return (box.get(SEARCH_HISTORY_KEY) as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
   }
 
   Future<void> saveSearchHistory(List<String> history) async {
-    final prefs = await SharedPreferences.getInstance();
-    final isEnabled = prefs.getBool(SEARCH_HISTORY_ENABLED_KEY) ?? true;
+    final box = await SettingsStorageService.getBox();
+    final isEnabled = (box.get(SEARCH_HISTORY_ENABLED_KEY) as bool?) ?? true;
     if (isEnabled) {
-      await prefs.setStringList(SEARCH_HISTORY_KEY, history);
+      await box.put(SEARCH_HISTORY_KEY, history);
     }
   }
 
@@ -145,7 +152,7 @@ class SearchScreenServices {
     dynamic queueProvider,
   ) async {
     try {
-      isLoadingRelatedSongsNotifier.value = true;
+      isLoadingRelatedSongsNotifier.value = false;
 
       final songInfo = SongInfo(
         videoId: song.videoId,
@@ -158,6 +165,8 @@ class SearchScreenServices {
             .toList(),
         duration: Duration(seconds: song.duration ?? 0),
       );
+
+      await playerProvider.playerService.playSong(songInfo);
 
       List<SongInfo> songsList;
       dynamic isYouTube;
@@ -172,52 +181,132 @@ class SearchScreenServices {
           songInfo,
           song.videoId,
         );
+        final songIndex = songsList.indexWhere(
+          (s) => s.videoId == song.videoId,
+        );
+        queueProvider.setQueue(
+          songsList,
+          currentIndex: songIndex,
+          playlistId: 'search_results',
+          playlistName: 'Search Results',
+        );
       } else {
         // YouTube Music
-        final radioData = await ytApi.getRadioSongs(song.videoId);
-        final tracks = radioData['tracks'] as List;
-        songsList = tracks.map((track) {
-          final trackArtists = track['artists'] as List?;
-          final thumbnails = track['thumbnails'] as List?;
-          return SongInfo(
-            videoId: track['videoId'] ?? '',
-            name: track['title'] ?? 'Unknown Title',
-            artists:
-                trackArtists
-                    ?.map(
-                      (a) => Artist(
-                        name: a['name'] ?? 'Unknown Artist',
-                        id: a['id'] ?? '',
-                      ),
-                    )
-                    ?.toList() ??
-                [Artist(name: 'Unknown Artist', id: '')],
-            thumbnails: [
-              Thumbnail(
-                url: (thumbnails?.isNotEmpty ?? false)
-                    ? (thumbnails!.last['url'] ?? '')
-                    : '',
-                width: 1280,
-                height: 720,
-              ),
-            ],
-            duration: Duration(seconds: track['duration_seconds'] ?? 0),
-          );
-        }).toList();
+        songsList = await _buildExpandedRadioQueueIncremental(
+          currentSong: songInfo,
+          seedVideoId: song.videoId,
+          queueProvider: queueProvider,
+        );
       }
       isLoadingRelatedSongsNotifier.value = false;
-
-      final songIndex = songsList.indexWhere((s) => s.videoId == song.videoId);
-
-      queueProvider.setQueue(
-        songsList,
-        currentIndex: songIndex,
-        playlistId: 'search_results',
-        playlistName: 'Search Results',
-      );
-      await playerProvider.playerService.playSong(songInfo);
     } catch (e) {
       throw Exception('Failed to play song: $e');
     }
+  }
+
+  Future<List<SongInfo>> _buildExpandedRadioQueueIncremental({
+    required SongInfo currentSong,
+    required String seedVideoId,
+    required dynamic queueProvider,
+  }) async {
+    final random = Random();
+    final seenVideoIds = <String>{};
+    var songs = <SongInfo>[];
+
+    List<SongInfo> getUniqueSongs(Iterable<SongInfo> incoming) {
+      final unique = <SongInfo>[];
+      for (final item in incoming) {
+        if (item.videoId.isEmpty || seenVideoIds.contains(item.videoId)) {
+          continue;
+        }
+        seenVideoIds.add(item.videoId);
+        unique.add(item);
+        if (seenVideoIds.length >= _maxSearchQueueSize) {
+          break;
+        }
+      }
+      return unique;
+    }
+
+    seenVideoIds.add(currentSong.videoId);
+    queueProvider.setQueue(
+      [currentSong],
+      currentIndex: 0,
+      playlistId: 'search_results',
+      playlistName: 'Search Results',
+    );
+    songs = List<SongInfo>.from(queueProvider.queue);
+
+    final initialRadioData = await ytApi.getRadioSongs(
+      seedVideoId,
+      limit: _initialRadioBatchLimit,
+    );
+    final initialUniqueSongs = getUniqueSongs(
+      _mapRadioTracksToSongInfo(initialRadioData['tracks'] as List),
+    );
+    if (initialUniqueSongs.isNotEmpty) {
+      queueProvider.addAllToQueue(initialUniqueSongs);
+      songs = List<SongInfo>.from(queueProvider.queue);
+    }
+
+    for (
+      var i = 0;
+      i < _extraRadioFetchCount && songs.length < _maxSearchQueueSize;
+      i++
+    ) {
+      if (songs.isEmpty) break;
+
+      final randomSeedSong = songs[random.nextInt(songs.length)];
+      try {
+        final extraRadioData = await ytApi.getRadioSongs(
+          randomSeedSong.videoId,
+          limit: _initialRadioBatchLimit,
+        );
+        final extraUniqueSongs = getUniqueSongs(
+          _mapRadioTracksToSongInfo(extraRadioData['tracks'] as List),
+        );
+        if (extraUniqueSongs.isNotEmpty) {
+          queueProvider.addAllToQueue(extraUniqueSongs);
+          songs = List<SongInfo>.from(queueProvider.queue);
+        }
+      } catch (e) {
+        debugPrint(
+          'Extra radio fetch failed for ${randomSeedSong.videoId}: $e',
+        );
+      }
+    }
+
+    return songs.take(_maxSearchQueueSize).toList();
+  }
+
+  List<SongInfo> _mapRadioTracksToSongInfo(List tracks) {
+    return tracks.map((track) {
+      final trackArtists = track['artists'] as List?;
+      final thumbnails = track['thumbnails'] as List?;
+      return SongInfo(
+        videoId: track['videoId'] ?? '',
+        name: track['title'] ?? 'Unknown Title',
+        artists:
+            trackArtists
+                ?.map(
+                  (a) => Artist(
+                    name: a['name'] ?? 'Unknown Artist',
+                    id: a['id'] ?? '',
+                  ),
+                )
+                ?.toList() ??
+            [Artist(name: 'Unknown Artist', id: '')],
+        thumbnails: [
+          Thumbnail(
+            url: (thumbnails?.isNotEmpty ?? false)
+                ? (thumbnails!.last['url'] ?? '')
+                : '',
+            width: 1280,
+            height: 720,
+          ),
+        ],
+        duration: Duration(seconds: track['duration_seconds'] ?? 0),
+      );
+    }).toList();
   }
 }

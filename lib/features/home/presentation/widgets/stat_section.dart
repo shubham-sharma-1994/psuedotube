@@ -58,7 +58,9 @@ class StatsSection extends StatelessWidget {
 
         final subStatStyle = AppTextStyles.caption(isDarkMode: isDarkMode)
             .copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.7),
               fontSize: isDesktop ? 11.0 : 10.0,
             );
         final subStatValueStyle = AppTextStyles.caption(isDarkMode: isDarkMode)
@@ -72,7 +74,7 @@ class StatsSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 1.5),
             child: Row(
               children: [
-                Icon(icon, size: 11, color: iconColor.withOpacity(0.7)),
+                Icon(icon, size: 11, color: iconColor.withValues(alpha: 0.7)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -109,7 +111,7 @@ class StatsSection extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
             ),
-            color: accentColor.withOpacity(isDarkMode ? 0.06 : 0.36),
+            color: accentColor.withValues(alpha: isDarkMode ? 0.06 : 0.36),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: minHeight ?? 0),
               child: Padding(
@@ -158,7 +160,7 @@ class StatsSection extends StatelessWidget {
                                     ).copyWith(
                                       color: MainScreenColors.getTextColor(
                                         isDarkMode,
-                                      ).withOpacity(0.55),
+                                      ).withValues(alpha: 0.55),
                                     ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -169,7 +171,7 @@ class StatsSection extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: iconColor.withOpacity(0.12),
+                            color: iconColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(
                               AppDimens.radiusMd,
                             ),
@@ -189,7 +191,7 @@ class StatsSection extends StatelessWidget {
                           height: 1,
                           color: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(0.1),
+                          ).withValues(alpha: 0.1),
                         ),
                       ),
                       ...subStats,
@@ -213,7 +215,7 @@ class StatsSection extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimens.radiusXl),
             ),
-            color: accentColor.withOpacity(isDarkMode ? 0.06 : 0.36),
+            color: accentColor.withValues(alpha: isDarkMode ? 0.06 : 0.36),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: 0),
               child: Padding(
@@ -286,7 +288,7 @@ class StatsSection extends StatelessWidget {
                                       ).copyWith(
                                         color: MainScreenColors.getTextColor(
                                           isDarkMode,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -301,7 +303,7 @@ class StatsSection extends StatelessWidget {
                                   ).copyWith(
                                     color: MainScreenColors.getTextColor(
                                       isDarkMode,
-                                    ).withOpacity(0.7),
+                                    ).withValues(alpha: 0.7),
                                   ),
                             ),
                     ),

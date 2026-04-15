@@ -132,14 +132,14 @@ class _StarfieldPainter extends CustomPainter {
       final px = star.x * w;
       final py = y * h;
 
-      starPaint.color = accentColor.withOpacity(opacity);
+      starPaint.color = accentColor.withValues(alpha: opacity);
       canvas.drawCircle(Offset(px, py), star.size, starPaint);
 
       if (star.size > 1.8) {
         final glowOpacity = opacity * 0.25;
         final glowLen = star.size * 2.5;
         final glowPaint = Paint()
-          ..color = accentColor.withOpacity(glowOpacity)
+          ..color = accentColor.withValues(alpha: glowOpacity)
           ..strokeWidth = 0.5
           ..style = PaintingStyle.stroke;
         canvas.drawLine(
@@ -168,12 +168,18 @@ class _StarfieldPainter extends CustomPainter {
 
     final nebulaPaint = Paint()
       ..shader = RadialGradient(
-        colors: [accentColor.withOpacity(0.06), accentColor.withOpacity(0.0)],
+        colors: [
+          accentColor.withValues(alpha: 0.06),
+          accentColor.withValues(alpha: 0.0),
+        ],
       ).createShader(Rect.fromCircle(center: c1, radius: w * 0.35));
     canvas.drawCircle(c1, w * 0.35, nebulaPaint);
 
     nebulaPaint.shader = RadialGradient(
-      colors: [accentColor.withOpacity(0.04), accentColor.withOpacity(0.0)],
+      colors: [
+        accentColor.withValues(alpha: 0.04),
+        accentColor.withValues(alpha: 0.0),
+      ],
     ).createShader(Rect.fromCircle(center: c2, radius: w * 0.3));
     canvas.drawCircle(c2, w * 0.3, nebulaPaint);
   }

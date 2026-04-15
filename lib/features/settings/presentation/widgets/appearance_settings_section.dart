@@ -43,8 +43,8 @@ class AppearanceSettingsSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
                   color: themeData.isDarkMode
-                      ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                      : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                      ? Colors.white.withValues(alpha: AppDimens.opacitySubtle)
+                      : Colors.black.withValues(alpha: AppDimens.opacitySubtle),
                   width: AppDimens.borderWidthThin,
                 ),
               ),
@@ -70,8 +70,8 @@ class AppearanceSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -104,7 +104,7 @@ class AppearanceSettingsSection extends StatelessWidget {
                               Icons.arrow_forward_ios,
                               size: AppDimens.iconXs,
                               color: settingsProvider.adaptiveColorEnabled
-                                  ? Colors.grey.withOpacity(0.6)
+                                  ? Colors.grey.withValues(alpha: 0.6)
                                   : Colors.grey,
                             ),
                           ],
@@ -139,8 +139,8 @@ class AppearanceSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -227,12 +227,14 @@ class AppearanceSettingsSection extends StatelessWidget {
           horizontal: isSmall ? AppDimens.paddingSm : AppDimens.paddingMd,
         ),
         decoration: BoxDecoration(
-          color: selected ? accentColor.withOpacity(0.2) : Colors.transparent,
+          color: selected
+              ? accentColor.withValues(alpha: 0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(
             isSmall ? AppDimens.radiusSm : AppDimens.radiusMd,
           ),
           border: Border.all(
-            color: selected ? accentColor : Colors.grey.withOpacity(0.3),
+            color: selected ? accentColor : Colors.grey.withValues(alpha: 0.3),
             width: AppDimens.borderWidthThin,
           ),
         ),
@@ -366,34 +368,31 @@ class _AdaptiveColorSettingsItemState
 
             if (!available) return const SizedBox.shrink();
 
-            return SettingsItem(
+            return SettingsToggleItem(
               icon: Icons.auto_awesome,
               title: 'adaptive_color_title'.tr(),
-              trailing: Switch(
-                value: settingsProvider.adaptiveColorEnabled,
-                onChanged: (value) async {
-                  if (value) {
-                    Color? dynamicColor;
-                    if (widget.platform == TargetPlatform.windows) {
-                      dynamicColor = colorData as Color?;
-                    } else {
-                      final core = colorData;
-                      try {
-                        final int? primaryTonal = core.primary.get(40);
-                        if (primaryTonal != null)
-                          dynamicColor = Color(primaryTonal);
-                      } catch (_) {}
-                    }
-                    await settingsProvider.setAdaptiveColorEnabled(
-                      true,
-                      dynamicColor: dynamicColor,
-                    );
+              value: settingsProvider.adaptiveColorEnabled,
+              onChanged: (value) async {
+                if (value) {
+                  Color? dynamicColor;
+                  if (widget.platform == TargetPlatform.windows) {
+                    dynamicColor = colorData as Color?;
                   } else {
-                    await settingsProvider.setAdaptiveColorEnabled(false);
+                    final core = colorData;
+                    try {
+                      final int? primaryTonal = core.primary.get(40);
+                      if (primaryTonal != null)
+                        dynamicColor = Color(primaryTonal);
+                    } catch (_) {}
                   }
-                },
-                activeColor: widget.accentColor,
-              ),
+                  await settingsProvider.setAdaptiveColorEnabled(
+                    true,
+                    dynamicColor: dynamicColor,
+                  );
+                } else {
+                  await settingsProvider.setAdaptiveColorEnabled(false);
+                }
+              },
               isDarkMode: widget.isDarkMode,
               accentColor: widget.accentColor,
             );

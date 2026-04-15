@@ -117,7 +117,9 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                       ),
                     ),
                     style: TextButton.styleFrom(
-                      backgroundColor: themeData.accentColor.withOpacity(0.1),
+                      backgroundColor: themeData.accentColor.withValues(
+                        alpha: 0.1,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           AppDimens.radiusXxl,
@@ -152,7 +154,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                         borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: AppDimens.elevationHigh,
                             offset: Offset(0, AppDimens.spacingS),
                           ),
@@ -183,7 +185,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                             : MainScreenColors.lightSurfaceColor,
                         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                         border: Border.all(
-                          color: themeData.accentColor.withOpacity(0.15),
+                          color: themeData.accentColor.withValues(alpha: 0.15),
                           width: AppDimens.borderWidthThin,
                         ),
                       ),
@@ -214,7 +216,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                                     .copyWith(
                                       color: MainScreenColors.getTextColor(
                                         themeData.isDarkMode,
-                                      ).withOpacity(0.7),
+                                      ).withValues(alpha: 0.7),
                                     ),
                           ),
                         ],
@@ -249,6 +251,15 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                           SizedBox(height: AppDimens.spacingMd),
                           LayoutBuilder(
                             builder: (context, constraints) {
+                              const animationOptions = [
+                                'Default',
+                                'Animation 1',
+                                'Animation 2',
+                                'Animation 3',
+                                'Animation 4',
+                                'Animation 5',
+                                'static',
+                              ];
                               final double itemWidth =
                                   140; // Minimum width per animation option
                               final int crossAxisCount =
@@ -277,11 +288,9 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                                           ? 3.0
                                           : 2.8,
                                     ),
-                                itemCount: 6,
+                                itemCount: animationOptions.length,
                                 itemBuilder: (context, index) {
-                                  final animationName = index == 5
-                                      ? 'static'
-                                      : 'Animation ${index + 1}';
+                                  final animationName = animationOptions[index];
                                   final isSelected =
                                       currentAnimation == animationName;
 
@@ -324,6 +333,25 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
     final backgroundColor = themeData.playerServiceBackgroundColor;
     final accentColor = themeData.accentColor;
     switch (currentAnimation) {
+      case 'Default':
+        return Container(
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.8)),
+        );
+      case 'static':
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withValues(alpha: 0.9),
+                backgroundColor,
+                backgroundColor.withValues(alpha: 0.6),
+                accentColor.withValues(alpha: 0.2),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        );
       case 'Animation 1':
         return Animation1(
           backgroundColor: backgroundColor,
@@ -354,21 +382,6 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
           accentColor: accentColor,
           isAnimating: true,
         );
-      case 'static':
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black.withOpacity(0.9),
-                backgroundColor,
-                backgroundColor.withOpacity(0.6),
-                accentColor.withOpacity(0.2),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-        );
       default:
         return Container(
           decoration: BoxDecoration(
@@ -396,7 +409,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: isSelected
-              ? themeData.accentColor.withOpacity(0.15)
+              ? themeData.accentColor.withValues(alpha: 0.15)
               : (themeData.isDarkMode
                     ? MainScreenColors.darkSurfaceColor
                     : MainScreenColors.lightSurfaceColor),
@@ -406,7 +419,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
                 ? themeData.accentColor
                 : MainScreenColors.getTextColor(
                     themeData.isDarkMode,
-                  ).withOpacity(0.1),
+                  ).withValues(alpha: 0.1),
             width: isSelected
                 ? AppDimens.borderWidthThick
                 : AppDimens.borderWidthThin,
@@ -414,7 +427,7 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: themeData.accentColor.withOpacity(0.3),
+                    color: themeData.accentColor.withValues(alpha: 0.3),
                     blurRadius: AppDimens.elevationHigh,
                     offset: Offset(0, AppDimens.spacingXs),
                   ),
@@ -460,6 +473,8 @@ class _AnimationSelectorScreenState extends State<AnimationSelectorScreen> {
 
   String _getAnimationDescription(String animationType) {
     switch (animationType) {
+      case 'Default':
+        return 'static_animation_description'.tr();
       case 'Animation 1':
         return 'animation_1_description'.tr();
       case 'Animation 2':

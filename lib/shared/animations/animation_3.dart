@@ -193,8 +193,8 @@ class _LayeredWavePainter extends CustomPainter {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              accentColor.withOpacity(opacity),
-              accentColor.withOpacity(opacity * 0.25),
+              accentColor.withValues(alpha: opacity),
+              accentColor.withValues(alpha: opacity * 0.25),
             ],
           ).createShader(
             Rect.fromLTWH(0, yBase - amplitude, w, h - yBase + amplitude),

@@ -30,7 +30,7 @@ class MusicSearch extends SearchDelegate<String> {
           isDarkMode: isDark,
           color: MainScreenColors.getTextColor(
             isDark,
-          ).withOpacity(AppDimens.opacityMid),
+          ).withValues(alpha: AppDimens.opacityMid),
         ),
         border: InputBorder.none,
       ),
@@ -93,7 +93,7 @@ class MusicSearch extends SearchDelegate<String> {
             isDarkMode: isDarkMode,
             color: MainScreenColors.getTextColor(
               isDarkMode,
-            ).withOpacity(AppDimens.opacityMuted),
+            ).withValues(alpha: AppDimens.opacityMuted),
           ),
         ),
       );
@@ -107,7 +107,7 @@ class MusicSearch extends SearchDelegate<String> {
         separatorBuilder: (_, __) => Divider(
           color: MainScreenColors.getTextColor(
             isDarkMode,
-          ).withOpacity(AppDimens.opacitySubtle),
+          ).withValues(alpha: AppDimens.opacitySubtle),
         ),
         itemBuilder: (context, index) {
           final song = suggestions[index];
@@ -133,7 +133,9 @@ class MusicSearch extends SearchDelegate<String> {
             Icon(
               Icons.search_off,
               size: AppDimens.iconStatus,
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.4),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.4),
             ),
             SizedBox(height: AppDimens.spacingSmMd),
             Text(
@@ -142,7 +144,7 @@ class MusicSearch extends SearchDelegate<String> {
                 isDarkMode: isDarkMode,
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(AppDimens.opacityMuted),
+                ).withValues(alpha: AppDimens.opacityMuted),
               ),
             ),
           ],
@@ -156,7 +158,7 @@ class MusicSearch extends SearchDelegate<String> {
       separatorBuilder: (_, __) => Divider(
         color: MainScreenColors.getTextColor(
           isDarkMode,
-        ).withOpacity(AppDimens.opacitySubtle),
+        ).withValues(alpha: AppDimens.opacitySubtle),
       ),
       itemBuilder: (context, index) {
         final song = results[index];
@@ -183,7 +185,7 @@ class MusicSearch extends SearchDelegate<String> {
 
     return Container(
       color: isPlaying
-          ? accentColor.withOpacity(AppDimens.opacitySubtle)
+          ? accentColor.withValues(alpha: AppDimens.opacitySubtle)
           : null,
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
@@ -201,7 +203,7 @@ class MusicSearch extends SearchDelegate<String> {
             isDarkMode: isDarkMode,
             color: MainScreenColors.getTextColor(
               isDarkMode,
-            ).withOpacity(AppDimens.opacityMuted),
+            ).withValues(alpha: AppDimens.opacityMuted),
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

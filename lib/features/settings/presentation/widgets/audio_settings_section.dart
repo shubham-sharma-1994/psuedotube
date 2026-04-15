@@ -6,7 +6,6 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/providers/player_provider.dart';
 import '../../../equalizer/presentation/screens/equalizer_screen.dart';
 import '../screens/ai_api_config_screen.dart';
 import 'settings_item.dart';
@@ -45,14 +44,17 @@ class AudioSettingsSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
                   color: themeData.isDarkMode
-                      ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                      : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                      ? Colors.white.withValues(alpha: AppDimens.opacitySubtle)
+                      : Colors.black.withValues(alpha: AppDimens.opacitySubtle),
                   width: AppDimens.borderWidthThin,
                 ),
               ),
               child: Column(
                 children: [
-                  if (Platform.isAndroid || Platform.isIOS)
+                  if (Platform.isAndroid ||
+                      Platform.isIOS ||
+                      Platform.isWindows ||
+                      Platform.isLinux)
                     SettingsItem(
                       icon: Icons.equalizer,
                       title: 'equalizer_card_title'.tr(),
@@ -65,12 +67,7 @@ class AudioSettingsSection extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => EqualizerScreen(
-                              audioPlayer: Provider.of<PlayerProvider>(
-                                context,
-                                listen: false,
-                              ).playerService.justAudioPlayer!,
-                            ),
+                            builder: (context) => const EqualizerScreen(),
                           ),
                         );
                       },
@@ -82,8 +79,8 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -114,8 +111,31 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  Consumer<SettingsProvider>(
+                    builder: (context, settingsProvider, child) {
+                      return SettingsToggleItem(
+                        icon: Icons.sd_storage,
+                        title: 'audio_cache_enabled'.tr(),
+                        value: settingsProvider.audioCacheEnabled,
+                        onChanged: (value) {
+                          settingsProvider.audioCacheEnabled = value;
+                        },
+                        isDarkMode: themeData.isDarkMode,
+                        accentColor: themeData.accentColor,
+                      );
+                    },
+                  ),
+
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: themeData.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -146,8 +166,31 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  Consumer<SettingsProvider>(
+                    builder: (context, settingsProvider, child) {
+                      return SettingsToggleItem(
+                        icon: Icons.wifi,
+                        title: 'wifi_only_downloads'.tr(),
+                        value: settingsProvider.wifiOnlyDownloads,
+                        onChanged: (value) {
+                          settingsProvider.wifiOnlyDownloads = value;
+                        },
+                        isDarkMode: themeData.isDarkMode,
+                        accentColor: themeData.accentColor,
+                      );
+                    },
+                  ),
+
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: themeData.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -180,22 +223,19 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
                     builder: (context, settingsProvider, child) {
-                      return SettingsItem(
+                      return SettingsToggleItem(
                         icon: Icons.high_quality,
                         title: 'jio_saavn_card_title'.tr(),
-                        trailing: Switch(
-                          value: settingsProvider.jioSaavnEnabled,
-                          onChanged: (value) {
-                            settingsProvider.jioSaavnEnabled = value;
-                          },
-                          activeColor: themeData.accentColor,
-                        ),
+                        value: settingsProvider.jioSaavnEnabled,
+                        onChanged: (value) {
+                          settingsProvider.jioSaavnEnabled = value;
+                        },
                         isDarkMode: themeData.isDarkMode,
                         accentColor: themeData.accentColor,
                       );
@@ -206,8 +246,31 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  Consumer<SettingsProvider>(
+                    builder: (context, settingsProvider, child) {
+                      return SettingsToggleItem(
+                        icon: Icons.queue_music,
+                        title: 'gapless_playback'.tr(),
+                        value: settingsProvider.gaplessPlaybackEnabled,
+                        onChanged: (value) {
+                          settingsProvider.gaplessPlaybackEnabled = value;
+                        },
+                        isDarkMode: themeData.isDarkMode,
+                        accentColor: themeData.accentColor,
+                      );
+                    },
+                  ),
+
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: themeData.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -238,8 +301,8 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -273,22 +336,19 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
                     builder: (context, settingsProvider, child) {
-                      return SettingsItem(
+                      return SettingsToggleItem(
                         icon: Icons.history,
                         title: 'playback_history_card_title'.tr(),
-                        trailing: Switch(
-                          value: settingsProvider.playbackHistoryEnabled,
-                          onChanged: (value) {
-                            settingsProvider.playbackHistoryEnabled = value;
-                          },
-                          activeColor: themeData.accentColor,
-                        ),
+                        value: settingsProvider.playbackHistoryEnabled,
+                        onChanged: (value) {
+                          settingsProvider.playbackHistoryEnabled = value;
+                        },
                         isDarkMode: themeData.isDarkMode,
                         accentColor: themeData.accentColor,
                       );
@@ -299,22 +359,19 @@ class AudioSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
                     builder: (context, settingsProvider, child) {
-                      return SettingsItem(
+                      return SettingsToggleItem(
                         icon: Icons.search,
                         title: 'search_history_card_title'.tr(),
-                        trailing: Switch(
-                          value: settingsProvider.searchHistoryEnabled,
-                          onChanged: (value) {
-                            settingsProvider.searchHistoryEnabled = value;
-                          },
-                          activeColor: themeData.accentColor,
-                        ),
+                        value: settingsProvider.searchHistoryEnabled,
+                        onChanged: (value) {
+                          settingsProvider.searchHistoryEnabled = value;
+                        },
                         isDarkMode: themeData.isDarkMode,
                         accentColor: themeData.accentColor,
                       );

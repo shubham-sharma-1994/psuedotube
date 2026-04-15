@@ -15,6 +15,7 @@ class MarqueeText extends StatefulWidget {
   final Duration initialDelay;
 
   final int maxLines;
+  final int maxLoops;
 
   const MarqueeText({
     Key? key,
@@ -26,6 +27,7 @@ class MarqueeText extends StatefulWidget {
     this.pauseDuration = const Duration(milliseconds: 1000),
     this.initialDelay = const Duration(milliseconds: 2000),
     this.maxLines = 1,
+    this.maxLoops = 2,
   }) : super(key: key);
 
   @override
@@ -39,6 +41,7 @@ class _MarqueeTextState extends State<MarqueeText>
 
   double _maxScrollExtent = 0.0;
   bool _isOverflowing = false;
+  int _completedLoops = 0;
   String _previousText = '';
 
   @override
@@ -79,6 +82,12 @@ class _MarqueeTextState extends State<MarqueeText>
         _controller.reverse(from: 1.0);
       });
     } else if (status == AnimationStatus.dismissed) {
+      _completedLoops += 1;
+      if (_completedLoops >= widget.maxLoops) {
+        _controller.stop();
+        return;
+      }
+
       Future.delayed(widget.pauseDuration, () {
         if (!mounted) return;
 
@@ -102,6 +111,7 @@ class _MarqueeTextState extends State<MarqueeText>
 
     if (overflowing && !_isOverflowing) {
       _isOverflowing = true;
+      _completedLoops = 0;
       _maxScrollExtent = maxExtent;
 
       final computedSlowMs = (_maxScrollExtent / widget.speedPxPerSecond * 1000)
@@ -118,6 +128,7 @@ class _MarqueeTextState extends State<MarqueeText>
       setState(() {});
     } else if (!overflowing && _isOverflowing) {
       _isOverflowing = false;
+      _completedLoops = 0;
       _controller.stop();
       _scrollController.jumpTo(0);
       setState(() {});
@@ -131,6 +142,7 @@ class _MarqueeTextState extends State<MarqueeText>
     super.didUpdateWidget(oldWidget);
     if (widget.text != _previousText || widget.style != oldWidget.style) {
       _previousText = widget.text;
+      _completedLoops = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _scrollController.jumpTo(0);

@@ -1,68 +1,93 @@
 import 'dart:convert';
 
-import 'package:just_audio/just_audio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_ce/hive.dart';
+
+import '../../../../../core/services/settings_storage_service.dart';
+import '../../../../../core/services/media_kit_player_adapter.dart';
+
+class EqualizerBandDescriptor {
+  final int index;
+  final double centerFrequency;
+  final double gain;
+
+  const EqualizerBandDescriptor({
+    required this.index,
+    required this.centerFrequency,
+    required this.gain,
+  });
+
+  EqualizerBandDescriptor copyWith({double? gain}) {
+    return EqualizerBandDescriptor(
+      index: index,
+      centerFrequency: centerFrequency,
+      gain: gain ?? this.gain,
+    );
+  }
+}
+
+class EqualizerParameters {
+  final double minDecibels;
+  final double maxDecibels;
+  final List<EqualizerBandDescriptor> bands;
+
+  const EqualizerParameters({
+    required this.minDecibels,
+    required this.maxDecibels,
+    required this.bands,
+  });
+}
 
 class EqualizerService {
-  final AndroidEqualizer equalizer;
-  final AndroidLoudnessEnhancer loudnessEnhancer;
-  final SharedPreferences prefs;
-
   static const String _equalizerEnabledKey = 'equalizer_enabled';
-  static const String _loudnessEnabledKey = 'loudness_enabled';
-  static const String _loudnessGainKey = 'loudness_gain';
   static const String _currentPresetKey = 'current_preset';
   static const String _bandGainsKey = 'band_gains';
+  static const String _customPresetsKey = 'custom_presets';
 
   static const Map<String, List<double>> builtInPresets = {
     'Noize': [5.5, 3.0, 0.5, 0.0, 0.0, 0.8],
-
-    'Normal': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-
+    'Flat': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     'Rock': [4.0, 3.0, -2.0, 1.5, 3.0, 4.0],
-
     'Pop': [3.5, 2.0, 1.0, 1.0, 2.0, 3.5],
-
     'Jazz': [2.5, 2.0, 1.0, 0.5, 1.5, 2.5],
-
     'Classical': [2.0, 1.5, 0.5, -0.5, 1.0, 1.8],
-
     'Bass Boost': [8.0, 5.0, 2.0, -1.0, -2.0, -2.5],
+    'Vocal Boost': [-2.0, -1.0, 2.5, 4.0, 3.5, 2.0],
+    'Dance': [6.0, 4.0, 0.0, 2.5, 4.0, 5.0],
+    'Hip-Hop': [7.0, 5.5, 1.0, -1.0, 1.5, 2.0],
+    'Acoustic': [1.5, 2.0, 2.5, 2.0, 1.5, 1.0],
+    'Treble Boost': [-3.0, -2.0, 0.5, 3.5, 5.5, 6.5],
   };
 
-  static const String _loudnessProfileKey = 'loudness_profile';
-  static const Map<String, double> loudnessProfiles = {
-    'Low': 10.0,
-    'Medium': 20.0,
-    'High': 30.0,
-  };
+  static const List<double> _bandFrequencies = [
+    60,
+    230,
+    910,
+    3600,
+    14000,
+    16000,
+  ];
 
-  static const String _customPresetsKey = 'custom_presets';
-
+  bool _equalizerEnabled = false;
+  String _currentPreset = 'Noize';
   Map<String, List<double>> _customPresets = {};
+  List<double> _gains = [0, 0, 0, 0, 0, 0];
+  MediaKitPlayerAdapter? _playerAdapter;
+  late final Future<void> _initFuture;
 
-  EqualizerService(this.equalizer, this.loudnessEnhancer, this.prefs) {
-    _loadSettings();
+  EqualizerService() {
+    _initFuture = _loadSettings();
   }
 
+  Future<Box<dynamic>> _settingsBox() => SettingsStorageService.getBox();
+
   Future<void> _loadSettings() async {
-    final equalizerEnabled = prefs.getBool(_equalizerEnabledKey) ?? false;
-    await setEqualizerEnabled(equalizerEnabled);
+    final box = await _settingsBox();
+    _equalizerEnabled = (box.get(_equalizerEnabledKey) as bool?) ?? false;
 
-    final loudnessEnabled = prefs.getBool(_loudnessEnabledKey) ?? false;
-    await setLoudnessEnabled(loudnessEnabled);
-
-    final loudnessProfile = prefs.getString(_loudnessProfileKey) ?? 'High';
-    final loudnessGain = prefs.getDouble(_loudnessGainKey) ?? 0.0;
-    final maxGain =
-        loudnessProfiles[loudnessProfile] ?? loudnessProfiles['High']!;
-    await setLoudnessGain(loudnessGain.clamp(0.0, maxGain));
-
-    final customPresetsString = prefs.getString(_customPresetsKey);
+    final customPresetsString = box.get(_customPresetsKey) as String?;
     if (customPresetsString != null) {
       try {
-        final Map<String, dynamic> decoded =
-            jsonDecode(customPresetsString) as Map<String, dynamic>;
+        final decoded = jsonDecode(customPresetsString) as Map<String, dynamic>;
         _customPresets = decoded.map((key, value) {
           final list = (value as List)
               .map((e) => (e as num).toDouble())
@@ -74,72 +99,84 @@ class EqualizerService {
       }
     }
 
-    final currentPreset = prefs.getString(_currentPresetKey) ?? 'Noize';
-    await applyPreset(currentPreset);
-
-    final bandGainsString = prefs.getString(_bandGainsKey);
+    _currentPreset = (box.get(_currentPresetKey) as String?) ?? 'Noize';
+    final bandGainsString = box.get(_bandGainsKey) as String?;
     if (bandGainsString != null) {
-      final bandGains = bandGainsString
+      _gains = bandGainsString
           .split(',')
           .where((e) => e.trim().isNotEmpty)
-          .map((e) => double.parse(e))
+          .map((e) => double.tryParse(e) ?? 0.0)
           .toList();
-      final params = await equalizer.parameters;
-      for (var i = 0; i < bandGains.length && i < params.bands.length; i++) {
-        await params.bands[i].setGain(bandGains[i]);
-      }
+    } else {
+      _gains = List<double>.from(builtInPresets[_currentPreset] ?? _gains);
+    }
+
+    while (_gains.length < _bandFrequencies.length) {
+      _gains.add(0.0);
     }
   }
 
   Future<void> _saveSettings() async {
-    final params = await equalizer.parameters;
-    final bandGains = <double>[];
+    final box = await _settingsBox();
+    await box.put(_bandGainsKey, _gains.join(','));
+    await box.put(_customPresetsKey, jsonEncode(_customPresets));
+    await box.put(_currentPresetKey, _currentPreset);
+    await box.put(_equalizerEnabledKey, _equalizerEnabled);
+  }
 
-    for (var band in params.bands) {
-      bandGains.add(band.gain);
+  Future<void> bindPlayer(MediaKitPlayerAdapter adapter) async {
+    await _initFuture;
+    _playerAdapter = adapter;
+    await applyToBoundPlayer();
+  }
+
+  Future<void> applyToBoundPlayer() async {
+    if (_playerAdapter == null) return;
+    final graph = _equalizerEnabled ? buildFilterGraph() : '';
+    try {
+      await _playerAdapter!.setAudioFilterGraph(graph);
+    } catch (_) {}
+  }
+
+  String buildFilterGraph() {
+    final filters = <String>[];
+    for (int i = 0; i < _bandFrequencies.length; i++) {
+      final frequency = _bandFrequencies[i];
+      final gain = _gains[i].toStringAsFixed(1);
+      filters.add('equalizer=f=$frequency:t=q:w=1:g=$gain');
     }
 
-    await prefs.setString(_bandGainsKey, bandGains.join(','));
+    return filters.join(',');
+  }
 
-    _customPresets['Custom'] = bandGains;
-    await prefs.setString(_customPresetsKey, jsonEncode(_customPresets));
+  bool get equalizerEnabled => _equalizerEnabled;
+  String get currentPreset => _currentPreset;
+
+  Future<EqualizerParameters> getEqualizerParameters() async {
+    return EqualizerParameters(
+      minDecibels: -12.0,
+      maxDecibels: 12.0,
+      bands: List.generate(_bandFrequencies.length, (i) {
+        return EqualizerBandDescriptor(
+          index: i,
+          centerFrequency: _bandFrequencies[i],
+          gain: _gains[i],
+        );
+      }),
+    );
   }
 
   Future<void> setEqualizerEnabled(bool enabled) async {
-    await equalizer.setEnabled(enabled);
-    await prefs.setBool(_equalizerEnabledKey, enabled);
-  }
-
-  Future<void> setLoudnessEnabled(bool enabled) async {
-    await loudnessEnhancer.setEnabled(enabled);
-    await prefs.setBool(_loudnessEnabledKey, enabled);
-  }
-
-  Future<void> setLoudnessGain(double gain) async {
-    await loudnessEnhancer.setTargetGain(gain);
-    await prefs.setDouble(_loudnessGainKey, gain);
-  }
-
-  String get loudnessProfile => prefs.getString(_loudnessProfileKey) ?? 'High';
-
-  Future<void> setLoudnessProfile(String profile) async {
-    await prefs.setString(_loudnessProfileKey, profile);
-    final gain = prefs.getDouble(_loudnessGainKey) ?? 0.0;
-    final max = loudnessProfiles[profile] ?? loudnessProfiles['High']!;
-    final clamped = gain.clamp(0.0, max);
-    await setLoudnessGain(clamped);
-  }
-
-  Future<AndroidEqualizerParameters> getEqualizerParameters() async {
-    return await equalizer.parameters;
+    _equalizerEnabled = enabled;
+    await _saveSettings();
+    await applyToBoundPlayer();
   }
 
   Future<void> setBandGain(int bandIndex, double gain) async {
-    final params = await equalizer.parameters;
-    final clampedGain = gain.clamp(params.minDecibels, params.maxDecibels);
-    await params.bands[bandIndex].setGain(clampedGain);
-
+    if (bandIndex < 0 || bandIndex >= _gains.length) return;
+    _gains[bandIndex] = gain.clamp(-12.0, 12.0);
     await _saveSettings();
+    await applyToBoundPlayer();
   }
 
   Future<void> applyPreset(String presetName) async {
@@ -151,30 +188,23 @@ class EqualizerService {
     }
 
     if (gains != null) {
-      final params = await equalizer.parameters;
-
-      for (var i = 0; i < gains.length && i < params.bands.length; i++) {
-        final clampedGain = gains[i].clamp(
-          params.minDecibels,
-          params.maxDecibels,
-        );
-        await params.bands[i].setGain(clampedGain);
+      _gains = List<double>.from(gains);
+      while (_gains.length < _bandFrequencies.length) {
+        _gains.add(0.0);
       }
-
-      await prefs.setString(_currentPresetKey, presetName);
+      _currentPreset = presetName;
       await _saveSettings();
+      await applyToBoundPlayer();
     }
   }
-
-  String get currentPreset => prefs.getString(_currentPresetKey) ?? 'Noize';
 
   Future<Map<String, List<double>>> getAllPresets() async {
     return {...builtInPresets, ..._customPresets};
   }
 
   Future<void> saveCustomPreset(String name, List<double> gains) async {
-    _customPresets[name] = gains;
-    await prefs.setString(_customPresetsKey, jsonEncode(_customPresets));
+    _customPresets[name] = List<double>.from(gains);
+    await _saveSettings();
   }
 
   Future<bool> renameCustomPreset(String oldName, String newName) async {
@@ -185,17 +215,12 @@ class EqualizerService {
     }
     final gains = _customPresets.remove(oldName)!;
     _customPresets[newName] = gains;
-    await prefs.setString(_customPresetsKey, jsonEncode(_customPresets));
 
-    final current = prefs.getString(_currentPresetKey);
-    if (current == oldName) {
-      await prefs.setString(_currentPresetKey, newName);
+    if (_currentPreset == oldName) {
+      _currentPreset = newName;
     }
+    await _saveSettings();
     return true;
-  }
-
-  Future<bool> isCustomPreset(String name) async {
-    return _customPresets.containsKey(name);
   }
 
   static String getFrequencyText(double frequency) {

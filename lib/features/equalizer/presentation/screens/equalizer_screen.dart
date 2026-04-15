@@ -1,7 +1,8 @@
+import 'dart:ui';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimens.dart';
@@ -12,17 +13,15 @@ import '../data/services/equalizer_services.dart';
 import '../widgets/volume_circular_slider.dart';
 import '../widgets/speech_circular_slider.dart';
 import '../widgets/equalizer_band_slider.dart';
+import '../widgets/equalizer_curve_graph.dart';
+import '../../../settings/presentation/widgets/settings_item.dart';
 import '../../../../shared/components/app_snackbar.dart';
 
 class EqualizerScreen extends StatefulWidget {
-  final AudioPlayer audioPlayer;
   final bool openedFromPlayer;
 
-  const EqualizerScreen({
-    Key? key,
-    required this.audioPlayer,
-    this.openedFromPlayer = false,
-  }) : super(key: key);
+  const EqualizerScreen({Key? key, this.openedFromPlayer = false})
+    : super(key: key);
 
   @override
   _EqualizerScreenState createState() => _EqualizerScreenState();
@@ -32,19 +31,12 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     with SingleTickerProviderStateMixin {
   late EqualizerService _equalizerService;
   bool _serviceReady = false;
-  late Future<AndroidEqualizerParameters> _paramsFuture;
+  EqualizerParameters? _params;
   late AnimationController _animationController;
   bool _isEnabled = false;
-  double _loudnessGain = 0.0;
   String _currentPreset = 'Noize';
   bool _isLoading = false;
-
-  static const Map<String, double> _loudnessProfiles = {
-    'Low': 10.0,
-    'Medium': 20.0,
-    'High': 30.0,
-  };
-  String _loudnessProfile = 'High';
+  bool _isCurveMode = false;
 
   Map<String, List<double>> _presets = {};
   Set<String> _customPresetNames = {};
@@ -183,12 +175,13 @@ class _EqualizerScreenState extends State<EqualizerScreen>
 
   final Map<String, String> _presetDescriptions = {
     'Noize': 'Preset from creator of Noize',
-    'Normal': 'Balanced sound across all frequencies',
+    'Flat': 'Balanced sound across all frequencies',
     'Classical': 'Enhanced mids and highs for orchestral clarity',
     'Dance': 'Boosted bass and treble for electronic music',
-    'Folk': 'Warm mids with slight bass reduction',
-    'Heavy Metal': 'Enhanced low end and high end for power',
-    'Hip Hop': 'Deep bass boost with enhanced low mids',
+    'Vocal Boost': 'Clearer vocals with upper mids emphasis',
+    'Hip-Hop': 'Deep bass and punchy low mids for beats',
+    'Acoustic': 'Natural, warm tones for unplugged music',
+    'Treble Boost': 'Crisp highs and detail in vocals and cymbals',
     'Jazz': 'Balanced mids with subtle bass and treble',
     'Pop': 'Slight boost to bass and higher frequencies',
     'Rock': 'Enhanced low mids and high end for energy',
@@ -233,19 +226,9 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     setState(() => _isLoading = true);
 
     try {
-      _paramsFuture = _equalizerService.getEqualizerParameters();
-      final params = await _paramsFuture;
+      _params = await _equalizerService.getEqualizerParameters();
 
-      _isEnabled = await _equalizerService.equalizer.enabled;
-      _loudnessProfile = _equalizerService.loudnessProfile;
-      _loudnessGain = await _equalizerService.loudnessEnhancer.targetGain;
-      final maxGain =
-          _loudnessProfiles[_loudnessProfile] ?? _loudnessProfiles['High']!;
-      if (_loudnessGain > maxGain) {
-        _loudnessGain = maxGain;
-        await _equalizerService.setLoudnessGain(_loudnessGain);
-      }
-
+      _isEnabled = _equalizerService.equalizerEnabled;
       _currentPreset = _equalizerService.currentPreset;
 
       await _loadPresets();
@@ -259,12 +242,6 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     }
   }
 
-  void _setLoudness(double value) async {
-    setState(() => _loudnessGain = value);
-    await _equalizerService.setLoudnessGain(value);
-    await _equalizerService.setLoudnessEnabled(value > 0);
-  }
-
   void _toggleEqualizer(bool value) async {
     await _equalizerService.setEqualizerEnabled(value);
     setState(() => _isEnabled = value);
@@ -274,8 +251,10 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     try {
       setState(() => _isLoading = true);
       await _equalizerService.applyPreset(preset);
+      final updated = await _equalizerService.getEqualizerParameters();
       setState(() {
         _currentPreset = preset;
+        _params = updated;
         _isLoading = false;
       });
 
@@ -283,6 +262,29 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     } catch (e) {
       setState(() => _isLoading = false);
       AppSnackBar.showError(context, 'error_applying_preset'.tr());
+    }
+  }
+
+  Future<void> _onBandGainChanged(int index, double value) async {
+    final current = _params;
+    if (current == null || index < 0 || index >= current.bands.length) return;
+
+    final updatedBands = List<EqualizerBandDescriptor>.from(current.bands);
+    updatedBands[index] = updatedBands[index].copyWith(gain: value);
+
+    setState(() {
+      _params = EqualizerParameters(
+        minDecibels: current.minDecibels,
+        maxDecibels: current.maxDecibels,
+        bands: updatedBands,
+      );
+    });
+
+    await _equalizerService.setBandGain(index, value);
+    if (_customPresetNames.contains(_currentPreset)) {
+      final bandGains = updatedBands.map((b) => b.gain).toList();
+      await _equalizerService.saveCustomPreset(_currentPreset, bandGains);
+      await _loadPresets();
     }
   }
 
@@ -320,425 +322,462 @@ class _EqualizerScreenState extends State<EqualizerScreen>
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final accentColor = settingsProvider.accentColor;
+    final pageBackground = MainScreenColors.getBackgroundColor(isDarkMode);
 
-    return SafeArea(
-      top: false,
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: MainScreenColors.getBackgroundColor(isDarkMode),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: widget.openedFromPlayer
-              ? IconButton(
-                  icon: const Icon(Icons.keyboard_double_arrow_down),
-                  color: MainScreenColors.getTextColor(isDarkMode),
-                  onPressed: () => Navigator.pop(context),
-                )
-              : null,
-          title: Text(
-            'Equalizer',
-            style: AppTextStyles.appBarTitle(isDarkMode: isDarkMode),
+    final screen = Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: widget.openedFromPlayer
+          ? Colors.transparent
+          : pageBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: widget.openedFromPlayer
+            ? IconButton(
+                icon: const Icon(Icons.keyboard_arrow_down, size: 32),
+                color: MainScreenColors.getTextColor(isDarkMode),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        title: Text(
+          'Equalizer',
+          style: AppTextStyles.appBarTitle(isDarkMode: isDarkMode),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            color: accentColor,
+            onPressed: _isEnabled ? _saveCurrentAsPresetPrompt : null,
+            tooltip: 'save_preset'.tr(),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              color: accentColor,
-              onPressed: _isEnabled ? _saveCurrentAsPresetPrompt : null,
-              tooltip: 'save_preset'.tr(),
-            ),
-            Switch.adaptive(
+          SizedBox(width: AppDimens.spacingSm),
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: SettingsToggle(
               value: _isEnabled,
               onChanged: _toggleEqualizer,
-              activeColor: accentColor,
+              accentColor: accentColor,
+              isDarkMode: isDarkMode,
             ),
-          ],
-        ),
-        body: Consumer<PlayerProvider>(
-          builder: (context, playerProvider, _) {
-            return Stack(
-              children: [
-                SlideTransition(
-                  position:
-                      Tween<Offset>(
-                        begin: const Offset(0, 0.1),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _animationController,
-                          curve: Curves.easeOut,
-                        ),
+          ),
+        ],
+      ),
+      body: Consumer<PlayerProvider>(
+        builder: (context, playerProvider, _) {
+          if (!_serviceReady) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+              ),
+            );
+          }
+
+          return Stack(
+            children: [
+              SlideTransition(
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0, 0.1),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Curves.easeOut,
                       ),
-                  child: FadeTransition(
-                    opacity: _animationController,
-                    child: Column(
-                      children: [
-                        AnimatedOpacity(
-                          opacity: _isEnabled ? 1.0 : 0.3,
-                          duration: const Duration(milliseconds: 200),
-                          child: Column(
-                            children: [
-                              Container(
-                                height: AppDimens.buttonSizeDefault,
-                                margin: EdgeInsets.symmetric(
-                                  vertical: AppDimens.spacingLg,
-                                ),
-                                child: ListView.builder(
-                                  controller: _presetScrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: AppDimens.paddingLg,
-                                  ),
-                                  itemCount: _presets.length,
-                                  itemBuilder: (context, index) {
-                                    final preset = _presets.keys.elementAt(
-                                      index,
-                                    );
-                                    final isCustom = _customPresetNames
-                                        .contains(preset);
-
-                                    final presetKey = _presetKeys.putIfAbsent(
-                                      preset,
-                                      () => GlobalKey(),
-                                    );
-
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        right: AppDimens.spacingSm,
-                                      ),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: _isEnabled
-                                              ? () => _applyPreset(preset)
-                                              : null,
-                                          onLongPress: isCustom
-                                              ? () =>
-                                                    _renamePresetPrompt(preset)
-                                              : null,
-                                          borderRadius: BorderRadius.circular(
-                                            AppDimens.radiusXxl,
-                                          ),
-                                          child: Container(
-                                            key: presetKey,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: AppDimens.paddingLg,
-                                              vertical: AppDimens.spacingS,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimens.radiusXxl,
-                                                  ),
-                                              border: Border.all(
-                                                color: _currentPreset == preset
-                                                    ? accentColor
-                                                    : Colors.grey[700]!,
-                                                width: 1.5,
-                                              ),
-                                              color: _currentPreset == preset
-                                                  ? accentColor.withOpacity(0.2)
-                                                  : Colors.transparent,
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                preset,
-                                                style:
-                                                    AppTextStyles.caption(
-                                                      isDarkMode: isDarkMode,
-                                                    ).copyWith(
-                                                      color:
-                                                          _currentPreset ==
-                                                              preset
-                                                          ? accentColor
-                                                          : MainScreenColors.getTextColor(
-                                                              isDarkMode,
-                                                            ),
-                                                      fontWeight: AppTextStyles
-                                                          .weightBold,
-                                                    ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                    ),
+                child: FadeTransition(
+                  opacity: _animationController,
+                  child: Column(
+                    children: [
+                      AnimatedOpacity(
+                        opacity: _isEnabled ? 1.0 : 0.3,
+                        duration: const Duration(milliseconds: 200),
+                        child: Column(
+                          children: [
+                            Container(
+                              height: 32.0,
+                              margin: EdgeInsets.symmetric(
+                                vertical: AppDimens.spacingSm,
                               ),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: AppDimens.paddingLg,
-                                  ),
-                                  child: Text(
-                                    _presetDescriptions[_currentPreset] ?? '',
-                                    key: ValueKey(_currentPreset),
-                                    style: AppTextStyles.bodyMd(
-                                      isDarkMode: isDarkMode,
+                              child: ListView.builder(
+                                controller: _presetScrollController,
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppDimens.paddingLg,
+                                ),
+                                itemCount: _presets.length,
+                                itemBuilder: (context, index) {
+                                  final preset = _presets.keys.elementAt(index);
+                                  final isCustom = _customPresetNames.contains(
+                                    preset,
+                                  );
+
+                                  final presetKey = _presetKeys.putIfAbsent(
+                                    preset,
+                                    () => GlobalKey(),
+                                  );
+
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      right: AppDimens.spacingSm,
                                     ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: AppDimens.spacing5Xl),
-
-                        Expanded(
-                          child: AnimatedOpacity(
-                            opacity: _isEnabled ? 1.0 : 0.3,
-                            duration: const Duration(milliseconds: 200),
-                            child: FutureBuilder(
-                              future: _paramsFuture,
-                              builder:
-                                  (
-                                    context,
-                                    AsyncSnapshot<AndroidEqualizerParameters>
-                                    snapshot,
-                                  ) {
-                                    if (!snapshot.hasData) {
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                accentColor,
-                                              ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _isEnabled
+                                            ? () => _applyPreset(preset)
+                                            : null,
+                                        onLongPress: isCustom
+                                            ? () => _renamePresetPrompt(preset)
+                                            : null,
+                                        borderRadius: BorderRadius.circular(
+                                          AppDimens.radiusXxl,
                                         ),
-                                      );
-                                    }
-                                    final params = snapshot.data!;
-                                    return Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: AppDimens.paddingLg,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: params.bands.map((band) {
-                                          return EqualizerBandSlider(
-                                            band: band,
-                                            params: params,
-                                            isEnabled: _isEnabled,
-                                            equalizerService: _equalizerService,
-                                            onChanged: () => setState(() {}),
-                                            customPresetNames:
-                                                _customPresetNames,
-                                            currentPreset: _currentPreset,
-                                            onPresetsReload: _loadPresets,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    );
-                                  },
-                            ),
-                          ),
-                        ),
-
-                        Container(
-                          padding: EdgeInsets.all(AppDimens.paddingXxl),
-
-                          decoration: BoxDecoration(
-                            color: MainScreenColors.getSurfaceColor(isDarkMode),
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(AppDimens.radiusFull),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              SizedBox(height: AppDimens.spacingSm),
-
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final maxChildWidth =
-                                      constraints.maxWidth >=
-                                          AppDimens.breakpointTabletShort
-                                      ? AppDimens.chartHeight
-                                      : (constraints.maxWidth -
-                                                AppDimens.spacingMd) /
-                                            2.0;
-
-                                  return Wrap(
-                                    alignment: WrapAlignment.center,
-                                    spacing: AppDimens.spacingMd,
-                                    runSpacing: AppDimens.spacingMd,
-                                    children: [
-                                      ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          minWidth: AppDimens.headerImageSm,
-                                          maxWidth: maxChildWidth,
-                                        ),
-                                        child: SizedBox(
-                                          width: maxChildWidth,
-                                          child: const VolumeCircularSlider(),
+                                        child: Container(
+                                          key: presetKey,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: AppDimens.paddingLg,
+                                            vertical: AppDimens.spacingXxs,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              AppDimens.radiusXxl,
+                                            ),
+                                            border: Border.all(
+                                              color: _currentPreset == preset
+                                                  ? accentColor
+                                                  : Colors.grey[700]!,
+                                              width: 1.5,
+                                            ),
+                                            color: _currentPreset == preset
+                                                ? accentColor.withValues(
+                                                    alpha: 0.2,
+                                                  )
+                                                : Colors.transparent,
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              preset,
+                                              style:
+                                                  AppTextStyles.caption(
+                                                    isDarkMode: isDarkMode,
+                                                  ).copyWith(
+                                                    color:
+                                                        _currentPreset == preset
+                                                        ? accentColor
+                                                        : MainScreenColors.getTextColor(
+                                                            isDarkMode,
+                                                          ),
+                                                    fontWeight: AppTextStyles
+                                                        .weightBold,
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                      ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          minWidth: AppDimens.headerImageSm,
-                                          maxWidth: maxChildWidth,
-                                        ),
-                                        child: SizedBox(
-                                          width: maxChildWidth,
-                                          child: const SpeechCircularSlider(),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   );
                                 },
                               ),
+                            ),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppDimens.paddingLg,
+                                ),
+                                child: Text(
+                                  _presetDescriptions[_currentPreset] ?? '',
+                                  key: ValueKey(_currentPreset),
+                                  style: AppTextStyles.bodyMd(
+                                    isDarkMode: isDarkMode,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: AppDimens.spacing5Xl),
 
-                              SizedBox(height: AppDimens.spacingXl),
-
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Loudness',
-                                        style: AppTextStyles.bodyMd(
-                                          isDarkMode: isDarkMode,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Container(
-                                        height: AppDimens.iconSm * 1.6,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: AppDimens.spacingSm,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            AppDimens.radiusS,
-                                          ),
-                                          border: Border.all(
-                                            color: accentColor.withOpacity(0.4),
-                                            width: 1,
-                                          ),
-                                          color: accentColor.withOpacity(0.08),
-                                        ),
-                                        child: DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: _loudnessProfile,
-                                            isDense: true,
-                                            style:
-                                                AppTextStyles.caption(
+                      Expanded(
+                        child: AnimatedOpacity(
+                          opacity: _isEnabled ? 1.0 : 0.3,
+                          duration: const Duration(milliseconds: 200),
+                          child: _params == null
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      accentColor,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: AppDimens.paddingLg,
+                                  ),
+                                  child: _isCurveMode
+                                      ? Column(
+                                          children: [
+                                            Expanded(
+                                              child: Center(
+                                                child: EqualizerCurveGraph(
+                                                  params: _params!,
+                                                  accentColor: accentColor,
                                                   isDarkMode: isDarkMode,
-                                                ).copyWith(
-                                                  color: accentColor,
-                                                  fontWeight: AppTextStyles
-                                                      .weightSemiBold,
+                                                  isEnabled: _isEnabled,
+                                                  onBandChanged: (entry) =>
+                                                      _onBandGainChanged(
+                                                        entry.key,
+                                                        entry.value,
+                                                      ),
                                                 ),
-                                            dropdownColor:
-                                                MainScreenColors.getSurfaceColor(
-                                                  isDarkMode,
-                                                ),
-                                            icon: Icon(
-                                              Icons.arrow_drop_down_rounded,
-                                              color: accentColor,
-                                              size: AppDimens.iconXs,
+                                              ),
                                             ),
-                                            items: _loudnessProfiles.keys
-                                                .map(
-                                                  (profile) => DropdownMenuItem(
-                                                    value: profile,
-                                                    child: Text(
-                                                      profile,
-                                                      style:
-                                                          AppTextStyles.caption(
-                                                            isDarkMode:
-                                                                isDarkMode,
-                                                          ).copyWith(
-                                                            color: accentColor,
-                                                            fontWeight:
-                                                                AppTextStyles
-                                                                    .weightSemiBold,
-                                                          ),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: AppDimens.paddingMd,
+                                                vertical: AppDimens.spacingMd,
+                                              ),
+                                              child: SizedBox(
+                                                height:
+                                                    AppDimens.buttonSizeCompact,
+                                                child: LayoutBuilder(
+                                                  builder: (context, constraints) {
+                                                    final bands =
+                                                        _params!.bands;
+                                                    final width =
+                                                        constraints.maxWidth;
+                                                    final denominator =
+                                                        (bands.length - 1)
+                                                            .clamp(1, 999);
+                                                    return Stack(
+                                                      children: List.generate(
+                                                        bands.length,
+                                                        (index) {
+                                                          final x =
+                                                              (width /
+                                                                  denominator) *
+                                                              index;
+                                                          return Align(
+                                                            alignment:
+                                                                Alignment(
+                                                                  ((x / width) *
+                                                                          2) -
+                                                                      1,
+                                                                  0,
+                                                                ),
+                                                            child: Text(
+                                                              EqualizerService.getFrequencyText(
+                                                                bands[index]
+                                                                    .centerFrequency,
+                                                              ),
+                                                              style:
+                                                                  AppTextStyles.caption(
+                                                                    isDarkMode:
+                                                                        isDarkMode,
+                                                                  ).copyWith(
+                                                                    color: MainScreenColors.getTextColor(
+                                                                      isDarkMode,
+                                                                    ),
+                                                                  ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: List.generate(
+                                            _params!.bands.length,
+                                            (index) {
+                                              final band =
+                                                  _params!.bands[index];
+                                              return EqualizerBandSlider(
+                                                gain: band.gain,
+                                                minDecibels:
+                                                    _params!.minDecibels,
+                                                maxDecibels:
+                                                    _params!.maxDecibels,
+                                                centerFrequency:
+                                                    band.centerFrequency,
+                                                isEnabled: _isEnabled,
+                                                onChanged: (v) =>
+                                                    _onBandGainChanged(
+                                                      index,
+                                                      v,
                                                     ),
-                                                  ),
-                                                )
-                                                .toList(),
-                                            onChanged: (value) async {
-                                              if (value == null) return;
-                                              final newMax =
-                                                  _loudnessProfiles[value]!;
-                                              setState(() {
-                                                _loudnessProfile = value;
-                                                if (_loudnessGain > newMax) {
-                                                  _loudnessGain = newMax;
-                                                }
-                                              });
-                                              await _equalizerService
-                                                  .setLoudnessProfile(value);
+                                              );
                                             },
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: AppDimens.spacingSm),
-                                  Container(
-                                    height: AppDimens.progressSmall,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(
-                                        AppDimens.radiusS,
-                                      ),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          MainScreenColors.getPrimaryColor(
-                                            isDarkMode,
-                                          ),
-                                          MainScreenColors.getSecondaryColor(
-                                            isDarkMode,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    child: SliderTheme(
-                                      data: SliderThemeData(
-                                        trackHeight:
-                                            AppDimens.sliderTrackHeight,
-                                        activeTrackColor: Colors.transparent,
-                                        inactiveTrackColor: Colors.grey[800],
-                                        thumbColor: Colors.white,
-                                        overlayColor:
-                                            MainScreenColors.getPrimaryColor(
-                                              isDarkMode,
-                                            ).withOpacity(0.2),
-                                        thumbShape: RoundSliderThumbShape(
-                                          enabledThumbRadius:
-                                              AppDimens.iconXs / 2,
-                                        ),
-                                      ),
-                                      child: Slider(
-                                        value: _loudnessGain.clamp(
-                                          0.0,
-                                          _loudnessProfiles[_loudnessProfile]!,
-                                        ),
-                                        min: 0.0,
-                                        max:
-                                            _loudnessProfiles[_loudnessProfile]!,
-                                        divisions: 50,
-                                        onChanged: _setLoudness,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: EdgeInsets.only(bottom: AppDimens.spacingSm),
+                        child: ToggleButtons(
+                          isSelected: [!_isCurveMode, _isCurveMode],
+                          onPressed: _isEnabled
+                              ? (index) =>
+                                    setState(() => _isCurveMode = index == 1)
+                              : null,
+                          borderRadius: BorderRadius.circular(
+                            AppDimens.radiusFull,
+                          ),
+                          borderColor: Colors.grey[700],
+                          selectedBorderColor: accentColor,
+                          fillColor: accentColor.withValues(alpha: 0.15),
+                          selectedColor: accentColor,
+                          color: MainScreenColors.getTextColor(isDarkMode),
+                          constraints: BoxConstraints(
+                            minHeight: 28.0,
+                            minWidth:
+                                AppDimens.buttonSizeCompact +
+                                AppDimens.spacingMd,
+                          ),
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppDimens.paddingSm,
                               ),
-                            ],
+                              child: Text(
+                                'Sliders',
+                                style:
+                                    AppTextStyles.caption(
+                                      isDarkMode: isDarkMode,
+                                    ).copyWith(
+                                      fontWeight: !_isCurveMode
+                                          ? AppTextStyles.weightBold
+                                          : AppTextStyles.weightRegular,
+                                    ),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppDimens.paddingSm,
+                              ),
+                              child: Text(
+                                'Curve',
+                                style:
+                                    AppTextStyles.caption(
+                                      isDarkMode: isDarkMode,
+                                    ).copyWith(
+                                      fontWeight: _isCurveMode
+                                          ? AppTextStyles.weightBold
+                                          : AppTextStyles.weightRegular,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Container(
+                        padding: EdgeInsets.only(
+                          left: AppDimens.paddingXxl,
+                          right: AppDimens.paddingXxl,
+                          top: AppDimens.paddingXxl,
+                          bottom: AppDimens.paddingLg,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(AppDimens.radiusFull),
                           ),
                         ),
-                      ],
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final maxChildWidth =
+                                    constraints.maxWidth >=
+                                        AppDimens.breakpointTabletShort
+                                    ? AppDimens.chartHeight
+                                    : (constraints.maxWidth -
+                                              AppDimens.spacingMd) /
+                                          2.0;
+
+                                return Wrap(
+                                  alignment: WrapAlignment.center,
+                                  spacing: AppDimens.spacingMd,
+                                  runSpacing: AppDimens.spacingMd,
+                                  children: [
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: AppDimens.headerImageSm,
+                                        maxWidth: maxChildWidth,
+                                      ),
+                                      child: SizedBox(
+                                        width: maxChildWidth,
+                                        child: const VolumeCircularSlider(),
+                                      ),
+                                    ),
+                                    ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minWidth: AppDimens.headerImageSm,
+                                        maxWidth: maxChildWidth,
+                                      ),
+                                      child: SizedBox(
+                                        width: maxChildWidth,
+                                        child: const SpeechCircularSlider(),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_isLoading)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                      ),
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+            ],
+          );
+        },
       ),
+    );
+
+    return SafeArea(
+      top: false,
+      child: widget.openedFromPlayer
+          ? ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppDimens.radiusXxl),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: pageBackground.withValues(alpha: 0.82),
+                  child: screen,
+                ),
+              ),
+            )
+          : screen,
     );
   }
 }

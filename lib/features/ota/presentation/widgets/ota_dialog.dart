@@ -42,7 +42,7 @@ class OTADialog extends StatelessWidget {
             horizontal: AppDimens.paddingXxl,
           ),
           decoration: BoxDecoration(
-            color: accentColor.withOpacity(0.1),
+            color: accentColor.withValues(alpha: 0.1),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(AppDimens.radiusXxl),
               topRight: Radius.circular(AppDimens.radiusXxl),
@@ -84,7 +84,7 @@ class OTADialog extends StatelessWidget {
               style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.7),
+                ).withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: AppDimens.spacingLg),
@@ -151,7 +151,7 @@ class OTADialog extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(0.7),
+                    ).withValues(alpha: 0.7),
                   ),
                   child: Text(
                     'skip_this_version',

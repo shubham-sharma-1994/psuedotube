@@ -5,22 +5,22 @@ Thank you for your interest in contributing to Noize! This project is currently 
 ---
 ## 📌 Current Status
 
-Noize is still in development and the maintainers are not accepting external pull requests at this time. The repository is primarily maintained by the core team. Once the project reaches a more stable state or a public roadmap is defined, we will update this document accordingly.
+Noize is still in development, but pull requests are now being accepted. Please keep contributions small and focused; large or broad changes may be closed.
 
-However, you can still contribute in the following ways:
+The repository is primarily maintained by the core team, and we review PRs carefully to keep the project stable.
+
+If you're not ready to open a PR yet, you can still contribute in the following ways:
 
 - **Open issues** to report bugs, request new features, or ask questions. Include as much detail as possible (steps to reproduce, logs, screenshots, platform).
 - **Suggest improvements** by commenting on existing issues or creating a new one.
 - **Share builds or test results** if you're experimenting with patches locally.
 
-> :information_source: When PRs are enabled, this file will be updated with proper pull request and coding guidelines.
+> :information_source: PRs are accepted now, but small, incremental changes are preferred.
 
 ---
-## 🛠 How to Contribute (when PRs are open)
+## 🛠 How to Contribute
 
-*This section will be enabled later; in the meantime, you can bookmark it for future reference.*
-
-1. **Fork the repository** and create a feature branch: `git checkout -b feature/my-change`.
+1. **Fork the repository** and create a small feature or fix branch: `git checkout -b feature/my-change`.
 2. **Run tests**: `flutter test` and ensure they all pass.
 3. **Follow the existing code style** and add comments/documentation where necessary.
 4. **Write clear commit messages** and squash related changes when appropriate.

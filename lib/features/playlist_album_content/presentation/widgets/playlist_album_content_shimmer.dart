@@ -34,7 +34,7 @@ class PlaylistAlbumContentShimmer {
               borderRadius: BorderRadius.circular(AppDimens.radiusXl),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -114,7 +114,9 @@ class PlaylistAlbumContentShimmer {
         Container(
           width: AppDimens.borderWidthThin,
           height: double.infinity,
-          color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.08),
+          color: MainScreenColors.getTextColor(
+            isDarkMode,
+          ).withValues(alpha: 0.08),
         ),
         Expanded(
           child: SingleChildScrollView(

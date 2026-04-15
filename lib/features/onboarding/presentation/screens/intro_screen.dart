@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terminate_restart/terminate_restart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../main_screen/router/display_route.dart';
@@ -13,6 +12,7 @@ import '../../../settings/presentation/screens/language_selection_screen.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/services/settings_storage_service.dart';
 import '../../../../shared/components/app_snackbar.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -142,8 +142,8 @@ class _IntroScreenState extends State<IntroScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  page.iconColor.withOpacity(0.30),
-                  page.iconColor.withOpacity(0.08),
+                  page.iconColor.withValues(alpha: 0.30),
+                  page.iconColor.withValues(alpha: 0.08),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -207,7 +207,7 @@ class _IntroScreenState extends State<IntroScreen>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: page.iconColor.withOpacity(0.12),
+                    color: page.iconColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppDimens.radiusXs * 4),
                   ),
                   child: Text(
@@ -373,6 +373,7 @@ class _IntroScreenState extends State<IntroScreen>
         pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
           opacity: animation,
           child: LanguageSelectionScreen(
+            isOnboardingFlow: true,
             onSelected: () {
               Navigator.pushReplacement(
                 context,
@@ -408,8 +409,8 @@ class _IntroScreenState extends State<IntroScreen>
   }
 
   Future<void> _completeSetup() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('first_time', false);
+    final box = await SettingsStorageService.getBox();
+    await box.put('first_time', false);
 
     if (mounted) {
       // Navigator.pushReplacement(
@@ -453,8 +454,8 @@ class _IntroScreenState extends State<IntroScreen>
             final page = _pages[_currentPage];
             final backgroundGradient = LinearGradient(
               colors: [
-                page.iconColor.withOpacity(0.18),
-                page.iconColor.withOpacity(0.04),
+                page.iconColor.withValues(alpha: 0.18),
+                page.iconColor.withValues(alpha: 0.04),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

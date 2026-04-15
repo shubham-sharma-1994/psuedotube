@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:share_plus/share_plus.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 
@@ -14,6 +14,7 @@ import '../../../../core/providers/favorite_song_provider.dart';
 import '../../../../core/providers/favorite_artist_provider.dart';
 import '../../../playlists/data/providers/playlist_album_library_provider.dart';
 import '../../data/services/export_import_settings_service.dart';
+import '../widgets/settings_item.dart';
 import '../../../../shared/components/app_snackbar.dart';
 
 class ExportImportSettingsScreen extends StatefulWidget {
@@ -37,8 +38,8 @@ Widget _buildModernButton({
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            accentColor.withOpacity(0.16),
-            accentColor.withOpacity(0.32),
+            accentColor.withValues(alpha: 0.16),
+            accentColor.withValues(alpha: 0.32),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -46,7 +47,7 @@ Widget _buildModernButton({
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withOpacity(0.12),
+            color: accentColor.withValues(alpha: 0.12),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -189,8 +190,10 @@ class _ExportImportSettingsScreenState
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            accentColor.withOpacity(isDarkMode ? 0.16 : 0.10),
-            MainScreenColors.getPrimaryColor(isDarkMode).withOpacity(0.08),
+            accentColor.withValues(alpha: isDarkMode ? 0.16 : 0.10),
+            MainScreenColors.getPrimaryColor(
+              isDarkMode,
+            ).withValues(alpha: 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -199,8 +202,8 @@ class _ExportImportSettingsScreenState
         boxShadow: [
           BoxShadow(
             color: isDarkMode
-                ? Colors.black.withOpacity(0.12)
-                : Colors.grey.withOpacity(0.08),
+                ? Colors.black.withValues(alpha: 0.12)
+                : Colors.grey.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -215,7 +218,7 @@ class _ExportImportSettingsScreenState
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.18),
+                    color: accentColor.withValues(alpha: 0.18),
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(AppDimens.spacingSmMd),
@@ -240,7 +243,7 @@ class _ExportImportSettingsScreenState
               style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.82),
+                ).withValues(alpha: 0.82),
               ),
             ),
             if (action != null) ...[
@@ -266,8 +269,8 @@ class _ExportImportSettingsScreenState
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              accentColor.withOpacity(0.16),
-              accentColor.withOpacity(0.32),
+              accentColor.withValues(alpha: 0.16),
+              accentColor.withValues(alpha: 0.32),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -275,7 +278,7 @@ class _ExportImportSettingsScreenState
           borderRadius: BorderRadius.circular(AppDimens.radiusLg),
           boxShadow: [
             BoxShadow(
-              color: accentColor.withOpacity(0.12),
+              color: accentColor.withValues(alpha: 0.12),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -337,7 +340,7 @@ class _ExportImportSettingsScreenState
 
   Future<void> _handleDirectImport(Color accentColor) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
       );
@@ -446,7 +449,7 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
                 style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: AppDimens.spacingSm),
@@ -563,11 +566,13 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
     bool isDarkMode,
     Color accentColor,
   ) {
-    return SwitchListTile(
-      title: Text(label, style: AppTextStyles.subtitle(isDarkMode: isDarkMode)),
+    return SettingsToggleItem(
+      icon: Icons.import_export,
+      title: label,
       value: value,
       onChanged: onChanged,
-      activeColor: accentColor,
+      isDarkMode: isDarkMode,
+      accentColor: accentColor,
     );
   }
 
@@ -600,21 +605,11 @@ class _ExportBottomSheetState extends State<_ExportBottomSheet> {
         exportData,
       );
 
-      String message;
-      if (defaultTargetPlatform == TargetPlatform.android) {
-        message = 'data_exported_to_android_download_snackbar'.tr(
-          args: [filePath],
-        );
-      } else if (defaultTargetPlatform == TargetPlatform.windows) {
-        message = 'data_exported_to_windows_documents_snackbar'.tr(
-          args: [filePath],
-        );
-      } else {
-        message = 'data_exported_successfully_snackbar'.tr(args: [filePath]);
-      }
+      await SharePlus.instance.share(
+        ShareParams(text: 'Noize export file', files: [XFile(filePath)]),
+      );
 
       Navigator.of(context).pop();
-      AppSnackBar.showSuccess(context, message);
     } catch (e) {
       print('Error during export: $e');
       AppSnackBar.showError(context, 'export_failed_snackbar'.tr());
@@ -681,7 +676,7 @@ class _DynamicImportBottomSheetState extends State<_DynamicImportBottomSheet> {
                 style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: AppDimens.spacingSm),
@@ -750,11 +745,13 @@ class _DynamicImportBottomSheetState extends State<_DynamicImportBottomSheet> {
     bool isDarkMode,
     Color accentColor,
   ) {
-    return SwitchListTile(
-      title: Text(label, style: AppTextStyles.subtitle(isDarkMode: isDarkMode)),
+    return SettingsToggleItem(
+      icon: Icons.import_export,
+      title: label,
       value: value,
       onChanged: onChanged,
-      activeColor: accentColor,
+      isDarkMode: isDarkMode,
+      accentColor: accentColor,
     );
   }
 

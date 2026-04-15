@@ -104,7 +104,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
               labelColor: accentColor,
               unselectedLabelColor: MainScreenColors.getTextColor(
                 isDarkMode,
-              ).withOpacity(0.7),
+              ).withValues(alpha: 0.7),
               tabs: [
                 Tab(text: 'created_tab'.tr()),
                 Tab(text: 'saved_tab'.tr()),
@@ -245,7 +245,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                         size: AppDimens.iconStatus,
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.5),
+                        ).withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -254,7 +254,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                           isDarkMode: isDarkMode,
                           color: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(0.7),
+                          ).withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -348,7 +348,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                               size: AppDimens.iconStatus,
                               color: MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.5),
+                              ).withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: AppDimens.spacingLg),
                             Text(
@@ -359,7 +359,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                 isDarkMode: isDarkMode,
                                 color: MainScreenColors.getTextColor(
                                   isDarkMode,
-                                ).withOpacity(0.7),
+                                ).withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -502,7 +502,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                   color: playlist['thumbnail'] == null
                                       ? MainScreenColors.getSurfaceColor(
                                           isDarkMode,
-                                        ).withOpacity(0.5)
+                                        ).withValues(alpha: 0.5)
                                       : null,
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(AppDimens.radiusXl),
@@ -553,8 +553,8 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.3,
+                                            color: Colors.black.withValues(
+                                              alpha: 0.3,
                                             ),
                                             blurRadius: 6,
                                             offset: const Offset(0, 2),
@@ -578,7 +578,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                     vertical: AppDimens.spacingXs,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
+                                    color: Colors.black.withValues(alpha: 0.7),
                                     borderRadius: BorderRadius.circular(
                                       AppDimens.radiusLg,
                                     ),
@@ -629,7 +629,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                         isDarkMode: isDarkMode,
                                         color: MainScreenColors.getTextColor(
                                           isDarkMode,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -721,7 +721,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                           height: AppDimens.thumbnailLarge,
                           color: MainScreenColors.getSurfaceColor(
                             isDarkMode,
-                          ).withOpacity(0.5),
+                          ).withValues(alpha: 0.5),
                           child: Icon(
                             Icons.library_music,
                             color: accentColor,
@@ -749,7 +749,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                                 isDarkMode: isDarkMode,
                                 color: MainScreenColors.getTextColor(
                                   isDarkMode,
-                                ).withOpacity(0.7),
+                                ).withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -907,7 +907,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                       height: AppDimens.thumbnailLarge,
                       color: MainScreenColors.getSurfaceColor(
                         isDarkMode,
-                      ).withOpacity(0.5),
+                      ).withValues(alpha: 0.5),
                       child: Icon(
                         Icons.library_music,
                         color: accentColor,
@@ -935,7 +935,7 @@ class _PlaylistScreenState extends State<PlaylistScreen>
                             isDarkMode: isDarkMode,
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.7),
+                            ).withValues(alpha: 0.7),
                           ),
                         ),
                       ],

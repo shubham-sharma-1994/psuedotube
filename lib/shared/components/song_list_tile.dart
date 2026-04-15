@@ -118,7 +118,7 @@ class SongListTile extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 4 * uiScale,
                       offset: Offset(0, 2 * uiScale),
                     ),
@@ -161,7 +161,7 @@ class SongListTile extends StatelessWidget {
                 width: AppDimens.songTileImage * uiScale,
                 height: AppDimens.songTileImage * uiScale,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(
                     AppDimens.radiusSm * uiScale,
                   ),
@@ -195,8 +195,8 @@ class SongListTile extends StatelessWidget {
                   style: AppTextStyles.body2(
                     isDarkMode: isDarkMode,
                     color: isPlaying
-                        ? accentColor.withOpacity(0.7)
-                        : textColor.withOpacity(0.7),
+                        ? accentColor.withValues(alpha: 0.7)
+                        : textColor.withValues(alpha: 0.7),
                   ).copyWith(height: AppTextStyles.lineHeightDefault),
                   speedPxPerSecond: marqueeSpeed,
                   pauseDuration: const Duration(milliseconds: 300),
@@ -209,8 +209,8 @@ class SongListTile extends StatelessWidget {
               style: AppTextStyles.caption(
                 isDarkMode: isDarkMode,
                 color: isPlaying
-                    ? accentColor.withOpacity(0.6)
-                    : textColor.withOpacity(0.5),
+                    ? accentColor.withValues(alpha: 0.6)
+                    : textColor.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -262,7 +262,7 @@ class SongListTile extends StatelessWidget {
                             valueColor: AlwaysStoppedAnimation<Color>(
                               accentColor,
                             ),
-                            backgroundColor: textColor.withOpacity(0.3),
+                            backgroundColor: textColor.withValues(alpha: 0.3),
                           ),
                           Text(
                             '${(downloadProgress.progress * 100).toInt()}%',

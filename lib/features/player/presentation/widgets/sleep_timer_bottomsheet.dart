@@ -88,7 +88,7 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                           .copyWith(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.7),
+                            ).withValues(alpha: 0.7),
                           ),
                     ),
                     Text(
@@ -193,10 +193,12 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
               decoration: BoxDecoration(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(AppDimens.opacitySubtle),
+                ).withValues(alpha: AppDimens.opacitySubtle),
                 borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                 border: Border.all(
-                  color: accentColor.withOpacity(AppDimens.opacityOverlay),
+                  color: accentColor.withValues(
+                    alpha: AppDimens.opacityOverlay,
+                  ),
                   width: AppDimens.borderWidthThin,
                 ),
               ),
@@ -208,7 +210,7 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                         .copyWith(
                           color: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(AppDimens.opacityMuted),
+                          ).withValues(alpha: AppDimens.opacityMuted),
                         ),
                   ),
                   const SizedBox(height: AppDimens.spacingSm),
@@ -234,7 +236,7 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                               .copyWith(
                                 color: MainScreenColors.getTextColor(
                                   isDarkMode,
-                                ).withOpacity(AppDimens.opacityMuted),
+                                ).withValues(alpha: AppDimens.opacityMuted),
                               ),
                         ),
                       ),
@@ -262,7 +264,7 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                                 .copyWith(
                                   color: MainScreenColors.getTextColor(
                                     isDarkMode,
-                                  ).withOpacity(AppDimens.opacitySemi),
+                                  ).withValues(alpha: AppDimens.opacitySemi),
                                 ),
                           ),
                         ),
@@ -279,7 +281,7 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                                 .copyWith(
                                   color: MainScreenColors.getTextColor(
                                     isDarkMode,
-                                  ).withOpacity(AppDimens.opacitySemi),
+                                  ).withValues(alpha: AppDimens.opacitySemi),
                                 ),
                           ),
                         ),
@@ -290,7 +292,9 @@ class _SleepTimerBottomSheetState extends State<SleepTimerBottomSheet> {
                   Icon(
                     Icons.edit_outlined,
                     size: AppDimens.iconSm,
-                    color: accentColor.withOpacity(AppDimens.opacityMuted),
+                    color: accentColor.withValues(
+                      alpha: AppDimens.opacityMuted,
+                    ),
                   ),
                 ],
               ),

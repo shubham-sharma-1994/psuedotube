@@ -163,19 +163,19 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                 gradient: LinearGradient(
                   colors: widget.isDarkMode
                       ? [
-                          Colors.black.withOpacity(0.6),
-                          surface.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.6),
+                          surface.withValues(alpha: 0.8),
                         ]
                       : [
-                          surface.withOpacity(0.95),
-                          Colors.white.withOpacity(0.9),
+                          surface.withValues(alpha: 0.95),
+                          Colors.white.withValues(alpha: 0.9),
                         ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
@@ -231,7 +231,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                         fontSize: 13,
                                         color: MainScreenColors.getTextColor(
                                           widget.isDarkMode,
-                                        ).withOpacity(0.7),
+                                        ).withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -275,13 +275,15 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                   ),
                                   decoration: BoxDecoration(
                                     color: isCurrent
-                                        ? widget.accentColor.withOpacity(0.12)
+                                        ? widget.accentColor.withValues(
+                                            alpha: 0.12,
+                                          )
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(14),
                                     border: isCurrent
                                         ? Border.all(
                                             color: widget.accentColor
-                                                .withOpacity(0.18),
+                                                .withValues(alpha: 0.18),
                                           )
                                         : null,
                                   ),
@@ -292,8 +294,8 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                         height: 44,
                                         decoration: BoxDecoration(
                                           color: isCurrent
-                                              ? widget.accentColor.withOpacity(
-                                                  0.18,
+                                              ? widget.accentColor.withValues(
+                                                  alpha: 0.18,
                                                 )
                                               : Colors.transparent,
                                           borderRadius: BorderRadius.circular(
@@ -344,7 +346,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                                 color:
                                                     MainScreenColors.getTextColor(
                                                       widget.isDarkMode,
-                                                    ).withOpacity(0.6),
+                                                    ).withValues(alpha: 0.6),
                                               ),
                                             ),
                                           ],

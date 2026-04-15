@@ -137,7 +137,7 @@ class PlayerComponents {
                                 AppTextStyles.finePrint(
                                   isDarkMode: isDarkMode,
                                 ).copyWith(
-                                  color: Colors.white.withOpacity(0.75),
+                                  color: Colors.white.withValues(alpha: 0.75),
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
@@ -147,7 +147,7 @@ class PlayerComponents {
                             child: Text(
                               _cleanPlaylistName(playerProvider.playlistName!),
                               style: AppTextStyles.subtitleBase().copyWith(
-                                color: Colors.white.withOpacity(0.95),
+                                color: Colors.white.withValues(alpha: 0.95),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -175,8 +175,8 @@ class PlayerComponents {
                           boxShadow: [
                             BoxShadow(
                               color: isDarkMode
-                                  ? Colors.white.withOpacity(0.1)
-                                  : Colors.black.withOpacity(0.1),
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.1),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -308,7 +308,7 @@ class PlayerComponents {
                       .copyWith(
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.7),
+                        ).withValues(alpha: 0.7),
                       ),
               maxLines: 1,
             ),
@@ -376,7 +376,7 @@ class PlayerComponents {
                           text: artist,
                           style: TextStyle(
                             fontSize: artistFontSize,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -386,7 +386,7 @@ class PlayerComponents {
                         text: artist,
                         style: AppTextStyles.subtitleBase().copyWith(
                           fontSize: artistFontSize,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: AppTextStyles.weightMedium,
                         ),
                         maxLines: 1,
@@ -416,15 +416,13 @@ class PlayerComponents {
                   ),
                   child: IconButton(
                     icon: Icon(
-                      Platform.isAndroid ? Icons.equalizer : Icons.volume_up,
+                      Icons.equalizer,
                       color: MainScreenColors.getTextColor(
                         isDarkMode,
-                      ).withOpacity(0.8),
+                      ).withValues(alpha: 0.8),
                       size: AppDimens.iconLg,
                     ),
-                    onPressed: Platform.isAndroid
-                        ? onEqualizerPressed
-                        : onVolumePressed,
+                    onPressed: onEqualizerPressed ?? onVolumePressed,
                   ),
                 ),
             ],
@@ -479,7 +477,7 @@ class PlayerComponents {
                 width: leadingSize * 0.90,
                 height: leadingSize * 0.90,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -520,7 +518,7 @@ class PlayerComponents {
         vertical: AppDimens.spacingXs * _toggleScale,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppDimens.radiusXxl * _toggleScale),
       ),
       child: Row(
@@ -570,8 +568,8 @@ class PlayerComponents {
           text,
           style: TextStyle(
             color: isSelected
-                ? (isDarkMode ? Colors.black : Colors.white)
-                : Colors.white.withOpacity(0.7),
+                ? Colors.white.withValues(alpha: 0.95)
+                : Colors.white.withValues(alpha: 0.7),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: AppTextStyles.fontSizeBody * _toggleScale,
           ),
@@ -643,13 +641,13 @@ class PlayerComponents {
     }) {
       final bool disabled = onPressed == null;
       final bgColor = disabled
-          ? Colors.black.withOpacity(0.08)
-          : (active ? accentColor : Colors.black.withOpacity(0.35));
+          ? Colors.black.withValues(alpha: 0.08)
+          : (active ? accentColor : Colors.black.withValues(alpha: 0.35));
       final iconColor = disabled
-          ? Colors.white.withOpacity(0.45)
+          ? Colors.white.withValues(alpha: 0.45)
           : (active
                 ? (isDarkMode ? Colors.black : Colors.white)
-                : Colors.white.withOpacity(0.95));
+                : Colors.white.withValues(alpha: 0.95));
 
       return Tooltip(
         message: tooltip,
@@ -660,7 +658,7 @@ class PlayerComponents {
             width: AppDimens.buttonSizeLg,
             height: AppDimens.buttonSizeLg,
             margin: EdgeInsets.symmetric(
-              horizontal: AppDimens.spacingXl * scale,
+              horizontal: AppDimens.spacingXl * scale * 0.6,
             ),
             decoration: BoxDecoration(
               color: bgColor,
@@ -668,7 +666,7 @@ class PlayerComponents {
               boxShadow: [
                 if (!disabled)
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -706,7 +704,7 @@ class PlayerComponents {
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
                   valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                  backgroundColor: Colors.white.withOpacity(0.04),
+                  backgroundColor: Colors.white.withValues(alpha: 0.04),
                 ),
               ),
               Icon(
@@ -732,7 +730,7 @@ class PlayerComponents {
                 value: downloadProgress,
                 strokeWidth: 2.5,
                 valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                backgroundColor: Colors.white.withOpacity(0.08),
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
               ),
               Center(
                 child: FittedBox(
@@ -762,8 +760,8 @@ class PlayerComponents {
     }
 
     final downloadIconColor = onDownload == null
-        ? Colors.white.withOpacity(0.45)
-        : Colors.white.withOpacity(0.95);
+        ? Colors.white.withValues(alpha: 0.45)
+        : Colors.white.withValues(alpha: 0.95);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -771,7 +769,7 @@ class PlayerComponents {
         vertical: AppDimens.spacingSm,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.14),
+        color: Colors.black.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
       child: FittedBox(

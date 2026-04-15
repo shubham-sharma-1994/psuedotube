@@ -22,6 +22,7 @@ import '../../../playlists/presentation/screens/playlists_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../../stats/presentation/screens/stats_screen.dart';
 import '../../../trending/presentation/screens/trending_screen.dart';
+import 'full_player_screen.dart';
 
 class DesktopMainScreen extends StatefulWidget {
   const DesktopMainScreen({super.key});
@@ -34,6 +35,8 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
   int _currentIndex = 0;
   final GlobalKey<NavigatorState> _innerNavKey = GlobalKey<NavigatorState>();
 
+  bool _isExpanded = true;
+
   late TextStyle _titleStyle;
   late TextStyle _selectedLabelStyle;
   late TextStyle _unselectedLabelStyle;
@@ -41,13 +44,10 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const SearchScreen(),
-
     const TrendingScreen(),
-
     const PlaylistScreen(),
     const LibraryScreen(),
     const FavoriteArtistsScreen(),
-
     const SettingsScreen(),
     const DownloadsScreen(),
     StatsScreen(),
@@ -87,8 +87,80 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
 
     _unselectedLabelStyle = AppTextStyles.finePrint(isDarkMode: isDarkMode)
         .copyWith(
-          color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.5),
+          color: MainScreenColors.getTextColor(
+            isDarkMode,
+          ).withValues(alpha: 0.5),
         );
+  }
+
+  // --- Custom Navigation Item Builder ---
+  Widget _buildNavItem({
+    required int index,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required SettingsProvider settingsProvider,
+    required bool isDarkMode,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            if (_innerNavKey.currentState?.canPop() ?? false) {
+              _innerNavKey.currentState!.popUntil((route) => route.isFirst);
+            }
+            setState(() => _currentIndex = index);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? settingsProvider.accentColor
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisAlignment: _isExpanded
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected
+                      ? Colors.white
+                      : MainScreenColors.getTextColor(
+                          isDarkMode,
+                        ).withValues(alpha: 0.6),
+                  size: isSelected ? AppDimens.iconXl : AppDimens.iconLg,
+                ),
+                if (_isExpanded) ...[
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: _selectedLabelStyle.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : MainScreenColors.getTextColor(
+                                isDarkMode,
+                              ).withValues(alpha: 0.6),
+                        fontSize: AppTextStyles.fontSizeCaption,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -116,124 +188,158 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
             Expanded(
               child: Row(
                 children: [
-                  Container(
-                    width: AppDimens.iconSplash + AppDimens.spacingXs,
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    width: _isExpanded ? 240 : 84,
                     decoration: BoxDecoration(
                       color: MainScreenColors.getSurfaceColor(
                         isDarkMode,
-                      ).withOpacity(0.95),
+                      ).withValues(alpha: 0.95),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: AppDimens.elevationHigh,
                           offset: const Offset(AppDimens.spacingXxs, 0),
                         ),
                       ],
                     ),
-                    child: NavigationRail(
-                      leading: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                              color: MainScreenColors.getTextColor(isDarkMode),
-                            ),
-                            onPressed: () {
-                              settingsProvider.toggleTheme();
-                            },
-                            tooltip: 'Toggle Theme',
-                          ),
-                          const SizedBox(height: AppDimens.spacingS),
-                        ],
-                      ),
-                      trailing: Platform.isAndroid
-                          ? Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.speaker_rounded,
-                                    color: MainScreenColors.getTextColor(
-                                      isDarkMode,
-                                    ),
-                                  ),
-                                  onPressed: _showAudioOutputSheet,
-                                  tooltip: 'Audio Output',
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  _isExpanded ? Icons.menu_open : Icons.menu,
                                 ),
-                                const SizedBox(height: AppDimens.spacingS),
-                              ],
-                            )
-                          : null,
-                      selectedIndex: _currentIndex,
-                      onDestinationSelected: (index) {
-                        if (_innerNavKey.currentState?.canPop() ?? false) {
-                          _innerNavKey.currentState!.popUntil(
-                            (route) => route.isFirst,
-                          );
-                        }
-                        setState(() => _currentIndex = index);
-                      },
-                      labelType: NavigationRailLabelType.selected,
-                      backgroundColor: Colors.transparent,
-                      selectedIconTheme: IconThemeData(
-                        color: settingsProvider.accentColor,
-                        size: AppDimens.iconXl,
-                      ),
-                      unselectedIconTheme: IconThemeData(
-                        color: MainScreenColors.getTextColor(
-                          isDarkMode,
-                        ).withOpacity(0.6),
-                        size: AppDimens.iconLg,
-                      ),
-                      selectedLabelTextStyle: _selectedLabelStyle.copyWith(
-                        fontSize: AppTextStyles.fontSizeCaption,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      unselectedLabelTextStyle: _unselectedLabelStyle.copyWith(
-                        fontSize: AppTextStyles.fontSizeSm,
-                      ),
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: Icon(Icons.home),
-                          label: Text('home'.tr()),
+                                color: MainScreenColors.getTextColor(
+                                  isDarkMode,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isExpanded = !_isExpanded;
+                                  });
+                                },
+                                tooltip: _isExpanded
+                                    ? 'Collapse Menu'
+                                    : 'Expand Menu',
+                              ),
+                              const SizedBox(height: AppDimens.spacingS),
+                              IconButton(
+                                icon: Icon(
+                                  isDarkMode
+                                      ? Icons.light_mode
+                                      : Icons.dark_mode,
+                                  color: MainScreenColors.getTextColor(
+                                    isDarkMode,
+                                  ),
+                                ),
+                                onPressed: () => settingsProvider.toggleTheme(),
+                                tooltip: 'Toggle Theme',
+                              ),
+                            ],
+                          ),
                         ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.search),
-                          label: Text('search'.tr()),
+                        Expanded(
+                          child: ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              _buildNavItem(
+                                index: 0,
+                                icon: Icons.home,
+                                label: 'home'.tr(),
+                                isSelected: _currentIndex == 0,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 1,
+                                icon: Icons.search,
+                                label: 'search'.tr(),
+                                isSelected: _currentIndex == 1,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 2,
+                                icon: Icons.trending_up,
+                                label: 'trending'.tr(),
+                                isSelected: _currentIndex == 2,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 3,
+                                icon: Icons.playlist_play,
+                                label: 'playlists'.tr(),
+                                isSelected: _currentIndex == 3,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 4,
+                                icon: Icons.library_music_outlined,
+                                label: 'library'.tr(),
+                                isSelected: _currentIndex == 4,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 5,
+                                icon: Icons.person_outline,
+                                label: 'artists'.tr(),
+                                isSelected: _currentIndex == 5,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 6,
+                                icon: Icons.settings,
+                                label: 'settings'.tr(),
+                                isSelected: _currentIndex == 6,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 7,
+                                icon: Icons.download_done_sharp,
+                                label: 'downloads'.tr(),
+                                isSelected: _currentIndex == 7,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _buildNavItem(
+                                index: 8,
+                                icon: Icons.show_chart,
+                                label: 'stats'.tr(),
+                                isSelected: _currentIndex == 8,
+                                settingsProvider: settingsProvider,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ],
+                          ),
                         ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.trending_up),
-                          label: Text('trending'.tr()),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.playlist_play),
-                          label: Text('playlists'.tr()),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.library_music_outlined),
-                          label: Text('library'.tr()),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.person_outline),
-                          label: Text('artists'.tr()),
-                        ),
-
-                        NavigationRailDestination(
-                          icon: Icon(Icons.settings),
-                          label: Text('settings'.tr()),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.download_done_sharp),
-                          label: Text('downloads'.tr()),
-                        ),
-                        NavigationRailDestination(
-                          icon: Icon(Icons.show_chart),
-                          label: Text('stats'.tr()),
-                        ),
+                        if (Platform.isAndroid)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.speaker_rounded,
+                                color: MainScreenColors.getTextColor(
+                                  isDarkMode,
+                                ),
+                              ),
+                              onPressed: _showAudioOutputSheet,
+                              tooltip: 'Audio Output',
+                            ),
+                          ),
                       ],
                     ),
                   ),
+                  // --- Main Content Area ---
                   Expanded(
                     child: Navigator(
                       key: _innerNavKey,
@@ -362,21 +468,4 @@ class _DesktopFullPlayerResponsiveWrapperState
 
   @override
   Widget build(BuildContext context) => widget.child;
-}
-
-class FullPlayerScreen extends StatelessWidget {
-  const FullPlayerScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF040404),
-      body: PlayerUI(
-        showFullScreen: true,
-        isBottomSheet: true,
-        onMinimize: () => Navigator.of(context).pop(),
-        onExpand: () {},
-      ),
-    );
-  }
 }

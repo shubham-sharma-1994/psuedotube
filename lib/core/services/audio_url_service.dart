@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../models/song_model.dart';
 import '../providers/download_provider.dart';
@@ -14,12 +12,66 @@ import 'player_service.dart';
 import 'audio_url_isolate.dart';
 
 class AudioUrlService {
-  final YoutubeExplode _yt = GetIt.I<YoutubeExplode>();
-  final DownloadProvider _downloadProvider;
+  AudioUrlService(DownloadProvider downloadProvider);
 
-  AudioUrlService(this._downloadProvider);
+  static const String _cacheKeySeparator = '|';
+  static const String _cacheQualityPrefix = 'q=';
+  static const String _cacheProviderPrefix = 'p=';
+  static const int _cacheEntryVersion = 2;
+  static const int _fallbackNoExpiryTtlSeconds = 6 * 60 * 60;
 
   Box<String> get audioCacheBox => Hive.box<String>('audio_url_cache');
+
+  static String normalizeProvider(String provider) {
+    final normalized = provider.toLowerCase().trim();
+    if (normalized.contains('saavn')) {
+      return 'jiosaavn';
+    }
+    return 'youtube';
+  }
+
+  static String normalizeQuality(String quality) {
+    return quality.toLowerCase().trim();
+  }
+
+  static String buildCacheKey({
+    required String videoId,
+    required String streamingQuality,
+    required String provider,
+  }) {
+    final quality = normalizeQuality(streamingQuality);
+    final source = normalizeProvider(provider);
+    return [
+      videoId,
+      '$_cacheQualityPrefix$quality',
+      '$_cacheProviderPrefix$source',
+    ].join(_cacheKeySeparator);
+  }
+
+  static List<String> buildLookupCacheKeys({
+    required String videoId,
+    required String streamingQuality,
+    required bool jioSaavnEnabled,
+  }) {
+    final keys = <String>[];
+    if (jioSaavnEnabled) {
+      keys.add(
+        buildCacheKey(
+          videoId: videoId,
+          streamingQuality: streamingQuality,
+          provider: 'jiosaavn',
+        ),
+      );
+    }
+    keys.add(
+      buildCacheKey(
+        videoId: videoId,
+        streamingQuality: streamingQuality,
+        provider: 'youtube',
+      ),
+    );
+    return keys;
+  }
 
   ConnectivityProvider? get connectivityProvider {
     try {
@@ -40,8 +92,22 @@ class AudioUrlService {
     return null;
   }
 
-  bool isCachedUrlValid(String videoId, {int bufferSeconds = 30}) {
-    final jsonStr = audioCacheBox.get(videoId);
+  int _computeCacheExpiry({required String url, required int? explicitExpiry}) {
+    if (explicitExpiry != null) {
+      return explicitExpiry;
+    }
+
+    final parsedExpiry = parseExpiryFromUrl(url);
+    if (parsedExpiry != null) {
+      return parsedExpiry;
+    }
+
+    final nowEpoch = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+    return nowEpoch + _fallbackNoExpiryTtlSeconds;
+  }
+
+  bool isCachedUrlValid(String cacheKey, {int bufferSeconds = 30}) {
+    final jsonStr = audioCacheBox.get(cacheKey);
     if (jsonStr == null) return false;
     try {
       final Map<String, dynamic> data =
@@ -60,6 +126,7 @@ class AudioUrlService {
   Future<Map<String, dynamic>?> getAudioUrl(
     SongInfo song, {
     bool isPreloading = false,
+    bool forceRefresh = false,
     int maxRetries = 1,
     Duration initialDelay = const Duration(seconds: 1),
     Completer<bool>? completer,
@@ -68,23 +135,39 @@ class AudioUrlService {
       throw CanceledException('Audio URL fetch cancelled before start');
     }
 
-    final cachedJson = audioCacheBox.get(song.videoId);
-    if (cachedJson != null) {
-      try {
-        final Map<String, dynamic> data =
-            json.decode(cachedJson) as Map<String, dynamic>;
-        final cachedUrl = data['url'] as String?;
-        final expiry = data['expiry'] as int?;
-        final cachedDuration = data['duration'] as int?;
-        if (cachedUrl != null &&
-            (expiry == null || isCachedUrlValid(song.videoId))) {
-          debugPrint('Using cached URL for ${song.name} - ${song.videoId}');
-          return {'url': cachedUrl, 'duration': cachedDuration};
-        } else {
-          await audioCacheBox.delete(song.videoId);
+    final settingsProvider = GetIt.I<SettingsProvider>();
+    final streamingQuality = settingsProvider.streamingQuality;
+    final lookupKeys = buildLookupCacheKeys(
+      videoId: song.videoId,
+      streamingQuality: streamingQuality,
+      jioSaavnEnabled: settingsProvider.jioSaavnEnabled,
+    );
+
+    if (forceRefresh) {
+      for (final cacheKey in lookupKeys) {
+        await audioCacheBox.delete(cacheKey);
+      }
+    } else {
+      for (final cacheKey in lookupKeys) {
+        final cachedJson = audioCacheBox.get(cacheKey);
+        if (cachedJson == null) {
+          continue;
         }
-      } catch (_) {
-        await audioCacheBox.delete(song.videoId);
+        try {
+          final Map<String, dynamic> data =
+              json.decode(cachedJson) as Map<String, dynamic>;
+          final cachedUrl = data['url'] as String?;
+          final expiry = data['expiry'] as int?;
+          final cachedDuration = data['duration'] as int?;
+          if (cachedUrl != null &&
+              (expiry == null || isCachedUrlValid(cacheKey))) {
+            debugPrint('Using cached URL for ${song.name} - $cacheKey');
+            return {'url': cachedUrl, 'duration': cachedDuration};
+          }
+          await audioCacheBox.delete(cacheKey);
+        } catch (_) {
+          await audioCacheBox.delete(cacheKey);
+        }
       }
     }
 
@@ -94,9 +177,6 @@ class AudioUrlService {
       );
       return null;
     }
-
-    final settingsProvider = GetIt.I<SettingsProvider>();
-    final streamingQuality = settingsProvider.streamingQuality;
 
     debugPrint(
       'Fetching stream URL in isolate for ${song.name} - ${song.videoId} (preloading: $isPreloading)',
@@ -108,7 +188,6 @@ class AudioUrlService {
       }
 
       try {
-        final settingsProvider = GetIt.I<SettingsProvider>();
         final result = await AudioUrlIsolate.fetchStreamUrl(
           videoId: song.videoId,
           streamingQuality: streamingQuality,
@@ -121,13 +200,30 @@ class AudioUrlService {
 
         if (result['success'] == true) {
           final audioUrl = result['url'] as String;
-          final expiry = result['expiry'] as int?;
+          final explicitExpiry = result['expiry'] as int?;
           final duration = result['duration'] as int?;
+          final source = normalizeProvider(
+            result['source'] as String? ??
+                (audioUrl.contains('saavn') ? 'jiosaavn' : 'youtube'),
+          );
+          final expiry = _computeCacheExpiry(
+            url: audioUrl,
+            explicitExpiry: explicitExpiry,
+          );
+          final cacheKey = buildCacheKey(
+            videoId: song.videoId,
+            streamingQuality: streamingQuality,
+            provider: source,
+          );
 
-          final Map<String, dynamic> storeData = {'url': audioUrl};
-          if (expiry != null) storeData['expiry'] = expiry;
+          final Map<String, dynamic> storeData = {
+            'url': audioUrl,
+            'source': source,
+            'keyVersion': _cacheEntryVersion,
+            'expiry': expiry,
+          };
           if (duration != null) storeData['duration'] = duration;
-          await audioCacheBox.put(song.videoId, json.encode(storeData));
+          await audioCacheBox.put(cacheKey, json.encode(storeData));
 
           debugPrint(
             'Successfully fetched stream URL for ${song.name} - ${song.videoId}',
@@ -155,82 +251,6 @@ class AudioUrlService {
 
     debugPrint('All retries failed for ${song.videoId}');
     return null;
-  }
-
-  Future<AudioSource?> createAudioSource(
-    SongInfo song, {
-    bool isPreloading = false,
-    Completer<bool>? completer,
-  }) async {
-    if (completer != null && completer.isCompleted) {
-      throw CanceledException('Audio source creation cancelled before start');
-    }
-
-    final downloadedPath = await _downloadProvider.getDownloadedSongPath(
-      song.videoId,
-    );
-
-    if (downloadedPath != null) {
-      debugPrint('Creating audio source from downloaded file for ${song.name}');
-      return AudioSource.uri(
-        Uri.file(downloadedPath),
-        tag: MediaItem(
-          id: song.videoId,
-          album: 'Noize',
-          title: song.name,
-          artist: song.artists.map((a) => a.name).join(', '),
-          artUri: Uri.parse(
-            song.thumbnails.isNotEmpty
-                ? song.thumbnails.last.url
-                : 'https://img.youtube.com/vi/${song.videoId}/mqdefault.jpg',
-          ),
-          duration: song.duration,
-        ),
-      );
-    }
-
-    final audioData = await getAudioUrl(
-      song,
-      isPreloading: isPreloading,
-      completer: completer,
-    );
-    if (audioData == null) return null;
-
-    final audioUrl = audioData['url'] as String;
-    final streamDuration = audioData['duration'] as int?;
-
-    if (completer != null && completer.isCompleted) {
-      throw CanceledException(
-        'Audio source creation cancelled after getting URL',
-      );
-    }
-
-    final usedDuration = streamDuration != null
-        ? Duration(milliseconds: streamDuration)
-        : song.duration;
-
-    debugPrint(
-      'Creating audio source from stream for ${song.name} - ${song.videoId}- $audioUrl',
-    );
-    debugPrint(
-      'Duration: $usedDuration (from ${streamDuration != null ? 'StreamProvider' : 'song metadata'})',
-    );
-
-    return AudioSource.uri(
-      Uri.parse(audioUrl),
-      tag: MediaItem(
-        id: song.videoId,
-        album: 'Noize',
-        title: song.name,
-        artist: song.artists.map((a) => a.name).join(', '),
-        artUri: Uri.parse(
-          song.thumbnails.isNotEmpty
-              ? song.thumbnails.last.url
-              : 'https://img.youtube.com/vi/${song.videoId}/mqdefault.jpg',
-        ),
-        duration: usedDuration,
-      ),
-    );
   }
 
   AudioOnlyStreamInfo getStreamQuality(StreamManifest manifest) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -53,8 +52,8 @@ class PlayerControls {
                 height: _outer,
                 decoration: BoxDecoration(
                   color: isDarkMode
-                      ? Colors.white.withOpacity(AppDimens.opacityLight)
-                      : Colors.black.withOpacity(AppDimens.opacityLight),
+                      ? Colors.white.withValues(alpha: AppDimens.opacityLight)
+                      : Colors.black.withValues(alpha: AppDimens.opacityLight),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -210,8 +209,8 @@ class PlayerControls {
                                 : 0.0,
                             backgroundColor: isDarkMode
                                 ? Colors.grey[800]
-                                : accentColor.withOpacity(
-                                    AppDimens.opacityMedium,
+                                : accentColor.withValues(
+                                    alpha: AppDimens.opacityMedium,
                                   ),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               accentColor,
@@ -252,7 +251,7 @@ class PlayerControls {
                           timeLabelTextStyle: TextStyle(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.75),
+                            ).withValues(alpha: 0.75),
                             fontWeight: AppTextStyles.weightRegular,
                             fontSize: isCompact
                                 ? AppTextStyles.fontSizeXs
@@ -338,7 +337,7 @@ class PlayerControls {
                           ? MainScreenColors.getTextColor(isDarkMode)
                           : MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.3),
+                            ).withValues(alpha: 0.3),
                     ),
                     onPressed: queueProvider.hasPrevious
                         ? handlePrevious
@@ -366,7 +365,7 @@ class PlayerControls {
                           ? MainScreenColors.getTextColor(isDarkMode)
                           : MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.3),
+                            ).withValues(alpha: 0.3),
                     ),
                     onPressed: queueProvider.hasNext ? handleNext : null,
                   ),
@@ -462,7 +461,9 @@ class PlayerControls {
                             : AppDimens.buttonSizeLg) *
                         mobileScale,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(AppDimens.opacityOverlay),
+                      color: Colors.black.withValues(
+                        alpha: AppDimens.opacityOverlay,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -474,7 +475,7 @@ class PlayerControls {
                             ? MainScreenColors.getTextColor(isDarkMode)
                             : MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.3),
+                              ).withValues(alpha: 0.3),
                       ),
                       onPressed: queueProvider.hasPrevious
                           ? handlePrevious
@@ -496,7 +497,9 @@ class PlayerControls {
                             : AppDimens.buttonSizeLg) *
                         mobileScale,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(AppDimens.opacityOverlay),
+                      color: Colors.black.withValues(
+                        alpha: AppDimens.opacityOverlay,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: Transform.translate(
@@ -544,7 +547,9 @@ class PlayerControls {
                             : AppDimens.buttonSizeLg) *
                         mobileScale,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(AppDimens.opacityOverlay),
+                      color: Colors.black.withValues(
+                        alpha: AppDimens.opacityOverlay,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -581,7 +586,9 @@ class PlayerControls {
                             : AppDimens.buttonSizeLg) *
                         mobileScale,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(AppDimens.opacityOverlay),
+                      color: Colors.black.withValues(
+                        alpha: AppDimens.opacityOverlay,
+                      ),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -593,7 +600,7 @@ class PlayerControls {
                             ? MainScreenColors.getTextColor(isDarkMode)
                             : MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.3),
+                              ).withValues(alpha: 0.3),
                       ),
                       onPressed: queueProvider.hasNext ? handleNext : null,
                     ),

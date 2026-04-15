@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_colors.dart';
+import '../services/settings_storage_service.dart';
 import '../../features/search/data/search_screen_services.dart';
 
 class SettingsProvider with ChangeNotifier {
@@ -26,6 +26,8 @@ class SettingsProvider with ChangeNotifier {
   static const String _isGridViewKey = 'isGridView';
   static const String _sleepTimerFadeKey = 'sleepTimerFade';
   static const String _maxConcurrentDownloadsKey = 'maxConcurrentDownloads';
+  static const String _wifiOnlyDownloadsKey = 'wifiOnlyDownloads';
+  static const String _audioCacheEnabledKey = 'audioCacheEnabled';
 
   static const String _includedFoldersKey = 'includedFolders';
   static const String _excludedFoldersKey = 'excludedFolders';
@@ -36,11 +38,13 @@ class SettingsProvider with ChangeNotifier {
   static const String _adaptiveColorKey = 'adaptiveColor';
   static const String _backupAccentColorKey = 'backupAccentColor';
   static const String _updateChannelKey = 'updateChannel';
+  static const String _updateCheckEnabledKey = 'updateCheckEnabled';
 
   static const String _jioSaavnEnabledKey = 'jioSaavnEnabled';
 
   static const String _loggingOnStartupKey = 'loggingOnStartup';
   static const String _volumeLevelKey = 'volumeLevel';
+  static const String _gaplessPlaybackKey = 'gaplessPlayback';
 
   String _streamingQuality = 'High';
   String _downloadingQuality = 'High';
@@ -75,6 +79,10 @@ class SettingsProvider with ChangeNotifier {
 
   bool _loggingOnStartup = true;
   double _volumeLevel = 1.0;
+  bool _gaplessPlaybackEnabled = true;
+  bool _wifiOnlyDownloads = false;
+  bool _audioCacheEnabled = true;
+  bool _updateCheckEnabled = true;
 
   List<String> _includedFolders = [];
   List<String> _excludedFolders = [];
@@ -114,9 +122,13 @@ class SettingsProvider with ChangeNotifier {
   String get aiProvider => _aiProvider;
   int get maxConcurrentDownloads => _maxConcurrentDownloads;
   String get updateChannel => _updateChannel;
+  bool get updateCheckEnabled => _updateCheckEnabled;
 
   bool get loggingOnStartup => _loggingOnStartup;
   double get volumeLevel => _volumeLevel;
+  bool get gaplessPlaybackEnabled => _gaplessPlaybackEnabled;
+  bool get wifiOnlyDownloads => _wifiOnlyDownloads;
+  bool get audioCacheEnabled => _audioCacheEnabled;
 
   ThemeMode get themeMode {
     switch (_theme) {
@@ -240,9 +252,21 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  set wifiOnlyDownloads(bool value) {
+    _wifiOnlyDownloads = value;
+    _saveToPrefs(_wifiOnlyDownloadsKey, value);
+    notifyListeners();
+  }
+
   set updateChannel(String value) {
     _updateChannel = value;
     _saveToPrefs(_updateChannelKey, value);
+    notifyListeners();
+  }
+
+  set updateCheckEnabled(bool value) {
+    _updateCheckEnabled = value;
+    _saveToPrefs(_updateCheckEnabledKey, value);
     notifyListeners();
   }
 
@@ -253,8 +277,20 @@ class SettingsProvider with ChangeNotifier {
   }
 
   set volumeLevel(double value) {
-    _volumeLevel = value;
-    _saveToPrefs(_volumeLevelKey, value);
+    _volumeLevel = value.clamp(0.0, 1.5);
+    _saveToPrefs(_volumeLevelKey, _volumeLevel);
+    notifyListeners();
+  }
+
+  set gaplessPlaybackEnabled(bool value) {
+    _gaplessPlaybackEnabled = value;
+    _saveToPrefs(_gaplessPlaybackKey, value);
+    notifyListeners();
+  }
+
+  set audioCacheEnabled(bool value) {
+    _audioCacheEnabled = value;
+    _saveToPrefs(_audioCacheEnabledKey, value);
     notifyListeners();
   }
 
@@ -289,8 +325,8 @@ class SettingsProvider with ChangeNotifier {
   }
 
   Future<void> clearSearchHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(SearchScreenServices.SEARCH_HISTORY_KEY);
+    final box = await SettingsStorageService.getBox();
+    await box.delete(SearchScreenServices.SEARCH_HISTORY_KEY);
     notifyListeners();
   }
 
@@ -332,6 +368,22 @@ class SettingsProvider with ChangeNotifier {
         return const Locale('ta');
       case 'Marathi':
         return const Locale('mr');
+      case 'Turkish':
+        return const Locale('tr');
+      case 'Gujarati':
+        return const Locale('gu');
+      case 'Kannada':
+        return const Locale('kn');
+      case 'Korean':
+        return const Locale('ko');
+      case 'Indonesian':
+        return const Locale('id');
+      case 'Portuguese':
+        return const Locale('pt');
+      case 'Vietnamese':
+        return const Locale('vi');
+      case 'Arabic':
+        return const Locale('ar');
       case 'English':
       default:
         return const Locale('en');
@@ -340,7 +392,7 @@ class SettingsProvider with ChangeNotifier {
 
   set accentColor(Color value) {
     _accentColor = value;
-    _saveToPrefs(_accentColorKey, value.value);
+    _saveToPrefs(_accentColorKey, value.toARGB32());
     notifyListeners();
   }
 
@@ -349,24 +401,24 @@ class SettingsProvider with ChangeNotifier {
     Color? dynamicColor,
   }) async {
     _adaptiveColorEnabled = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_adaptiveColorKey, value);
+    final box = await SettingsStorageService.getBox();
+    await box.put(_adaptiveColorKey, value);
 
     if (value) {
-      _backupAccentColorValue = _accentColor.value;
-      await prefs.setInt(_backupAccentColorKey, _backupAccentColorValue!);
+      _backupAccentColorValue = _accentColor.toARGB32();
+      await box.put(_backupAccentColorKey, _backupAccentColorValue!);
 
       if (dynamicColor != null) {
         _accentColor = dynamicColor;
-        await prefs.setInt(_accentColorKey, _accentColor.value);
+        await box.put(_accentColorKey, _accentColor.toARGB32());
       }
     } else {
-      final backup = prefs.getInt(_backupAccentColorKey);
+      final backup = box.get(_backupAccentColorKey) as int?;
       if (backup != null) {
         _accentColor = Color(backup);
-        await prefs.setInt(_accentColorKey, _accentColor.value);
+        await box.put(_accentColorKey, _accentColor.toARGB32());
         _backupAccentColorValue = null;
-        await prefs.remove(_backupAccentColorKey);
+        await box.delete(_backupAccentColorKey);
       }
     }
 
@@ -375,81 +427,93 @@ class SettingsProvider with ChangeNotifier {
 
   Future<void> setSelectedCountryPlaylistId(String value) async {
     _selectedCountryPlaylistId = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_selectedCountryPlaylistIdKey, value);
+    final box = await SettingsStorageService.getBox();
+    await box.put(_selectedCountryPlaylistIdKey, value);
     notifyListeners();
   }
 
   Future<void> loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    _audioQuality = prefs.getString(_audioQualityKey) ?? 'High';
-    _headsetControlsEnabled = prefs.getBool(_headsetControlsKey) ?? true;
-    _theme = prefs.getString(_themeKey) ?? 'Dark';
-    _notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
-    _language = prefs.getString(_languageKey) ?? 'English';
+    final box = await SettingsStorageService.getBox();
+    _audioQuality = (box.get(_audioQualityKey) as String?) ?? 'High';
+    _headsetControlsEnabled = (box.get(_headsetControlsKey) as bool?) ?? true;
+    _theme = (box.get(_themeKey) as String?) ?? 'Dark';
+    _notificationsEnabled = (box.get(_notificationsKey) as bool?) ?? true;
+    _language = (box.get(_languageKey) as String?) ?? 'English';
 
-    _streamingQuality = prefs.getString('streamingQuality') ?? 'High';
-    _downloadingQuality = prefs.getString('downloadingQuality') ?? 'High';
-    _playbackHistoryEnabled = prefs.getBool('playbackHistoryEnabled') ?? true;
-    _searchHistoryEnabled = prefs.getBool('searchHistoryEnabled') ?? true;
-    _jioSaavnEnabled = prefs.getBool(_jioSaavnEnabledKey) ?? true;
-    _lyricsProvider = prefs.getString(_lyricsProviderKey) ?? 'LRCLib';
-    _progressBarStyle = prefs.getString(_progressBarStyleKey) ?? 'Default';
+    _streamingQuality = (box.get('streamingQuality') as String?) ?? 'High';
+    _downloadingQuality = (box.get('downloadingQuality') as String?) ?? 'High';
+    _playbackHistoryEnabled =
+        (box.get('playbackHistoryEnabled') as bool?) ?? true;
+    _searchHistoryEnabled = (box.get('searchHistoryEnabled') as bool?) ?? true;
+    _jioSaavnEnabled = (box.get(_jioSaavnEnabledKey) as bool?) ?? true;
+    _lyricsProvider = (box.get(_lyricsProviderKey) as String?) ?? 'LRCLib';
+    _progressBarStyle = (box.get(_progressBarStyleKey) as String?) ?? 'Default';
 
-    _animationType = prefs.getString(_animationTypeKey) ?? 'Animation 1';
-    _isGridView = prefs.getBool(_isGridViewKey) ?? true;
+    final savedAnimationType =
+        (box.get(_animationTypeKey) as String?) ?? 'Default';
+    _animationType = savedAnimationType == 'static'
+        ? 'Default'
+        : savedAnimationType;
+    _isGridView = (box.get(_isGridViewKey) as bool?) ?? true;
 
-    _includedFolders = prefs.getStringList(_includedFoldersKey) ?? [];
-    _excludedFolders = prefs.getStringList(_excludedFoldersKey) ?? [];
-    _minSongDuration = prefs.getInt(_minSongDurationKey) ?? 0;
-    _includedExtensions =
-        prefs.getStringList(_includedExtensionsKey) ??
-        ['.mp3', '.m4a', '.wav', '.flac', '.ogg'];
-    _excludedExtensions = prefs.getStringList(_excludedExtensionsKey) ?? [];
+    _includedFolders = _decodeStringList(box.get(_includedFoldersKey));
+    _excludedFolders = _decodeStringList(box.get(_excludedFoldersKey));
+    _minSongDuration = (box.get(_minSongDurationKey) as int?) ?? 0;
+    _includedExtensions = _decodeStringList(
+      box.get(_includedExtensionsKey),
+      fallback: ['.mp3', '.m4a', '.wav', '.flac', '.ogg'],
+    );
+    _excludedExtensions = _decodeStringList(box.get(_excludedExtensionsKey));
 
-    final accentColorValue = prefs.getInt(_accentColorKey);
+    final accentColorValue = box.get(_accentColorKey) as int?;
     if (accentColorValue != null) {
       _accentColor = Color(accentColorValue);
     } else {
       _accentColor = MainScreenColors.skyBlue;
     }
 
-    _adaptiveColorEnabled = prefs.getBool(_adaptiveColorKey) ?? false;
-    _backupAccentColorValue = prefs.getInt(_backupAccentColorKey);
+    _adaptiveColorEnabled = (box.get(_adaptiveColorKey) as bool?) ?? false;
+    _backupAccentColorValue = box.get(_backupAccentColorKey) as int?;
 
-    _selectedCountryPlaylistId = prefs.getString(_selectedCountryPlaylistIdKey);
+    _selectedCountryPlaylistId =
+        box.get(_selectedCountryPlaylistIdKey) as String?;
 
-    _geminiApiKeyValue = prefs.getString(_geminiApiKey);
+    _geminiApiKeyValue = box.get(_geminiApiKey) as String?;
 
-    _loggingOnStartup = prefs.getBool(_loggingOnStartupKey) ?? true;
+    _loggingOnStartup = (box.get(_loggingOnStartupKey) as bool?) ?? true;
 
-    _openAiApiKeyValue = prefs.getString(_openAiApiKey);
+    _openAiApiKeyValue = box.get(_openAiApiKey) as String?;
 
-    _aiProvider = prefs.getString(_aiProviderKey) ?? 'Gemini';
+    _aiProvider = (box.get(_aiProviderKey) as String?) ?? 'Gemini';
 
-    _sleepTimerFadeEnabled = prefs.getBool(_sleepTimerFadeKey) ?? false;
-    _maxConcurrentDownloads = prefs.getInt(_maxConcurrentDownloadsKey) ?? 1;
-    _updateChannel = prefs.getString(_updateChannelKey) ?? 'stable';
-    _volumeLevel = prefs.getDouble(_volumeLevelKey) ?? 1.0;
+    _sleepTimerFadeEnabled = (box.get(_sleepTimerFadeKey) as bool?) ?? false;
+    _maxConcurrentDownloads =
+        (box.get(_maxConcurrentDownloadsKey) as int?) ?? 1;
+    _wifiOnlyDownloads = (box.get(_wifiOnlyDownloadsKey) as bool?) ?? false;
+    _audioCacheEnabled = (box.get(_audioCacheEnabledKey) as bool?) ?? true;
+    _updateChannel = (box.get(_updateChannelKey) as String?) ?? 'stable';
+    _updateCheckEnabled = (box.get(_updateCheckEnabledKey) as bool?) ?? true;
+    _volumeLevel = ((box.get(_volumeLevelKey) as num?)?.toDouble() ?? 1.0)
+        .clamp(0.0, 1.5);
+    _gaplessPlaybackEnabled = (box.get(_gaplessPlaybackKey) as bool?) ?? true;
 
     notifyListeners();
   }
 
-  Future<void> _saveToPrefs<T>(String key, T value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (value is String) {
-      await prefs.setString(key, value);
-    } else if (value is bool) {
-      await prefs.setBool(key, value);
-    } else if (value is int) {
-      await prefs.setInt(key, value);
-    } else if (value is double) {
-      await prefs.setDouble(key, value);
-    } else if (value is List<String>) {
-      await prefs.setStringList(key, value);
-    } else if (value == null) {
-      await prefs.remove(key);
+  List<String> _decodeStringList(dynamic value, {List<String>? fallback}) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
     }
+    return fallback ?? <String>[];
+  }
+
+  Future<void> _saveToPrefs<T>(String key, T value) async {
+    final box = await SettingsStorageService.getBox();
+    if (value == null) {
+      await box.delete(key);
+      return;
+    }
+    await box.put(key, value);
   }
 
   void toggleTheme() {
@@ -464,8 +528,8 @@ class SettingsProvider with ChangeNotifier {
   }
 
   void clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    final box = await SettingsStorageService.getBox();
+    await box.clear();
     notifyListeners();
   }
 }

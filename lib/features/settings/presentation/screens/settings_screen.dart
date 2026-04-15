@@ -6,10 +6,10 @@ import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/models/ota_model.dart';
 import '../../../../core/providers/settings_provider.dart';
+import '../../../main_screen/presentation/screens/full_player_screen.dart';
 import '../../../ota/data/providers/ota_provider.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../player/presentation/screens/player_ui.dart';
-import '../../../main_screen/presentation/screens/desktop_screen.dart';
 import '../widgets/general_settings_section.dart';
 import '../widgets/appearance_settings_section.dart';
 import '../widgets/audio_settings_section.dart';
@@ -31,10 +31,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final otaProvider = Provider.of<OTAProvider>(context, listen: false);
-      if (otaProvider.status == OTAStatus.idle &&
-          otaProvider.updateInfo == null) {
-        otaProvider.checkForUpdates();
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+      if (settingsProvider.updateCheckEnabled) {
+        final otaProvider = Provider.of<OTAProvider>(context, listen: false);
+        if (otaProvider.status == OTAStatus.idle &&
+            otaProvider.updateInfo == null) {
+          otaProvider.checkForUpdates();
+        }
       }
     });
   }
@@ -184,11 +190,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                   BorderRadius.circular(12),
                                               border: Border.all(
                                                 color: themeData.isDarkMode
-                                                    ? Colors.white.withOpacity(
-                                                        0.06,
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.06,
                                                       )
-                                                    : Colors.black.withOpacity(
-                                                        0.06,
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.06,
                                                       ),
                                                 width: 1,
                                               ),
@@ -244,11 +250,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                                   BorderRadius.circular(12),
                                               border: Border.all(
                                                 color: themeData.isDarkMode
-                                                    ? Colors.white.withOpacity(
-                                                        0.06,
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.06,
                                                       )
-                                                    : Colors.black.withOpacity(
-                                                        0.06,
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.06,
                                                       ),
                                                 width: 1,
                                               ),
@@ -357,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: EdgeInsets.all(AppDimens.paddingSm),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.1),
+                  color: accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                 ),
                 child: Icon(
@@ -385,7 +391,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           .copyWith(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.7),
+                            ).withValues(alpha: 0.7),
                           ),
                     ),
                   ],
@@ -415,7 +421,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: AppTextStyles.body2(isDarkMode: isDarkMode).copyWith(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(0.8),
+                ).withValues(alpha: 0.8),
                 height: AppTextStyles.lineHeightBody,
               ),
               maxLines: 2,
@@ -470,8 +476,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
                   color: isDarkMode
-                      ? Colors.white.withOpacity(0.06)
-                      : Colors.black.withOpacity(0.06),
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.06),
                   width: AppDimens.borderWidthThin,
                 ),
               ),

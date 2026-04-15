@@ -411,7 +411,6 @@ class TrendingProvider with ChangeNotifier {
   }) async {
     final playerProvider = Provider.of<PlayerProvider>(context, listen: false);
     final queueProvider = Provider.of<QueueProvider>(context, listen: false);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       final currentPlaylistSongs = _trendingSongs[playlistId] ?? [];

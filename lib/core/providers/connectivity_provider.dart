@@ -22,6 +22,9 @@ class ConnectivityProvider extends ChangeNotifier {
             result == ConnectivityResult.ethernet,
       );
 
+  bool get isWifiConnected =>
+      _isConnected && _connectionStatus.contains(ConnectivityResult.wifi);
+
   String get connectionType {
     if (!_isConnected) return 'No Connection';
     if (_connectionStatus.contains(ConnectivityResult.wifi)) return 'WiFi';

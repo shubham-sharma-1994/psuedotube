@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/stat_section.dart';
@@ -30,8 +29,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final RefreshController _refreshController = RefreshController();
-
   @override
   void initState() {
     super.initState();
@@ -43,12 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _refreshController.dispose();
-    super.dispose();
-  }
-
   Future<void> _onRefresh(BuildContext context) async {
     final homeScreenProvider = Provider.of<HomeScreenProvider>(
       context,
@@ -56,8 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     await homeScreenProvider.refreshData();
-
-    _refreshController.refreshCompleted();
   }
 
   int _selectedIndex = 0;
@@ -136,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -148,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(AppDimens.paddingXl),
                         decoration: BoxDecoration(
-                          color: accentColor.withOpacity(0.1),
+                          color: accentColor.withValues(alpha: 0.1),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(AppDimens.radiusXxl),
                             topRight: Radius.circular(AppDimens.radiusXxl),
@@ -179,8 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDarkMode
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.black.withOpacity(0.05),
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusSm,
                                   ),
@@ -219,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? accentColor.withOpacity(0.1)
+                                      ? accentColor.withValues(alpha: 0.1)
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(
                                     AppDimens.radiusLg,
@@ -357,12 +346,12 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.only(right: AppDimens.spacingSm),
           decoration: BoxDecoration(
             color: selected
-                ? accentColor.withOpacity(0.12)
+                ? accentColor.withValues(alpha: 0.12)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppDimens.radiusXl),
             border: Border.all(
               color: selected
-                  ? accentColor.withOpacity(0.25)
+                  ? accentColor.withValues(alpha: 0.25)
                   : Colors.transparent,
             ),
           ),
@@ -442,12 +431,12 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.only(right: AppDimens.spacingSm),
           decoration: BoxDecoration(
             color: selected
-                ? accentColor.withOpacity(0.12)
+                ? accentColor.withValues(alpha: 0.12)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppDimens.radiusMd),
             border: Border.all(
               color: selected
-                  ? accentColor.withOpacity(0.25)
+                  ? accentColor.withValues(alpha: 0.25)
                   : (isDarkMode ? Colors.white10 : Colors.black12),
             ),
           ),
@@ -571,7 +560,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               decoration: BoxDecoration(
                 color: isPlaying
-                    ? accentColor.withOpacity(0.18)
+                    ? accentColor.withValues(alpha: 0.18)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(AppDimens.radiusMd),
               ),
@@ -662,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               decoration: BoxDecoration(
                 color: isPlaying
-                    ? accentColor.withOpacity(0.18)
+                    ? accentColor.withValues(alpha: 0.18)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(AppDimens.radiusMd),
               ),
@@ -693,40 +682,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshConfiguration(
-      headerBuilder: () => const WaterDropHeader(),
-      child: SmartRefresher(
-        controller: _refreshController,
-        onRefresh: () => _onRefresh(context),
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(child: _buildTabs(context)),
-            if (_selectedIndex == 0) ...[
-              SliverToBoxAdapter(child: RecentPlaylistsSection()),
-              SliverToBoxAdapter(child: StatsSection()),
-              SliverToBoxAdapter(child: LastPlayedSection()),
-              SliverToBoxAdapter(child: LikedSongsSection()),
-              SliverToBoxAdapter(child: FavoriteArtistsSection()),
-              SliverToBoxAdapter(child: HomeSections()),
-            ] else if (_selectedIndex == 1) ...[
-              ..._buildTrendingSlivers(context),
-            ] else if (_selectedIndex == 2) ...[
-              _buildMapSliverList(
-                context,
-                Provider.of<FavoriteSongProvider>(context).likedSongs,
-                'liked_songs',
-              ),
-            ] else ...[
-              _buildMapSliverList(
-                context,
-                Provider.of<PlayerProvider>(context).lastPlayedSongs,
-                'recently_played',
-              ),
-            ],
-            SliverToBoxAdapter(child: SizedBox(height: AppDimens.paddingXl)),
-          ],
+    final accentColor = context.select((SettingsProvider p) => p.accentColor);
+
+    return RefreshIndicator(
+      color: accentColor,
+      onRefresh: () => _onRefresh(context),
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
+        slivers: [
+          SliverToBoxAdapter(child: _buildTabs(context)),
+          if (_selectedIndex == 0) ...[
+            SliverToBoxAdapter(child: RecentPlaylistsSection()),
+            SliverToBoxAdapter(child: StatsSection()),
+            SliverToBoxAdapter(child: LastPlayedSection()),
+            SliverToBoxAdapter(child: LikedSongsSection()),
+            SliverToBoxAdapter(child: FavoriteArtistsSection()),
+            SliverToBoxAdapter(child: HomeSections()),
+          ] else if (_selectedIndex == 1) ...[
+            ..._buildTrendingSlivers(context),
+          ] else if (_selectedIndex == 2) ...[
+            _buildMapSliverList(
+              context,
+              Provider.of<FavoriteSongProvider>(context).likedSongs,
+              'liked_songs',
+            ),
+          ] else ...[
+            _buildMapSliverList(
+              context,
+              Provider.of<PlayerProvider>(context).lastPlayedSongs,
+              'recently_played',
+            ),
+          ],
+          SliverToBoxAdapter(child: SizedBox(height: AppDimens.paddingXl)),
+        ],
       ),
     );
   }

@@ -7,8 +7,8 @@ import '../../../../core/providers/video_info_provider.dart';
 
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../main_screen/presentation/screens/full_player_screen.dart';
 import '../../../player/presentation/screens/player_ui.dart';
-import '../../../main_screen/presentation/screens/desktop_screen.dart';
 import '../../../../shared/components/song_list_tile.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -208,9 +208,9 @@ class _DownloadsScreenState extends State<DownloadsScreen>
       margin: const EdgeInsets.symmetric(horizontal: AppDimens.paddingSm),
       decoration: BoxDecoration(
         color: _selectedSongs.contains(song['id'])
-            ? MainScreenColors.primaryPurple.withOpacity(0.2)
+            ? MainScreenColors.primaryPurple.withValues(alpha: 0.2)
             : (isPlaying
-                  ? MainScreenColors.primaryPurple.withOpacity(0.12)
+                  ? MainScreenColors.primaryPurple.withValues(alpha: 0.12)
                   : MainScreenColors.getBackgroundColor(isDarkMode)),
         borderRadius: BorderRadius.circular(AppDimens.radiusLg),
       ),
@@ -282,6 +282,28 @@ class _DownloadsScreenState extends State<DownloadsScreen>
         },
       ),
     );
+  }
+
+  void _toggleSelectAll(DownloadProvider downloadProvider) {
+    final allSongIds = downloadProvider.downloadedSongs
+        .map((song) => song['id'] as String?)
+        .where((id) => id != null && id.isNotEmpty)
+        .cast<String>()
+        .toSet();
+    final isAllSelected =
+        allSongIds.isNotEmpty &&
+        _selectedSongs.containsAll(allSongIds) &&
+        _selectedSongs.length == allSongIds.length;
+
+    setState(() {
+      if (isAllSelected) {
+        _selectedSongs.clear();
+        _isSelectionMode = false;
+      } else {
+        _selectedSongs = allSongIds;
+        if (allSongIds.isNotEmpty) _isSelectionMode = true;
+      }
+    });
   }
 
   Widget _buildThumbnail(String thumbnailUrl, bool isDarkMode) {
@@ -415,6 +437,33 @@ class _DownloadsScreenState extends State<DownloadsScreen>
               color: MainScreenColors.getTextColor(isDarkMode),
             ),
             actions: [
+              Consumer<DownloadProvider>(
+                builder: (context, downloadProvider, _) {
+                  if (_isSelectionMode ||
+                      downloadProvider.downloadQueue.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final isPaused = downloadProvider.isPaused;
+                  return IconButton(
+                    icon: Icon(
+                      isPaused ? Icons.play_arrow : Icons.pause,
+                      color: MainScreenColors.getTextColor(isDarkMode),
+                    ),
+                    tooltip: isPaused
+                        ? 'resume_downloads'.tr()
+                        : 'pause_downloads'.tr(),
+                    onPressed: () async {
+                      if (isPaused) {
+                        await downloadProvider.resumeAllDownloads();
+                        AppSnackBar.showInfo(context, 'resumed_downloads'.tr());
+                      } else {
+                        await downloadProvider.pauseAllDownloads();
+                        AppSnackBar.showInfo(context, 'paused_downloads'.tr());
+                      }
+                    },
+                  );
+                },
+              ),
               if (_isSelectionMode) ...[
                 IconButton(
                   icon: const Icon(Icons.delete),
@@ -493,6 +542,32 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                     }
                   },
                 ),
+                Consumer<DownloadProvider>(
+                  builder: (context, downloadProvider, _) {
+                    final allSongIds = downloadProvider.downloadedSongs
+                        .map((song) => song['id'] as String?)
+                        .where((id) => id != null && id.isNotEmpty)
+                        .cast<String>()
+                        .toSet();
+                    final isAllSelected =
+                        allSongIds.isNotEmpty &&
+                        _selectedSongs.containsAll(allSongIds) &&
+                        _selectedSongs.length == allSongIds.length;
+
+                    return IconButton(
+                      icon: Icon(
+                        isAllSelected
+                            ? Icons.check_box
+                            : Icons.check_box_outline_blank,
+                        color: MainScreenColors.getTextColor(isDarkMode),
+                      ),
+                      tooltip: isAllSelected
+                          ? 'unselect_all'.tr()
+                          : 'select_all'.tr(),
+                      onPressed: () => _toggleSelectAll(downloadProvider),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () {
@@ -512,30 +587,30 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   },
                   itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<SortOption>>[
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.titleAsc,
-                          child: Text('Title A-Z'),
+                          child: Text('sort_title_az'.tr()),
                         ),
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.titleDesc,
-                          child: Text('Title Z-A'),
+                          child: Text('sort_title_za'.tr()),
                         ),
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.artistAsc,
-                          child: Text('Artist A-Z'),
+                          child: Text('sort_artist_az'.tr()),
                         ),
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.artistDesc,
-                          child: Text('Artist Z-A'),
+                          child: Text('sort_artist_za'.tr()),
                         ),
                         const PopupMenuDivider(),
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.dateDesc,
-                          child: Text('Date: Newest first'),
+                          child: Text('sort_date_newest_first'.tr()),
                         ),
-                        const PopupMenuItem<SortOption>(
+                        PopupMenuItem<SortOption>(
                           value: SortOption.dateAsc,
-                          child: Text('Date: Oldest first'),
+                          child: Text('sort_date_oldest_first'.tr()),
                         ),
                       ],
                 ),
@@ -634,67 +709,49 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                                                 _currentSort = value;
                                               });
                                             },
-                                            itemBuilder:
-                                                (BuildContext context) =>
-                                                    <
-                                                      PopupMenuEntry<SortOption>
-                                                    >[
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value:
-                                                            SortOption.titleAsc,
-                                                        child: Text(
-                                                          'Title A-Z',
-                                                        ),
-                                                      ),
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value: SortOption
-                                                            .titleDesc,
-                                                        child: Text(
-                                                          'Title Z-A',
-                                                        ),
-                                                      ),
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value: SortOption
-                                                            .artistAsc,
-                                                        child: Text(
-                                                          'Artist A-Z',
-                                                        ),
-                                                      ),
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value: SortOption
-                                                            .artistDesc,
-                                                        child: Text(
-                                                          'Artist Z-A',
-                                                        ),
-                                                      ),
-                                                      const PopupMenuDivider(),
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value:
-                                                            SortOption.dateDesc,
-                                                        child: Text(
-                                                          'Date: Newest first',
-                                                        ),
-                                                      ),
-                                                      const PopupMenuItem<
-                                                        SortOption
-                                                      >(
-                                                        value:
-                                                            SortOption.dateAsc,
-                                                        child: Text(
-                                                          'Date: Oldest first',
-                                                        ),
-                                                      ),
-                                                    ],
+                                            itemBuilder: (BuildContext context) =>
+                                                <PopupMenuEntry<SortOption>>[
+                                                  PopupMenuItem<SortOption>(
+                                                    value: SortOption.titleAsc,
+                                                    child: Text(
+                                                      'sort_title_az'.tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<SortOption>(
+                                                    value: SortOption.titleDesc,
+                                                    child: Text(
+                                                      'sort_title_za'.tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<SortOption>(
+                                                    value: SortOption.artistAsc,
+                                                    child: Text(
+                                                      'sort_artist_az'.tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<SortOption>(
+                                                    value:
+                                                        SortOption.artistDesc,
+                                                    child: Text(
+                                                      'sort_artist_za'.tr(),
+                                                    ),
+                                                  ),
+                                                  const PopupMenuDivider(),
+                                                  PopupMenuItem<SortOption>(
+                                                    value: SortOption.dateDesc,
+                                                    child: Text(
+                                                      'sort_date_newest_first'
+                                                          .tr(),
+                                                    ),
+                                                  ),
+                                                  PopupMenuItem<SortOption>(
+                                                    value: SortOption.dateAsc,
+                                                    child: Text(
+                                                      'sort_date_oldest_first'
+                                                          .tr(),
+                                                    ),
+                                                  ),
+                                                ],
                                           ),
                                       ],
                                     ),

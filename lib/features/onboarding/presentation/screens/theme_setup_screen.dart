@@ -177,7 +177,9 @@ class _ThemeSetupScreenState extends State<ThemeSetupScreen> {
                           ),
                         ),
                         elevation: AppDimens.elevationHigh,
-                        shadowColor: const Color(0xFF6C63FF).withOpacity(0.5),
+                        shadowColor: const Color(
+                          0xFF6C63FF,
+                        ).withValues(alpha: 0.5),
                       ),
                       child: Text(
                         'continue'.tr(),
@@ -241,7 +243,7 @@ class _ThemeSetupScreenState extends State<ThemeSetupScreen> {
                   BoxShadow(
                     color: MainScreenColors.getPrimaryColor(
                       isDarkMode,
-                    ).withOpacity(0.3),
+                    ).withValues(alpha: 0.3),
                     blurRadius: 15,
                     spreadRadius: 2,
                   ),
@@ -254,9 +256,11 @@ class _ThemeSetupScreenState extends State<ThemeSetupScreen> {
               padding: EdgeInsets.all(AppDimens.paddingSm),
               decoration: BoxDecoration(
                 color: isSelected && !isDarkMode
-                    ? Colors.white.withOpacity(0.2)
+                    ? Colors.white.withValues(alpha: 0.2)
                     : isSelected
-                    ? MainScreenColors.getTextColor(isDarkMode).withOpacity(0.2)
+                    ? MainScreenColors.getTextColor(
+                        isDarkMode,
+                      ).withValues(alpha: 0.2)
                     : MainScreenColors.getSurfaceColor(isDarkMode),
                 borderRadius: BorderRadius.circular(AppDimens.radiusMd),
               ),

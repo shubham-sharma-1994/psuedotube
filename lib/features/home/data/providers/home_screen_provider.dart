@@ -69,6 +69,7 @@ class HomeScreenProvider with ChangeNotifier {
             .map((section) => HomeSectionDTO.fromHomeSection(section))
             .toList(),
       );
+      await box.put('lastFetchTime', DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       debugPrint('Error saving home sections: $e');
     }
@@ -100,7 +101,22 @@ class HomeScreenProvider with ChangeNotifier {
     }
     try {
       await loadSavedHomeSections();
-      if (_homeSections.isEmpty &&
+
+      final box = await Hive.openBox<dynamic>('home_sections_cache');
+      final lastFetchTime = box.get('lastFetchTime') as int?;
+      bool needsRefresh = false;
+
+      if (lastFetchTime != null) {
+        final lastFetch = DateTime.fromMillisecondsSinceEpoch(lastFetchTime);
+        if (DateTime.now().difference(lastFetch).inHours >= 4) {
+          needsRefresh = true;
+          debugPrint('Cache is older than 4 hours, fetching from API.');
+        }
+      } else if (_homeSections.isNotEmpty) {
+        needsRefresh = true;
+      }
+
+      if ((_homeSections.isEmpty || needsRefresh) &&
           (_connectivityProvider?.canPerformNetworkOperations() ?? false)) {
         await _fetchHomeSectionsFromAPI(notify: false);
       } else if (_homeSections.isEmpty) {

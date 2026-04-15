@@ -46,7 +46,9 @@ class _AddToPlaylistBottomSheetState extends State<AddToPlaylistBottomSheet> {
       context,
       listen: false,
     );
-    await provider.loadCreatedPlaylists();
+    if (!provider.hasLoadedCreatedPlaylists) {
+      await provider.loadCreatedPlaylists();
+    }
     setState(() {
       _playlists = provider.createdPlaylists;
     });
@@ -174,7 +176,7 @@ class _AddToPlaylistBottomSheetState extends State<AddToPlaylistBottomSheet> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               spreadRadius: 0,
             ),
@@ -188,7 +190,7 @@ class _AddToPlaylistBottomSheetState extends State<AddToPlaylistBottomSheet> {
               height: AppDimens.dragHandleHeight,
               margin: EdgeInsets.only(bottom: AppDimens.spacingXl),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(AppDimens.opacityOverlay),
+                color: Colors.grey.withValues(alpha: AppDimens.opacityOverlay),
                 borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
               ),
             ),
@@ -205,12 +207,12 @@ class _AddToPlaylistBottomSheetState extends State<AddToPlaylistBottomSheet> {
                 filled: true,
                 fillColor: MainScreenColors.getTextColor(
                   isDarkMode,
-                ).withOpacity(AppDimens.opacityLight),
+                ).withValues(alpha: AppDimens.opacityLight),
                 hintStyle: AppTextStyles.caption(isDarkMode: isDarkMode)
                     .copyWith(
                       color: MainScreenColors.getTextColor(
                         isDarkMode,
-                      ).withOpacity(AppDimens.opacitySemi),
+                      ).withValues(alpha: AppDimens.opacitySemi),
                     ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimens.radiusXl),
@@ -239,7 +241,7 @@ class _AddToPlaylistBottomSheetState extends State<AddToPlaylistBottomSheet> {
                     elevation: 0,
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
-                    ).withOpacity(AppDimens.opacitySubtle),
+                    ).withValues(alpha: AppDimens.opacitySubtle),
                     margin: EdgeInsets.only(bottom: AppDimens.spacingSm),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppDimens.radiusXl),

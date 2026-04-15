@@ -105,7 +105,7 @@ class SongListScreen extends StatelessWidget {
                       return Container(
                         decoration: BoxDecoration(
                           color: isCurrentlyPlaying
-                              ? accentColor.withOpacity(0.2)
+                              ? accentColor.withValues(alpha: 0.2)
                               : Colors.transparent,
 
                           borderRadius: BorderRadius.circular(

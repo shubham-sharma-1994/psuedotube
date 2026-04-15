@@ -1,7 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart' as just_audio;
-import 'package:audioplayers/audioplayers.dart' as audio_players;
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -20,8 +17,12 @@ class VolumeBottomSheet extends StatefulWidget {
 class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
   double _volume = 1.0;
   double _playbackSpeed = 1.0;
-  just_audio.AudioPlayer? _justAudioPlayer;
-  audio_players.AudioPlayer? _audioPlayersPlayer;
+
+  Color _volumeColor(double value) {
+    if (value <= 0.6) return Colors.green;
+    if (value <= 1.0) return Colors.amber;
+    return Colors.red;
+  }
 
   @override
   void initState() {
@@ -31,19 +32,11 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
   }
 
   void _initVolume() {
-    final playerProvider = Provider.of<PlayerProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(
       context,
       listen: false,
     );
-    if (Platform.isAndroid) {
-      final p = playerProvider.playerService.justAudioPlayer;
-      _justAudioPlayer = p;
-    } else {
-      final p = playerProvider.playerService.audioPlayer;
-      _audioPlayersPlayer = p;
-    }
-    _volume = settingsProvider.volumeLevel;
+    _volume = settingsProvider.volumeLevel.clamp(0.0, 1.5);
   }
 
   void _initPlaybackSpeed() {
@@ -53,13 +46,13 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
 
   void _setVolume(double value) {
     setState(() {
-      _volume = value;
-      if (Platform.isAndroid) {
-        _justAudioPlayer?.setVolume(value);
-      } else {
-        _audioPlayersPlayer?.setVolume(value);
-      }
-      Provider.of<SettingsProvider>(context, listen: false).volumeLevel = value;
+      _volume = value.clamp(0.0, 1.5);
+      Provider.of<PlayerProvider>(
+        context,
+        listen: false,
+      ).playerService.setVolume(_volume);
+      Provider.of<SettingsProvider>(context, listen: false).volumeLevel =
+          _volume;
     });
   }
 
@@ -77,8 +70,8 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    final accentColor =
-        settingsProvider.accentColor ?? Theme.of(context).colorScheme.secondary;
+    final accentColor = settingsProvider.accentColor;
+    final volumeColor = _volumeColor(_volume);
     final isDarkMode =
         settingsProvider.theme == 'Dark' ||
         (settingsProvider.theme == 'System Default' &&
@@ -113,28 +106,30 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
           const SizedBox(height: AppDimens.spacingXxl),
           Row(
             children: [
-              Icon(Icons.volume_down, color: accentColor),
+              Icon(Icons.volume_down, color: volumeColor),
               Expanded(
                 child: Slider(
                   value: _volume,
                   onChanged: _setVolume,
                   min: 0.0,
-                  max: 1.0,
-                  divisions: 100,
+                  max: 1.5,
+                  divisions: 150,
                   label: '${(_volume * 100).toInt()}%',
-                  activeColor: accentColor,
-                  inactiveColor: accentColor.withOpacity(0.3),
+                  activeColor: volumeColor,
+                  inactiveColor: volumeColor.withValues(alpha: 0.3),
                   year2023: false,
                 ),
               ),
-              Icon(Icons.volume_up, color: accentColor),
+              Icon(Icons.volume_up, color: volumeColor),
             ],
           ),
           const SizedBox(height: AppDimens.spacingLg),
           Text(
             '${'current_volume'.tr()}: ${(_volume * 100).toInt()}%',
             style: AppTextStyles.caption(isDarkMode: isDarkMode).copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: AppDimens.spacingLg),
@@ -150,7 +145,7 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
                   divisions: 15,
                   label: '${_playbackSpeed.toStringAsFixed(1)}x',
                   activeColor: accentColor,
-                  inactiveColor: accentColor.withOpacity(0.3),
+                  inactiveColor: accentColor.withValues(alpha: 0.3),
                   year2023: false,
                 ),
               ),
@@ -159,7 +154,7 @@ class _VolumeBottomSheetState extends State<VolumeBottomSheet> {
                 style: AppTextStyles.caption(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
             ],

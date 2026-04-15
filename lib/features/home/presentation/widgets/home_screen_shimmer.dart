@@ -72,7 +72,7 @@ class ShimmerLoading {
           margin: const EdgeInsets.only(right: AppDimens.spacingLg),
           padding: const EdgeInsets.all(AppDimens.paddingMd),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.04),
+            color: Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
           ),
           child: Column(
@@ -113,7 +113,7 @@ class ShimmerLoading {
                   child: Container(
                     height: cardHeight,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                     ),
                     padding: const EdgeInsets.all(AppDimens.paddingLg),
@@ -151,7 +151,7 @@ class ShimmerLoading {
                 Container(
                   height: cardHeight,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.04),
+                    color: Colors.white.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                   ),
                   padding: const EdgeInsets.all(AppDimens.paddingLg),

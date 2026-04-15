@@ -178,7 +178,7 @@ class PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                       isDarkMode: isDarkMode,
                                       color: MainScreenColors.getTextColor(
                                         isDarkMode,
-                                      ).withOpacity(0.7),
+                                      ).withValues(alpha: 0.7),
                                     ),
                                   ),
                                 ),
@@ -226,10 +226,12 @@ class PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                         style: AppTextStyles.bodyMd(
                                           isDarkMode: isDarkMode,
                                           color: isCurrentSong
-                                              ? accentColor.withOpacity(0.7)
+                                              ? accentColor.withValues(
+                                                  alpha: 0.7,
+                                                )
                                               : MainScreenColors.getTextColor(
                                                   isDarkMode,
-                                                ).withOpacity(0.7),
+                                                ).withValues(alpha: 0.7),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -240,10 +242,10 @@ class PlaylistDetailsScreenState extends State<PlaylistDetailsScreen> {
                                       style: AppTextStyles.caption(
                                         isDarkMode: isDarkMode,
                                         color: isCurrentSong
-                                            ? accentColor.withOpacity(0.7)
+                                            ? accentColor.withValues(alpha: 0.7)
                                             : MainScreenColors.getTextColor(
                                                 isDarkMode,
-                                              ).withOpacity(0.7),
+                                              ).withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],

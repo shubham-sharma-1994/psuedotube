@@ -47,7 +47,7 @@ class VideoModeDialog extends StatelessWidget {
               isWide ? AppDimens.paddingXl : AppDimens.paddingLg,
             ),
             decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
+              color: accentColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -68,22 +68,22 @@ class VideoModeDialog extends StatelessWidget {
                   colors: [
                     MainScreenColors.getSurfaceColor(
                       isDarkMode,
-                    ).withOpacity(0.95),
+                    ).withValues(alpha: 0.95),
                     MainScreenColors.getSurfaceColor(
                       isDarkMode,
-                    ).withOpacity(0.9),
+                    ).withValues(alpha: 0.9),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(AppDimens.radiusXxl),
                 border: Border.all(
-                  color: accentColor.withOpacity(0.3),
+                  color: accentColor.withValues(alpha: 0.3),
                   width: AppDimens.borderWidthThin,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: AppDimens.elevationHigh,
                     offset: const Offset(0, AppDimens.spacingSmMd),
                   ),
@@ -115,7 +115,7 @@ class VideoModeDialog extends StatelessWidget {
                                 style: bodyStyle.copyWith(
                                   color: MainScreenColors.getTextColor(
                                     isDarkMode,
-                                  ).withOpacity(0.8),
+                                  ).withValues(alpha: 0.8),
                                   height: 1.5,
                                 ),
                               ),
@@ -130,7 +130,7 @@ class VideoModeDialog extends StatelessWidget {
                                       gradient: LinearGradient(
                                         colors: [
                                           accentColor,
-                                          accentColor.withOpacity(0.8),
+                                          accentColor.withValues(alpha: 0.8),
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(
@@ -182,7 +182,7 @@ class VideoModeDialog extends StatelessWidget {
                           style: bodyStyle.copyWith(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.8),
+                            ).withValues(alpha: 0.8),
                             height: 1.5,
                           ),
                         ),
@@ -194,7 +194,7 @@ class VideoModeDialog extends StatelessWidget {
                             gradient: LinearGradient(
                               colors: [
                                 accentColor,
-                                accentColor.withOpacity(0.8),
+                                accentColor.withValues(alpha: 0.8),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(

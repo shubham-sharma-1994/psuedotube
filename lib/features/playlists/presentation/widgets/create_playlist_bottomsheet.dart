@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/settings_provider.dart';
@@ -43,25 +44,28 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
       context,
       listen: false,
     );
-    await provider.loadCreatedPlaylists();
+    if (!provider.hasLoadedCreatedPlaylists) {
+      await provider.loadCreatedPlaylists();
+    }
     setState(() {
       _playlists = provider.createdPlaylists;
     });
   }
 
   Future<void> _createNewPlaylist() async {
-    if (_playlistNameController.text.isEmpty) return;
+    final playlistName = _playlistNameController.text.trim();
+    if (playlistName.isEmpty) return;
 
     final provider = Provider.of<PlaylistAlbumLibraryProvider>(
       context,
       listen: false,
     );
     try {
-      await provider.saveCreatedPlaylist(_playlistNameController.text);
+      await provider.saveCreatedPlaylist(playlistName);
     } catch (e) {
       AppSnackBar.showError(
         context,
-        'Playlist "${_playlistNameController.text}" already exists!',
+        'playlist_already_exists'.tr(args: [playlistName]),
       );
       return;
     }
@@ -70,7 +74,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
 
     AppSnackBar.showSuccess(
       context,
-      'Playlist "${_playlistNameController.text}" created!',
+      'playlist_created'.tr(args: [playlistName]),
     );
 
     _playlistNameController.clear();
@@ -89,10 +93,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
       final String? playlistId = _contentDetailsService.extractPlaylistId(url);
 
       if (playlistId == null) {
-        AppSnackBar.showError(
-          context,
-          'Invalid YouTube/YouTube Music playlist link.',
-        );
+        AppSnackBar.showError(context, 'invalid_youtube_playlist_link'.tr());
         return;
       }
 
@@ -101,7 +102,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
       );
 
       if (playlistData == null) {
-        AppSnackBar.showError(context, 'Could not fetch playlist details.');
+        AppSnackBar.showError(context, 'could_not_fetch_playlist_details'.tr());
         return;
       }
 
@@ -137,7 +138,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
           (playlistData['contentType'] as String?) ?? 'Playlist';
       AppSnackBar.showSuccess(
         context,
-        '$importedType "${playlistData['name']}" imported!',
+        'playlist_imported'.tr(args: [importedType, playlistData['name']]),
       );
 
       _importLinkController.clear();
@@ -176,7 +177,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               spreadRadius: 0,
             ),
@@ -190,7 +191,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -200,14 +201,14 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
               labelColor: accentColor,
               unselectedLabelColor: MainScreenColors.getTextColor(
                 isDarkMode,
-              ).withOpacity(0.6),
+              ).withValues(alpha: 0.6),
               labelStyle: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
-              tabs: const [
-                Tab(text: 'Create Playlist'),
-                Tab(text: 'Import Playlist'),
+              tabs: [
+                Tab(text: 'create_playlist'.tr()),
+                Tab(text: 'import_playlist'.tr()),
               ],
             ),
             const SizedBox(height: 24),
@@ -221,15 +222,15 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
                         controller: _playlistNameController,
                         cursorColor: accentColor,
                         decoration: InputDecoration(
-                          hintText: 'Enter Playlist Name',
+                          hintText: 'new_playlist_name'.tr(),
                           filled: true,
                           fillColor: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(0.1),
+                          ).withValues(alpha: 0.1),
                           hintStyle: TextStyle(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.5),
+                            ).withValues(alpha: 0.5),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -262,7 +263,7 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
                               elevation: 0,
                               color: MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.05),
+                              ).withValues(alpha: 0.05),
                               margin: const EdgeInsets.only(bottom: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -296,15 +297,15 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
 
                         controller: _importLinkController,
                         decoration: InputDecoration(
-                          hintText: 'Enter YouTube/YouTube Music Playlist Link',
+                          hintText: 'enter_youtube_playlist_link'.tr(),
                           filled: true,
                           fillColor: MainScreenColors.getTextColor(
                             isDarkMode,
-                          ).withOpacity(0.1),
+                          ).withValues(alpha: 0.1),
                           hintStyle: TextStyle(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.5),
+                            ).withValues(alpha: 0.5),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -336,7 +337,9 @@ class _CreatePlaylistBottomSheetState extends State<CreatePlaylistBottomSheet>
                                 color: Colors.black,
                               ),
                         label: Text(
-                          _isImporting ? 'Importing...' : 'Import Playlist',
+                          _isImporting
+                              ? 'importing'.tr()
+                              : 'import_playlist'.tr(),
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w600,

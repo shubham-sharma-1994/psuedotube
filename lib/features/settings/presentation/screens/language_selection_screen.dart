@@ -7,8 +7,13 @@ import '../../../../core/providers/settings_provider.dart';
 
 class LanguageSelectionScreen extends StatelessWidget {
   final VoidCallback? onSelected;
+  final bool isOnboardingFlow;
 
-  LanguageSelectionScreen({Key? key, this.onSelected}) : super(key: key);
+  LanguageSelectionScreen({
+    Key? key,
+    this.onSelected,
+    this.isOnboardingFlow = false,
+  }) : super(key: key);
 
   final List<Map<String, String>> languages = [
     {'name': 'English', 'flag': '🇺🇸'},
@@ -18,13 +23,21 @@ class LanguageSelectionScreen extends StatelessWidget {
     {'name': 'German', 'flag': '🇩🇪'},
     {'name': 'Russian', 'flag': '🇷🇺'},
     {'name': 'Ukrainian', 'flag': '🇺🇦'},
-    {'name': 'Bengali', 'flag': '🇧🇩'},
+    {'name': 'Bengali', 'flag': '🇮🇳'},
+    {'name': 'Arabic', 'flag': '🇸🇦'},
     {'name': 'Japanese', 'flag': '🇯🇵'},
     {'name': 'Chinese', 'flag': '🇨🇳'},
     {'name': 'Urdu', 'flag': '🇵🇰'},
     {'name': 'Telugu', 'flag': '🇮🇳'},
     {'name': 'Tamil', 'flag': '🇮🇳'},
     {'name': 'Marathi', 'flag': '🇮🇳'},
+    {'name': 'Gujarati', 'flag': '🇮🇳'},
+    {'name': 'Kannada', 'flag': '🇮🇳'},
+    {'name': 'Korean', 'flag': '🇰🇷'},
+    {'name': 'Portuguese', 'flag': '🇵🇹'},
+    {'name': 'Indonesian', 'flag': '🇮🇩'},
+    {'name': 'Turkish', 'flag': '🇹🇷'},
+    {'name': 'Vietnamese', 'flag': '🇻🇳'},
   ];
 
   @override
@@ -45,13 +58,15 @@ class LanguageSelectionScreen extends StatelessWidget {
             'Select Language',
             style: AppTextStyles.appBarTitle(isDarkMode: isDarkMode),
           ),
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back,
-              color: MainScreenColors.getTextColor(isDarkMode),
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          leading: isOnboardingFlow
+              ? null
+              : IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: MainScreenColors.getTextColor(isDarkMode),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
         ),
         backgroundColor: MainScreenColors.getBackgroundColor(isDarkMode),
         body: Padding(
@@ -77,16 +92,20 @@ class LanguageSelectionScreen extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       settingsProvider.language = lang['name']!;
-                      if (onSelected != null) {
-                        onSelected!();
-                      } else {
-                        Navigator.pop(context);
+                      if (!isOnboardingFlow) {
+                        if (onSelected != null) {
+                          onSelected!();
+                        } else {
+                          Navigator.pop(context);
+                        }
                       }
                     },
                     child: Container(
                       decoration: BoxDecoration(
                         color: selected
-                            ? accentColor.withOpacity(AppDimens.opacityLight)
+                            ? accentColor.withValues(
+                                alpha: AppDimens.opacityLight,
+                              )
                             : (isDarkMode
                                   ? Colors.grey[900]
                                   : Colors.grey[200]),
@@ -141,6 +160,73 @@ class LanguageSelectionScreen extends StatelessWidget {
             },
           ),
         ),
+        bottomNavigationBar: isOnboardingFlow
+            ? SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingLg,
+                    vertical: AppDimens.paddingMd,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: accentColor,
+                              width: AppDimens.dividerHeight,
+                            ),
+                            minimumSize: const Size(
+                              double.infinity,
+                              AppDimens.buttonSizeDefault,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimens.radiusLg,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Back',
+                            style: AppTextStyles.subtitle(
+                              isDarkMode: isDarkMode,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: AppDimens.spacingMd),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: onSelected,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: accentColor,
+                            minimumSize: const Size(
+                              double.infinity,
+                              AppDimens.buttonSizeDefault,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppDimens.radiusLg,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Continue',
+                            style: AppTextStyles.subtitle(
+                              isDarkMode: isDarkMode,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }

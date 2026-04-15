@@ -19,6 +19,21 @@ import '../../../../shared/components/app_snackbar.dart';
 class GeneralSettingsSection extends StatelessWidget {
   const GeneralSettingsSection({Key? key}) : super(key: key);
 
+  static const MethodChannel _batteryOptimizationChannel = MethodChannel(
+    'com.anand.noize/battery_optimization',
+  );
+
+  Future<void> _openDisableRestrictionsSettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _batteryOptimizationChannel.invokeMethod<bool>(
+        'openDisableRestrictionsSettings',
+      );
+    } catch (e) {
+      debugPrint('Failed to open battery restriction settings: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Selector<
@@ -49,8 +64,8 @@ class GeneralSettingsSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                 border: Border.all(
                   color: themeData.isDarkMode
-                      ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                      : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                      ? Colors.white.withValues(alpha: AppDimens.opacitySubtle)
+                      : Colors.black.withValues(alpha: AppDimens.opacitySubtle),
                   width: AppDimens.borderWidthThin,
                 ),
               ),
@@ -103,10 +118,11 @@ class GeneralSettingsSection extends StatelessWidget {
                                 settingsProvider.notificationsEnabled = false;
                                 AppSnackBar.showWarning(
                                   context,
-                                  'Notification permission is required to enable notifications'
+                                  'notification_permission_required_to_enable_notifications'
                                       .tr(),
                                   action: SnackBarAction(
-                                    label: 'Settings'.tr(),
+                                    label: 'settings'.tr(),
+                                    textColor: themeData.accentColor,
                                     onPressed: openAppSettings,
                                   ),
                                 );
@@ -128,26 +144,30 @@ class GeneralSettingsSection extends StatelessWidget {
                         }
                       }
 
-                      return SettingsItem(
+                      return SettingsToggleItem(
                         icon: Icons.notifications,
                         title: 'notifications_card_title'.tr(),
-                        trailing: Switch(
-                          value: settingsProvider.notificationsEnabled,
-                          onChanged: _handleNotificationToggle,
-                          activeColor: themeData.accentColor,
-                        ),
+                        value: settingsProvider.notificationsEnabled,
+                        onChanged: _handleNotificationToggle,
                         isDarkMode: themeData.isDarkMode,
                         accentColor: themeData.accentColor,
                       );
                     },
                   ),
 
+                  if (Platform.isAndroid)
+                    _BatteryOptimizationStatusTile(
+                      isDarkMode: themeData.isDarkMode,
+                      accentColor: themeData.accentColor,
+                      onOpenSettings: _openDisableRestrictionsSettings,
+                    ),
+
                   Divider(
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -166,7 +186,7 @@ class GeneralSettingsSection extends StatelessWidget {
                                   ).copyWith(
                                     color: MainScreenColors.getTextColor(
                                       themeData.isDarkMode,
-                                    ).withOpacity(0.6),
+                                    ).withValues(alpha: 0.6),
                                   ),
                             ),
                             SizedBox(width: AppDimens.spacingSm),
@@ -195,8 +215,31 @@ class GeneralSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 1,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.06),
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
+                  ),
+
+                  Consumer<SettingsProvider>(
+                    builder: (context, settingsProvider, child) {
+                      return SettingsToggleItem(
+                        icon: Icons.update,
+                        title: 'automatic_update_checks'.tr(),
+                        value: settingsProvider.updateCheckEnabled,
+                        onChanged: (value) {
+                          settingsProvider.updateCheckEnabled = value;
+                        },
+                        isDarkMode: themeData.isDarkMode,
+                        accentColor: themeData.accentColor,
+                      );
+                    },
+                  ),
+
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: themeData.isDarkMode
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.06),
                   ),
 
                   Consumer<SettingsProvider>(
@@ -215,7 +258,9 @@ class GeneralSettingsSection extends StatelessWidget {
                                 listen: false,
                               );
                               otaProvider.setUpdateChannel(value);
-                              otaProvider.checkForUpdates();
+                              if (settingsProvider.updateCheckEnabled) {
+                                otaProvider.checkForUpdates();
+                              }
                             }
                           },
                           isDarkMode: themeData.isDarkMode,
@@ -231,8 +276,12 @@ class GeneralSettingsSection extends StatelessWidget {
                     height: AppDimens.dividerHeight,
                     thickness: AppDimens.borderWidthThin,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                        : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                        ? Colors.white.withValues(
+                            alpha: AppDimens.opacitySubtle,
+                          )
+                        : Colors.black.withValues(
+                            alpha: AppDimens.opacitySubtle,
+                          ),
                   ),
 
                   SettingsItem(
@@ -259,8 +308,12 @@ class GeneralSettingsSection extends StatelessWidget {
                     height: AppDimens.dividerHeight,
                     thickness: AppDimens.borderWidthThin,
                     color: themeData.isDarkMode
-                        ? Colors.white.withOpacity(AppDimens.opacitySubtle)
-                        : Colors.black.withOpacity(AppDimens.opacitySubtle),
+                        ? Colors.white.withValues(
+                            alpha: AppDimens.opacitySubtle,
+                          )
+                        : Colors.black.withValues(
+                            alpha: AppDimens.opacitySubtle,
+                          ),
                   ),
 
                   SettingsItem(
@@ -288,6 +341,111 @@ class GeneralSettingsSection extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _BatteryOptimizationStatusTile extends StatefulWidget {
+  final bool isDarkMode;
+  final Color accentColor;
+  final Future<void> Function() onOpenSettings;
+
+  const _BatteryOptimizationStatusTile({
+    required this.isDarkMode,
+    required this.accentColor,
+    required this.onOpenSettings,
+  });
+
+  @override
+  State<_BatteryOptimizationStatusTile> createState() =>
+      _BatteryOptimizationStatusTileState();
+}
+
+class _BatteryOptimizationStatusTileState
+    extends State<_BatteryOptimizationStatusTile>
+    with WidgetsBindingObserver {
+  bool _isLoading = true;
+  bool _isDisabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshStatus();
+    }
+  }
+
+  Future<void> _refreshStatus() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final value = await GeneralSettingsSection._batteryOptimizationChannel
+          .invokeMethod<bool>('isBatteryOptimizationDisabled')
+          .timeout(const Duration(seconds: 2));
+      if (!mounted) return;
+      setState(() {
+        _isDisabled = value ?? false;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Battery optimization status refresh failed: $e');
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final statusText = _isLoading
+        ? '...'
+        : _isDisabled
+        ? 'battery_optimization_status_disabled'.tr()
+        : 'battery_optimization_status_enabled'.tr();
+
+    return SettingsItem(
+      icon: Icons.battery_charging_full,
+      title: 'battery_optimization_card_title'.tr(),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            statusText,
+            style: AppTextStyles.bodyMd(isDarkMode: widget.isDarkMode).copyWith(
+              color: MainScreenColors.getTextColor(
+                widget.isDarkMode,
+              ).withValues(alpha: 0.6),
+            ),
+          ),
+          SizedBox(width: AppDimens.spacingSm),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: AppDimens.iconXs,
+            color: Colors.grey,
+          ),
+        ],
+      ),
+      onTap: () async {
+        try {
+          await widget.onOpenSettings();
+          await _refreshStatus();
+        } catch (e) {
+          debugPrint('Error opening battery optimization settings: $e');
+        }
+      },
+      isDarkMode: widget.isDarkMode,
+      accentColor: widget.accentColor,
     );
   }
 }

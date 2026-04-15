@@ -25,7 +25,7 @@
     </a>
   </p>
 
-  [Website](https://noizeapp.netlify.app/) | [Download](https://noizeapp.netlify.app/)
+  [Website](https://noizeapp.netlify.app/) | [Download](https://github.com/anandssm/noize/releases)
   
   
   **Contact & Support:**
@@ -35,7 +35,7 @@
 
 </div>
 
-> **⚠️ Work in Progress:** Noize is currently under active development. Features may be incomplete, unstable, or subject to change.
+
 
 ## 🎵 About Noize
 
@@ -178,7 +178,7 @@ Noize is built with Flutter and community packages. Core stack overview:
 | Local Media & Metadata | metadata_god, audio_metadata_reader| Local song discovery, tags/artwork extraction, output device controls |
 | Storage | hive_ce, shared_preferences, path_provider | App data persistence and local storage paths |
 | UI & Visualization | easy_localization, google_fonts, dynamic_color, palette_generator, flutter_animate, fl_chart, cached_network_image, shimmer, flutter_svg, persistent_bottom_nav_bar_v2 | Localization, visuals, animation, charts, and UI components |
-| Platform Integrations | receive_sharing_intent (git), smtc_windows, android_intent_plus, package_info_plus, device_info_plus, connectivity_plus, permission_handler, file_picker, terminate_restart | Intents, platform controls, permissions, file picking, restart/update helpers |
+| Platform Integrations | receive_sharing_intent (git), smtc_windows, android_intent_plus, package_info_plus, device_info_plus, connectivity_plus, permission_handler, file_picker, terminate_restart, speech_to_text | Intents, platform controls, permissions, file picking, restart/update helpers, speech recognition |
 | Utilities | share_plus, url_launcher, collection, crypto, synchronized, talker_flutter, audio_video_progress_bar | Sharing, links, helpers, logging, progress UI |
 
 (See `pubspec.yaml` for a full list and exact versions.)
@@ -280,7 +280,7 @@ This project stands on the work of many open-source maintainers and contributors
 - **Local media** – metadata_god, audio_metadata_reader
 - **Storage & persistence** – hive_ce, shared_preferences, path_provider
 - **Routing & state** – go_router, provider, get_it
-- **UI & visuals** – easy_localization, google_fonts, dynamic_color, palette_generator, flutter_animate, fl_chart, cached_network_image, shimmer, flutter_svg, persistent_bottom_nav_bar_v2, pull_to_refresh, flutter_markdown_plus
+- **UI & visuals** – easy_localization, google_fonts, dynamic_color, palette_generator, flutter_animate, fl_chart, cached_network_image, shimmer, flutter_svg, persistent_bottom_nav_bar_v2, flutter_markdown_plus
 - **Platform utilities** – android_intent_plus, android_package_installer, device_info_plus, duration_picker, file_picker, package_info_plus, permission_handler, receive_sharing_intent (git), share_plus, terminate_restart, url_launcher
 - **General utilities** – async, collection, crypto, synchronized, talker_flutter, audio_video_progress_bar, cupertino_icons
 

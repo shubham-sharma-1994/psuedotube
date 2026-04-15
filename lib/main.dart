@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
 import 'package:get_it/get_it.dart';
@@ -12,6 +13,7 @@ import 'package:terminate_restart/terminate_restart.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:media_kit/media_kit.dart';
 import 'core/constants/app_text_styles.dart';
 import 'features/splash/presentation/screens/splash_screen.dart';
 import 'core/theme/app_theme.dart';
@@ -37,6 +39,56 @@ import 'core/services/smtc_service.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/windows_file_service.dart';
 
+String _ytMusicHlFromLanguage(String language) {
+  switch (language) {
+    case 'Hindi':
+      return 'hi';
+    case 'Spanish':
+      return 'es';
+    case 'French':
+      return 'fr';
+    case 'German':
+      return 'de';
+    case 'Russian':
+      return 'ru';
+    case 'Ukrainian':
+      return 'uk';
+    case 'Bengali':
+      return 'bn';
+    case 'Japanese':
+      return 'ja';
+    case 'Chinese':
+      return 'zh';
+    case 'Urdu':
+      return 'ur';
+    case 'Telugu':
+      return 'te';
+    case 'Tamil':
+      return 'ta';
+    case 'Marathi':
+      return 'mr';
+    case 'Turkish':
+      return 'tr';
+    case 'Gujarati':
+      return 'gu';
+    case 'Kannada':
+      return 'kn';
+    case 'Korean':
+      return 'ko';
+    case 'Indonesian':
+      return 'id';
+    case 'Portuguese':
+      return 'pt';
+    case 'Vietnamese':
+      return 'vi';
+    case 'Arabic':
+      return 'ar';
+    case 'English':
+    default:
+      return 'en';
+  }
+}
+
 Future<void> main() async {
   final talker = TalkerFlutter.init();
 
@@ -52,10 +104,20 @@ Future<void> main() async {
   await runZonedGuarded<Future<void>>(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      if (Platform.isAndroid || Platform.isIOS) {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+        ]);
+      }
+      MediaKit.ensureInitialized();
 
       TerminateRestart.instance.initialize();
-      final appDocumentDir = await getApplicationDocumentsDirectory();
-      Hive.init('${appDocumentDir.path}/noize');
+      final appSupportDir = await getApplicationSupportDirectory();
+      final hiveDir = Directory('${appSupportDir.path}/noize');
+      if (!await hiveDir.exists()) {
+        await hiveDir.create(recursive: true);
+      }
+      Hive.init(hiveDir.path);
       Hive.registerAdapter(SongInfoDTOAdapter());
       Hive.registerAdapter(ArtistDTOAdapter());
       Hive.registerAdapter(ThumbnailDTOAdapter());
@@ -65,25 +127,30 @@ Future<void> main() async {
       Hive.registerAdapter(ArtistBasicDTOAdapter());
       Hive.registerAdapter(ThumbnailFullDTOAdapter());
 
-      await Hive.openBox<String>('liked_songs');
-
-      await Hive.openBox<String>('favorite_artists');
-
-      await Hive.openBox<String>('audio_url_cache');
-
-      await Hive.openBox<String>('saved_playlists');
-      await Hive.openBox<String>('saved_albums');
-      await Hive.openBox<String>('created_playlists');
-      await Hive.openBox<String>('playlist_songs');
-      await Hive.openBox<String>('last_played');
-      await Hive.openBox<String>('queue_storage');
-      await Hive.openBox<String>('video_info_cache');
-      await Hive.openBox<String>('playback_stats');
-      await Hive.openBox<String>('recent_playlists');
-
       final settingsProvider = SettingsProvider();
-      await settingsProvider.loadSettings();
       GetIt.I.registerSingleton<SettingsProvider>(settingsProvider);
+
+      const hiveBoxNames = [
+        'liked_songs',
+        'favorite_artists',
+        'audio_url_cache',
+        'saved_playlists',
+        'saved_albums',
+        'created_playlists',
+        'playlist_songs',
+        'last_played',
+        'queue_storage',
+        'video_info_cache',
+        'playback_stats',
+        'recent_playlists',
+      ];
+
+      await Hive.openBox<dynamic>('app_settings');
+
+      await Future.wait([
+        settingsProvider.loadSettings(),
+        Future.wait(hiveBoxNames.map((name) => Hive.openBox<String>(name))),
+      ]);
 
       final connectivityProvider = ConnectivityProvider();
       GetIt.I.registerSingleton<ConnectivityProvider>(connectivityProvider);
@@ -120,17 +187,20 @@ Future<void> main() async {
       GetIt.I.registerSingleton<JioSaavnClient>(JioSaavnClient());
 
       final ytMusic = YTMusic();
+      final ytMusicHl = _ytMusicHlFromLanguage(settingsProvider.language);
       try {
-        await ytMusic.initialize().timeout(
-          const Duration(seconds: 3),
-          onTimeout: () {
-            talker.warning(
-              'YTMusic initialization timed out - continuing in offline mode',
+        await ytMusic
+            .initialize(hl: ytMusicHl)
+            .timeout(
+              const Duration(seconds: 3),
+              onTimeout: () {
+                talker.warning(
+                  'YTMusic initialization timed out - continuing in offline mode',
+                );
+                return ytMusic;
+              },
             );
-            return ytMusic;
-          },
-        );
-        talker.info('YTMusic initialized successfully');
+        talker.info('YTMusic initialized successfully (hl=$ytMusicHl)');
       } catch (e, st) {
         talker.error(
           'YTMusic initialization failed: $e - continuing in offline mode',
@@ -170,6 +240,7 @@ Future<void> main() async {
             providers: [
               ChangeNotifierProvider.value(value: connectivityProvider),
               ChangeNotifierProvider(
+                lazy: false,
                 create: (_) => HomeScreenProvider()..initialize(),
               ),
               ChangeNotifierProvider(create: (_) => TrendingProvider()),
@@ -188,10 +259,12 @@ Future<void> main() async {
               ),
 
               ChangeNotifierProvider(
+                lazy: false,
                 create: (_) => PlaylistAlbumLibraryProvider()..loadAll(),
               ),
               ChangeNotifierProvider.value(value: settingsProvider),
               ChangeNotifierProvider(
+                lazy: false,
                 create: (_) => FavoriteArtistProvider()..loadFavoriteArtists(),
               ),
               ChangeNotifierProvider(
@@ -226,6 +299,14 @@ Future<void> main() async {
                 Locale('te'),
                 Locale('ta'),
                 Locale('mr'),
+                Locale('tr'),
+                Locale('gu'),
+                Locale('kn'),
+                Locale('ko'),
+                Locale('id'),
+                Locale('pt'),
+                Locale('vi'),
+                Locale('ar'),
               ],
               path: 'assets/translations',
               fallbackLocale: const Locale('en'),
@@ -275,7 +356,6 @@ class _NoizeAppState extends State<NoizeApp> with WidgetsBindingObserver {
     if (Platform.isWindows) {
       _windowsFileService = WindowsFileService(
         Provider.of<PlayerProvider>(context, listen: false),
-        Provider.of<QueueProvider>(context, listen: false),
       );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _windowsFileService?.init();

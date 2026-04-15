@@ -191,14 +191,14 @@ class _ArtistSetupScreenState extends State<ArtistSetupScreen> {
                                                 color:
                                                     MainScreenColors.getTextColor(
                                                       isDarkMode,
-                                                    ).withOpacity(0.5),
+                                                    ).withValues(alpha: 0.5),
                                               ),
                                           prefixIcon: Icon(
                                             Icons.search,
                                             color:
                                                 MainScreenColors.getTextColor(
                                                   isDarkMode,
-                                                ).withOpacity(0.5),
+                                                ).withValues(alpha: 0.5),
                                           ),
                                           filled: true,
                                           fillColor:
@@ -553,14 +553,14 @@ class _ArtistSetupScreenState extends State<ArtistSetupScreen> {
                                                 color:
                                                     MainScreenColors.getTextColor(
                                                       isDarkMode,
-                                                    ).withOpacity(0.5),
+                                                    ).withValues(alpha: 0.5),
                                               ),
                                           prefixIcon: Icon(
                                             Icons.search,
                                             color:
                                                 MainScreenColors.getTextColor(
                                                   isDarkMode,
-                                                ).withOpacity(0.5),
+                                                ).withValues(alpha: 0.5),
                                           ),
                                           filled: true,
                                           fillColor:
@@ -886,12 +886,13 @@ class _ArtistSetupScreenState extends State<ArtistSetupScreen> {
                               elevation: AppDimens.elevationHigh,
                               shadowColor: MainScreenColors.getPrimaryColor(
                                 isDarkMode,
-                              ).withOpacity(0.5),
+                              ).withValues(alpha: 0.5),
                             ),
                             child: Text(
                               'Continue',
                               style: AppTextStyles.titleSm(
                                 isDarkMode: isDarkMode,
+                                color: Colors.white,
                               ),
                             ),
                           ),

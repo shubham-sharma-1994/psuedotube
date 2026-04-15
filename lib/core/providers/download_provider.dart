@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:dio/dio.dart';
 import '../services/audio_url_isolate.dart';
 
+import 'connectivity_provider.dart';
 import 'settings_provider.dart';
 import '../services/download_notification_service.dart';
 import '../models/song_model.dart';
@@ -24,7 +25,7 @@ class DownloadProvider with ChangeNotifier {
   yt_.YoutubeExplode get yt => _yt;
   final _collectionEquality = const DeepCollectionEquality();
 
-  Map<String, StreamSubscription?> _downloadSubscriptions = {};
+  final Map<String, CancelToken?> _downloadCancelTokens = {};
   final Map<String, DownloadProgress> _progressMap = {};
   List<Map<String, dynamic>> _downloadQueue = [];
   List<Map<String, dynamic>> _downloadedSongs = [];
@@ -32,8 +33,13 @@ class DownloadProvider with ChangeNotifier {
   final Set<String> _activeDownloads = {};
   final Map<String, int> _notificationIds = {};
   int _nextNotificationId = 1000;
+  bool _isPaused = false;
+  bool _isProcessingQueue = false;
+  late final ConnectivityProvider? _connectivityProvider;
 
   DownloadProvider() {
+    _connectivityProvider = _getConnectivityProvider();
+    _connectivityProvider?.addListener(_handleConnectivityChanged);
     loadDownloadedSongs();
     loadDownloadQueue();
     _initializeDownloads();
@@ -44,6 +50,31 @@ class DownloadProvider with ChangeNotifier {
   List<Map<String, dynamic>> get downloadedSongs => _downloadedSongs;
   Set<String> get preparing => _preparing;
   Set<String> get activeDownloads => _activeDownloads;
+  bool get isPaused => _isPaused;
+
+  ConnectivityProvider? _getConnectivityProvider() {
+    try {
+      return GetIt.I<ConnectivityProvider>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _handleConnectivityChanged() {
+    final settingsProvider = GetIt.I<SettingsProvider>();
+    if (settingsProvider.wifiOnlyDownloads &&
+        _connectivityProvider?.isWifiConnected == true &&
+        !_isPaused &&
+        !_isProcessingQueue) {
+      unawaited(_processDownloadQueue());
+    }
+  }
+
+  @override
+  void dispose() {
+    _connectivityProvider?.removeListener(_handleConnectivityChanged);
+    super.dispose();
+  }
 
   Future<bool> _shouldShowNotifications() async {
     final settingsProvider = GetIt.I<SettingsProvider>();
@@ -77,30 +108,106 @@ class DownloadProvider with ChangeNotifier {
   }
 
   Future<void> _processDownloadQueue() async {
-    final settingsProvider = GetIt.I<SettingsProvider>();
-    final maxConcurrent = settingsProvider.maxConcurrentDownloads;
+    if (_isProcessingQueue || _isPaused) return;
+    _isProcessingQueue = true;
 
-    debugPrint(
-      'Processing download queue. Max concurrent: $maxConcurrent, Active: ${_activeDownloads.length}',
-    );
+    try {
+      final settingsProvider = GetIt.I<SettingsProvider>();
+      if (settingsProvider.wifiOnlyDownloads &&
+          _connectivityProvider?.isWifiConnected != true) {
+        debugPrint(
+          'Wi-Fi only downloads enabled and current network is not Wi-Fi. Queue processing will wait.',
+        );
+        return;
+      }
 
-    while (_activeDownloads.length < maxConcurrent &&
-        _downloadQueue.isNotEmpty) {
-      final nextSong = _downloadQueue.firstWhereOrNull(
-        (song) =>
-            song['status'] == 'queued' &&
-            !_activeDownloads.contains(song['id']),
+      final maxConcurrent = settingsProvider.maxConcurrentDownloads;
+
+      debugPrint(
+        'Processing download queue. Max concurrent: $maxConcurrent, Active: ${_activeDownloads.length}',
       );
 
-      if (nextSong != null) {
-        await _startQueuedDownload(nextSong);
-      } else {
-        break;
+      while (!_isPaused &&
+          _activeDownloads.length < maxConcurrent &&
+          _downloadQueue.isNotEmpty) {
+        final nextSong = _downloadQueue.firstWhereOrNull(
+          (song) =>
+              song['status'] == 'queued' &&
+              !_activeDownloads.contains(song['id']),
+        );
+
+        if (nextSong != null) {
+          _startQueuedDownload(nextSong);
+        } else {
+          break;
+        }
       }
+    } finally {
+      _isProcessingQueue = false;
     }
   }
 
+  Future<void> pauseAllDownloads() async {
+    if (_isPaused) return;
+    _isPaused = true;
+
+    for (final token in _downloadCancelTokens.values) {
+      token?.cancel('Paused by user');
+    }
+    _downloadCancelTokens.clear();
+    _activeDownloads.clear();
+
+    await _setAllDownloadingStatusesToPaused();
+    notifyListeners();
+  }
+
+  Future<void> resumeAllDownloads() async {
+    if (!_isPaused) return;
+    _isPaused = false;
+
+    await _setAllPausedStatusesToQueued();
+    notifyListeners();
+
+    if (!_isProcessingQueue) {
+      unawaited(_processDownloadQueue());
+    }
+  }
+
+  Future<void> _setAllDownloadingStatusesToPaused() async {
+    final prefs = await SharedPreferences.getInstance();
+    final downloadQueue = prefs.getStringList('download_queue') ?? [];
+
+    final updatedQueue = downloadQueue.map((item) {
+      final Map<String, dynamic> songData = json.decode(item);
+      if (songData['status'] == 'downloading') {
+        songData['status'] = 'paused';
+      }
+      return json.encode(songData);
+    }).toList();
+
+    await prefs.setStringList('download_queue', updatedQueue);
+    await loadDownloadQueue();
+  }
+
+  Future<void> _setAllPausedStatusesToQueued() async {
+    final prefs = await SharedPreferences.getInstance();
+    final downloadQueue = prefs.getStringList('download_queue') ?? [];
+
+    final updatedQueue = downloadQueue.map((item) {
+      final Map<String, dynamic> songData = json.decode(item);
+      if (songData['status'] == 'paused') {
+        songData['status'] = 'queued';
+      }
+      return json.encode(songData);
+    }).toList();
+
+    await prefs.setStringList('download_queue', updatedQueue);
+    await loadDownloadQueue();
+  }
+
   Future<void> _startQueuedDownload(Map<String, dynamic> songData) async {
+    if (_isPaused) return;
+
     final videoId = songData['id'] as String;
     if (_activeDownloads.contains(videoId)) return;
 
@@ -166,6 +273,7 @@ class DownloadProvider with ChangeNotifier {
       throw e;
     } finally {
       _activeDownloads.remove(videoId);
+      _downloadCancelTokens.remove(videoId);
 
       await _processDownloadQueue();
     }
@@ -334,7 +442,11 @@ class DownloadProvider with ChangeNotifier {
       debugPrint('Song already in queue for videoId: $videoId');
     }
 
-    await _processDownloadQueue();
+    if (_isPaused) {
+      await resumeAllDownloads();
+    } else if (!_isProcessingQueue) {
+      unawaited(_processDownloadQueue());
+    }
   }
 
   Future<void> downloadPlaylist(
@@ -378,6 +490,11 @@ class DownloadProvider with ChangeNotifier {
   }
 
   Future<void> startQueuedDownload(String videoId) async {
+    if (_isPaused) {
+      await resumeAllDownloads();
+      return;
+    }
+
     final songData = _downloadQueue.firstWhereOrNull(
       (song) => song['id'] == videoId,
     );
@@ -452,7 +569,7 @@ class DownloadProvider with ChangeNotifier {
         ),
       );
       final cancelToken = CancelToken();
-      _downloadSubscriptions[song.videoId] = null;
+      _downloadCancelTokens[song.videoId] = cancelToken;
 
       try {
         await dio.download(
@@ -515,7 +632,7 @@ class DownloadProvider with ChangeNotifier {
         );
 
         removeProgress(song.videoId);
-        _downloadSubscriptions.remove(song.videoId);
+        _downloadCancelTokens.remove(song.videoId);
 
         if (shouldShowNotifications) {
           final notificationId = _getNotificationId(videoId);
@@ -532,9 +649,13 @@ class DownloadProvider with ChangeNotifier {
       } catch (e) {
         debugPrint('Download failed for videoId: $videoId. Exception: $e');
         _preparing.remove(videoId);
-        await _updateDownloadQueueStatus(song.videoId, 'failed');
+        if (e is DioError && e.type == DioErrorType.cancel && _isPaused) {
+          await _updateDownloadQueueStatus(song.videoId, 'paused');
+        } else {
+          await _updateDownloadQueueStatus(song.videoId, 'failed');
+        }
         removeProgress(song.videoId);
-        _downloadSubscriptions.remove(song.videoId);
+        _downloadCancelTokens.remove(song.videoId);
         notifyListeners();
         rethrow;
       }

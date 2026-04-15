@@ -137,7 +137,7 @@ class PlaybackBarChart extends StatelessWidget {
                 style: AppTextStyles.finePrint(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.5),
+                  ).withValues(alpha: 0.5),
                 ),
               ),
             );
@@ -160,7 +160,7 @@ class PlaybackBarChart extends StatelessWidget {
                   fontWeight: AppTextStyles.weightMedium,
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
             );

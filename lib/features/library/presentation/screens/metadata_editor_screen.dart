@@ -117,7 +117,7 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
 
   Future<void> _pickImage() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.image,
       );
 
@@ -182,7 +182,7 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
                 child: Text(
                   'Cancel',
                   style: AppTextStyles.button(
-                    color: textColor.withOpacity(0.7),
+                    color: textColor.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -348,7 +348,7 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
                         width: 150,
                         height: 150,
                         decoration: BoxDecoration(
-                          color: textColor.withOpacity(0.1),
+                          color: textColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(
                             AppDimens.radiusLg,
                           ),
@@ -373,7 +373,7 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
                                   Icon(
                                     Icons.add_photo_alternate,
                                     size: 40,
-                                    color: textColor.withOpacity(0.5),
+                                    color: textColor.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
@@ -382,7 +382,9 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
                                         AppTextStyles.bodyMd(
                                           isDarkMode: isDarkMode,
                                         ).copyWith(
-                                          color: textColor.withOpacity(0.5),
+                                          color: textColor.withValues(
+                                            alpha: 0.5,
+                                          ),
                                         ),
                                   ),
                                 ],
@@ -530,9 +532,9 @@ class _MetadataEditorScreenState extends State<MetadataEditorScreen> {
         labelText: label,
         labelStyle: AppTextStyles.bodyMd(
           isDarkMode: isDarkMode,
-        ).copyWith(color: textColor.withOpacity(0.7)),
+        ).copyWith(color: textColor.withValues(alpha: 0.7)),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: textColor.withOpacity(0.3)),
+          borderSide: BorderSide(color: textColor.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
         ),
         focusedBorder: OutlineInputBorder(

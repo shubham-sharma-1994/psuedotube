@@ -35,7 +35,6 @@ class CrashLogService {
         await f.create(recursive: true);
       }
       _files[c] = f;
-      await _ensureHeader(f);
     }
   }
 
@@ -68,7 +67,6 @@ class CrashLogService {
     try {
       final f = _files[channel];
       if (f == null) return;
-      await _ensureHeader(f);
       await f.writeAsString(entry, mode: FileMode.append, flush: true);
     } catch (_) {}
   }
@@ -135,7 +133,14 @@ class CrashLogService {
       return;
     }
 
-    await Share.shareXFiles([XFile(f.path)], text: 'Noize — $channel logs');
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File(p.join(tempDir.path, 'shared_logs_${channel}.txt'));
+    final logsContent = await f.readAsString();
+    await tempFile.writeAsString('$_logHeader\n$logsContent');
+
+    await Share.shareXFiles([
+      XFile(tempFile.path),
+    ], text: 'Noize — $channel logs');
   }
 
   Future<void> clearLogs({String? channel}) async {
@@ -192,31 +197,6 @@ class CrashLogService {
     } catch (_) {
       _logHeader = '';
     }
-  }
-
-  Future<void> _ensureHeader(File file) async {
-    if (_logHeader.isEmpty) return;
-    try {
-      if (!await file.exists()) return;
-      final len = await file.length();
-      if (len == 0) {
-        await file.writeAsString(
-          _logHeader,
-          mode: FileMode.append,
-          flush: true,
-        );
-      } else {
-        final firstBytes = await file.openRead(0, _logHeader.length).first;
-        final existing = utf8.decode(firstBytes, allowMalformed: true);
-        if (!existing.startsWith('===== APPLICATION')) {
-          await file.writeAsString(
-            _logHeader,
-            mode: FileMode.writeOnlyAppend,
-            flush: true,
-          );
-        }
-      }
-    } catch (_) {}
   }
 
   void dispose() {

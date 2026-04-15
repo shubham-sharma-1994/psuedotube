@@ -12,6 +12,7 @@ import '../../../../core/models/song_model.dart';
 import '../../../../core/providers/favorite_song_provider.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
+import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/providers/download_provider.dart';
 import '../../../../core/services/content_details_service.dart';
 import '../../../../shared/components/add_to_playlist_bottomsheet.dart';
@@ -37,7 +38,6 @@ class _SongOptionsBottomSheetArtistState
     extends State<SongOptionsBottomSheetArtist> {
   late FavoriteSongProvider _favoriteSongProvider;
   late QueueProvider _queueProvider;
-  late PlayerProvider _playerProvider;
   late DownloadProvider _downloadProvider;
   late SongInfo _songInfo;
 
@@ -46,7 +46,6 @@ class _SongOptionsBottomSheetArtistState
     super.initState();
     _favoriteSongProvider = context.read<FavoriteSongProvider>();
     _queueProvider = context.read<QueueProvider>();
-    _playerProvider = context.read<PlayerProvider>();
     _downloadProvider = context.read<DownloadProvider>();
 
     if (widget.song is SongInfo) {
@@ -165,18 +164,20 @@ class _SongOptionsBottomSheetArtistState
           icon: Icons.person,
           text: 'view_artist'.tr() + ' (${'unknown_artist'.tr()})',
           onTap: () {},
-          textColor: textColor.withOpacity(0.5),
+          textColor: textColor.withValues(alpha: 0.5),
         ),
       ];
     }
 
     return _songInfo.artists.map((artist) {
-      final isArtistIdNull = artist.id == null || artist.id.isEmpty;
+      final isArtistIdNull = artist.id.isEmpty;
       return _buildOption(
         icon: Icons.person,
         text: 'view_artist'.tr() + ' (${artist.name})',
         onTap: isArtistIdNull ? () {} : () => _viewArtist(artist),
-        textColor: isArtistIdNull ? textColor.withOpacity(0.5) : textColor,
+        textColor: isArtistIdNull
+            ? textColor.withValues(alpha: 0.5)
+            : textColor,
       );
     }).toList();
   }
@@ -229,7 +230,7 @@ class _SongOptionsBottomSheetArtistState
             height: AppDimens.dragHandleHeight,
             margin: EdgeInsets.only(bottom: AppDimens.spacingLg),
             decoration: BoxDecoration(
-              color: textColor.withOpacity(0.3),
+              color: textColor.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
             ),
           ),
@@ -280,7 +281,7 @@ class _SongOptionsBottomSheetArtistState
                       _getArtistsText(),
                       style: AppTextStyles.bodyMd(
                         isDarkMode: widget.isDarkMode,
-                        color: textColor.withOpacity(0.7),
+                        color: textColor.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -310,6 +311,9 @@ class _SongOptionsBottomSheetArtistState
                   const SizedBox(width: 8),
                   Consumer<DownloadProvider>(
                     builder: (context, provider, child) {
+                      final accentColor = context.select(
+                        (SettingsProvider settings) => settings.accentColor,
+                      );
                       final isDownloaded = provider.downloadedSongs.any(
                         (s) => s['id'] == _songInfo.videoId,
                       );
@@ -342,9 +346,7 @@ class _SongOptionsBottomSheetArtistState
                                 value: progress.progress,
                                 strokeWidth: AppDimens.progressStroke,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  MainScreenColors.getSecondaryColor(
-                                    widget.isDarkMode,
-                                  ),
+                                  accentColor,
                                 ),
                               ),
                               Text(
@@ -361,9 +363,7 @@ class _SongOptionsBottomSheetArtistState
                           child: CircularProgressIndicator(
                             strokeWidth: AppDimens.progressStroke,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              MainScreenColors.getSecondaryColor(
-                                widget.isDarkMode,
-                              ),
+                              accentColor,
                             ),
                           ),
                         );
@@ -514,7 +514,11 @@ class _SongOptionsBottomSheetArtistState
             final artistsText = _songInfo.artists.isNotEmpty
                 ? _songInfo.artists.map((a) => a.name).join(', ')
                 : 'Unknown Artist';
-            Share.share('Check out this song: $youtubeUrl by $artistsText');
+            SharePlus.instance.share(
+              ShareParams(
+                text: 'Check out this song: $youtubeUrl by $artistsText',
+              ),
+            );
             Navigator.pop(context);
           },
           textColor: textColor,

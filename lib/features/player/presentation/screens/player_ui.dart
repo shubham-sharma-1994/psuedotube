@@ -1,13 +1,12 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart' hide RepeatMode;
-import 'package:audioplayers/audioplayers.dart' as audio_players;
 
 import 'package:provider/provider.dart';
 
 import 'package:dart_ytmusic_api/dart_ytmusic_api.dart';
 
 import '../../../../core/constants/app_dimens.dart';
-import '../../../../shared/components/add_to_playlist_bottomsheet.dart';
 import '../../../../core/utils/content_router.dart';
 import '../../../../shared/components/player_more_song_bottomsheet.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -55,7 +54,6 @@ class PlayerUI extends StatefulWidget {
 class PlayerUIState extends State<PlayerUI>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<double> _heightFactorAnimation;
   late Animation<double> _miniPlayerOpacityAnimation;
   late Animation<double> _fullPlayerOpacityAnimation;
   late PlayerProvider _playerProvider;
@@ -68,11 +66,6 @@ class PlayerUIState extends State<PlayerUI>
   late QueueProvider _queueProvider;
   bool _isVideoMode = false;
   bool _hasShownVideoDialog = false;
-  bool _showLyrics = false;
-
-  bool _isLoading = false;
-  bool _isShuffle = false;
-  RepeatMode _isRepeat = RepeatMode.off;
   double _volume = 1.0;
 
   final GlobalKey _artistKey = GlobalKey();
@@ -97,33 +90,23 @@ class PlayerUIState extends State<PlayerUI>
 
   void _initVolume() {
     final playerProvider = Provider.of<PlayerProvider>(context, listen: false);
-    if (Platform.isAndroid) {
-      final p = playerProvider.playerService.justAudioPlayer;
-      if (p != null) {
-        try {
-          _volume = p.volume;
-        } catch (_) {
-          _volume = 1.0;
-        }
-      }
-    } else {
-      final p = playerProvider.playerService.audioPlayer;
-      if (p != null) {
-        _volume = p.volume;
-      }
-    }
+    _volume = playerProvider.playerService.volume;
   }
 
   void _setVolume(double value) {
     setState(() {
       _volume = value;
-      if (Platform.isAndroid) {
-        _playerService.justAudioPlayer?.setVolume(value);
-      } else {
-        _playerService.audioPlayer?.setVolume(value);
-      }
+      _playerService.setVolume(value);
     });
   }
+
+  Color _volumeColor(double value) {
+    if (value <= 0.6) return Colors.green;
+    if (value <= 1.0) return Colors.amber;
+    return Colors.red;
+  }
+
+  String? _lastBgColorSongId;
 
   void _setupPlayerListeners() {
     _playerProvider = Provider.of<PlayerProvider>(context, listen: false);
@@ -131,26 +114,17 @@ class PlayerUIState extends State<PlayerUI>
     _queueProvider = Provider.of<QueueProvider>(context, listen: false);
 
     _playerService.playerStateStream.listen((playerState) {
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              final queueProvider = Provider.of<QueueProvider>(
-                context,
-                listen: false,
-              );
-              _isShuffle = queueProvider.isShuffleEnabled;
-              _isRepeat = queueProvider.repeatMode;
-            });
-
-            if (_playerProvider.currentSong != null) {
-              _playerService.updateBackgroundColor(
-                _playerProvider.currentSong!.thumbnails.first.url,
-              );
-              _favoriteSongProvider.setCurrentSong(_playerProvider.currentSong);
-            }
-          }
-        });
+      if (!mounted) return;
+      final currentSong = _playerProvider.currentSong;
+      if (currentSong != null) {
+        final songId = currentSong.videoId;
+        if (_lastBgColorSongId != songId) {
+          _lastBgColorSongId = songId;
+          _playerService.updateBackgroundColor(
+            currentSong.thumbnails.first.url,
+          );
+          _favoriteSongProvider.setCurrentSong(currentSong);
+        }
       }
     });
 
@@ -163,10 +137,6 @@ class PlayerUIState extends State<PlayerUI>
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-    );
-
-    _heightFactorAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
     _miniPlayerOpacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
@@ -293,9 +263,10 @@ class PlayerUIState extends State<PlayerUI>
       context,
       listen: true,
     );
+    final isDefaultAnimation = settingsProvider.animationType == 'Default';
 
     Widget _buildAnimatedBackground(bool isAnimating) {
-      final effectiveBackgroundColor = BackgroundColor.withOpacity(0.6);
+      final effectiveBackgroundColor = BackgroundColor.withValues(alpha: 0.6);
       switch (settingsProvider.animationType) {
         case 'Animation 1':
           return Animation1(
@@ -327,15 +298,29 @@ class PlayerUIState extends State<PlayerUI>
             accentColor: accentColor,
             isAnimating: isAnimating,
           );
+        case 'Default':
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  BackgroundColor.withValues(alpha: 0.35),
+                  BackgroundColor.withValues(alpha: 0.18),
+                  Colors.black.withValues(alpha: AppDimens.opacityHigh),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          );
         case 'static':
           return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withOpacity(AppDimens.opacityHigh),
+                  Colors.black.withValues(alpha: AppDimens.opacityHigh),
                   effectiveBackgroundColor,
                   effectiveBackgroundColor,
-                  accentColor.withOpacity(AppDimens.opacityMedium),
+                  accentColor.withValues(alpha: AppDimens.opacityMedium),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -355,8 +340,20 @@ class PlayerUIState extends State<PlayerUI>
       }
     }
 
+    Widget _buildPlayerGlassOverlay() {
+      if (!isDefaultAnimation) {
+        return Container(color: Colors.white.withValues(alpha: 0.08));
+      }
+
+      return ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+      );
+    }
+
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isWideScreen = screenWidth > AppDimens.breakpointWideScreen;
     final maxContentWidth = AppDimens.maxContentWidth;
 
@@ -368,6 +365,7 @@ class PlayerUIState extends State<PlayerUI>
               _fullPlayerOpacityAnimation.value > 0,
             ),
           ),
+          Positioned.fill(child: _buildPlayerGlassOverlay()),
           SafeArea(
             top: false,
             child: Column(
@@ -434,6 +432,7 @@ class PlayerUIState extends State<PlayerUI>
                 _fullPlayerOpacityAnimation.value > 0,
               ),
             ),
+            Positioned.fill(child: _buildPlayerGlassOverlay()),
             SafeArea(
               top: false,
               child: Column(
@@ -731,27 +730,25 @@ class PlayerUIState extends State<PlayerUI>
     if (song != null) {
       if (song.artists.length == 1) {
         final artist = song.artists.first;
-        if (artist.id != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ContentRouter(
-                content: ArtistDetailed(
-                  artistId: artist.id,
-                  name: artist.name,
-                  thumbnails: [
-                    ThumbnailFull(
-                      url: song.thumbnails.first.url,
-                      width: 0,
-                      height: 0,
-                    ),
-                  ],
-                  type: '',
-                ),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ContentRouter(
+              content: ArtistDetailed(
+                artistId: artist.id,
+                name: artist.name,
+                thumbnails: [
+                  ThumbnailFull(
+                    url: song.thumbnails.first.url,
+                    width: 0,
+                    height: 0,
+                  ),
+                ],
+                type: '',
               ),
             ),
-          );
-        }
+          ),
+        );
       } else {
         final RenderBox renderBox =
             _artistKey.currentContext!.findRenderObject() as RenderBox;
@@ -769,7 +766,7 @@ class PlayerUIState extends State<PlayerUI>
             return PopupMenuItem(value: artist, child: Text(artist.name));
           }).toList(),
         ).then((selectedArtist) {
-          if (selectedArtist != null && selectedArtist.id != null) {
+          if (selectedArtist != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -816,163 +813,180 @@ class PlayerUIState extends State<PlayerUI>
     final thumbnailSize = isWideScreen
         ? AppDimens.thumbnailLarge
         : (isCompact ? AppDimens.thumbnailMini : AppDimens.thumbnailDefault);
+    const miniPlayerBorderRadius = BorderRadius.only(
+      topLeft: Radius.circular(16),
+      topRight: Radius.circular(16),
+    );
 
     return GestureDetector(
       onTap: widget.onExpand,
       child: Center(
-        child: Container(
-          height: miniPlayerHeight,
-          constraints: const BoxConstraints(maxWidth: AppDimens.maxModalWidth),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-            ),
-            gradient: LinearGradient(
-              colors: [
-                MainScreenColors.getSurfaceColor(isDarkMode),
-                MainScreenColors.getSurfaceColor(
-                  isDarkMode,
-                ).withOpacity(AppDimens.opacityHigh),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            boxShadow: widget.isEmbedded
-                ? null
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(AppDimens.opacityMedium),
-                      blurRadius: AppDimens.elevationHigh,
-                      offset: Offset(0, AppDimens.shadowOffsetSmall),
-                    ),
+        child: ClipRRect(
+          borderRadius: miniPlayerBorderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              height: miniPlayerHeight,
+              constraints: const BoxConstraints(
+                maxWidth: AppDimens.maxModalWidth,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: miniPlayerBorderRadius,
+                gradient: LinearGradient(
+                  colors: [
+                    MainScreenColors.getSurfaceColor(
+                      isDarkMode,
+                    ).withValues(alpha: 0.78),
+                    MainScreenColors.getSurfaceColor(
+                      isDarkMode,
+                    ).withValues(alpha: 0.56),
                   ],
-          ),
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    PlayerComponents.buildThumbnail(
-                      isMini: true,
-                      isDarkMode: isDarkMode,
-                      playerProvider: _playerProvider,
-                      playerService: _playerService,
-                      thumbnailSize: thumbnailSize,
-                    ),
-                    if (isWideScreen)
-                      SizedBox(
-                        width: AppDimens.songInfoCompactWidth,
-                        child: PlayerComponents.buildSongInfo(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: widget.isEmbedded
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: AppDimens.opacityMedium,
+                          ),
+                          blurRadius: AppDimens.elevationHigh,
+                          offset: Offset(0, AppDimens.shadowOffsetSmall),
+                        ),
+                      ],
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        PlayerComponents.buildThumbnail(
                           isMini: true,
                           isDarkMode: isDarkMode,
-                          context: context,
                           playerProvider: _playerProvider,
-                          expand: false,
-                        ),
-                      )
-                    else
-                      PlayerComponents.buildSongInfo(
-                        isMini: true,
-                        isDarkMode: isDarkMode,
-                        context: context,
-                        playerProvider: _playerProvider,
-                      ),
-                    if (isWideScreen) const Spacer(),
-                    if (isWideScreen)
-                      SizedBox(
-                        width:
-                            screenWidth *
-                            AppDimens.widePlayerProgressWidthFactor,
-                        child: PlayerControls.buildProgressBar(
-                          context: context,
-                          isMini: false,
-                          isDarkMode: isDarkMode,
-                          accentColor: accentColor,
                           playerService: _playerService,
+                          thumbnailSize: thumbnailSize,
                         ),
-                      ),
-                    if (isWideScreen) const Spacer(),
-                    PlayerControls.buildMiniControls(
-                      isDarkMode: isDarkMode,
-                      accentColor: accentColor,
-                      queueProvider: _queueProvider,
-                      playerService: _playerService,
-                      handlePrevious: _handlePrevious,
-                      handlePlayPause: _handlePlayPause,
-                      handleNext: _handleNext,
-                    ),
-                    if (_playerProvider.currentLocalSong == null)
-                      Consumer<FavoriteSongProvider>(
-                        builder: (context, favoriteSongProvider, child) {
-                          return PlayerControls.buildFavoriteButton(
+                        if (isWideScreen)
+                          SizedBox(
+                            width: AppDimens.songInfoCompactWidth,
+                            child: PlayerComponents.buildSongInfo(
+                              isMini: true,
+                              isDarkMode: isDarkMode,
+                              context: context,
+                              playerProvider: _playerProvider,
+                              expand: false,
+                            ),
+                          )
+                        else
+                          PlayerComponents.buildSongInfo(
                             isMini: true,
                             isDarkMode: isDarkMode,
-                            accentColor: accentColor,
-                            isLiked: favoriteSongProvider.isCurrentSongLiked,
-                            toggleLike: favoriteSongProvider.toggleLike,
-                          );
-                        },
-                      ),
-                    if (isWideScreen) ...[
-                      const SizedBox(width: AppDimens.spacingXs),
-                      IconButton(
-                        icon: Icon(
-                          Icons.queue_music,
-                          color: MainScreenColors.getTextColor(isDarkMode),
-                          size: AppDimens.iconLg,
-                        ),
-                        onPressed: _showQueueBottomSheet,
-                        tooltip: 'Queue',
-                      ),
-                      Icon(
-                        _volume == 0
-                            ? Icons.volume_off
-                            : (_volume < 0.5
-                                  ? Icons.volume_down
-                                  : Icons.volume_up),
-                        color: MainScreenColors.getTextColor(isDarkMode),
-                        size: AppDimens.iconMd,
-                      ),
-                      SizedBox(
-                        width: AppDimens.inlineSliderWidth,
-                        child: SliderTheme(
-                          data: SliderThemeData(
-                            trackHeight: AppDimens.sliderTrackHeight,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: AppDimens.thumbRadius,
-                            ),
-                            overlayShape: const RoundSliderOverlayShape(
-                              overlayRadius: AppDimens.overlayRadius,
-                            ),
-                            activeTrackColor: accentColor,
-                            inactiveTrackColor: MainScreenColors.getTextColor(
-                              isDarkMode,
-                            ).withOpacity(AppDimens.opacityMedium),
-                            thumbColor: accentColor,
+                            context: context,
+                            playerProvider: _playerProvider,
                           ),
-                          child: Slider(
-                            value: _volume,
-                            onChanged: _setVolume,
-                            min: 0.0,
-                            max: 1.0,
+                        if (isWideScreen) const Spacer(),
+                        if (isWideScreen)
+                          SizedBox(
+                            width:
+                                screenWidth *
+                                AppDimens.widePlayerProgressWidthFactor,
+                            child: PlayerControls.buildProgressBar(
+                              context: context,
+                              isMini: false,
+                              isDarkMode: isDarkMode,
+                              accentColor: accentColor,
+                              playerService: _playerService,
+                            ),
                           ),
+                        if (isWideScreen) const Spacer(),
+                        PlayerControls.buildMiniControls(
+                          isDarkMode: isDarkMode,
+                          accentColor: accentColor,
+                          queueProvider: _queueProvider,
+                          playerService: _playerService,
+                          handlePrevious: _handlePrevious,
+                          handlePlayPause: _handlePlayPause,
+                          handleNext: _handleNext,
                         ),
-                      ),
-                    ],
-                    const SizedBox(width: AppDimens.spacingSm),
-                  ],
-                ),
+                        if (_playerProvider.currentLocalSong == null)
+                          Consumer<FavoriteSongProvider>(
+                            builder: (context, favoriteSongProvider, child) {
+                              return PlayerControls.buildFavoriteButton(
+                                isMini: true,
+                                isDarkMode: isDarkMode,
+                                accentColor: accentColor,
+                                isLiked:
+                                    favoriteSongProvider.isCurrentSongLiked,
+                                toggleLike: favoriteSongProvider.toggleLike,
+                              );
+                            },
+                          ),
+                        if (isWideScreen) ...[
+                          const SizedBox(width: AppDimens.spacingXs),
+                          IconButton(
+                            icon: Icon(
+                              Icons.queue_music,
+                              color: MainScreenColors.getTextColor(isDarkMode),
+                              size: AppDimens.iconLg,
+                            ),
+                            onPressed: _showQueueBottomSheet,
+                            tooltip: 'Queue',
+                          ),
+                          Icon(
+                            _volume == 0
+                                ? Icons.volume_off
+                                : (_volume < 0.5
+                                      ? Icons.volume_down
+                                      : Icons.volume_up),
+                            color: MainScreenColors.getTextColor(isDarkMode),
+                            size: AppDimens.iconMd,
+                          ),
+                          SizedBox(
+                            width: AppDimens.inlineSliderWidth,
+                            child: SliderTheme(
+                              data: SliderThemeData(
+                                trackHeight: AppDimens.sliderTrackHeight,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: AppDimens.thumbRadius,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: AppDimens.overlayRadius,
+                                ),
+                                activeTrackColor: _volumeColor(_volume),
+                                inactiveTrackColor:
+                                    MainScreenColors.getTextColor(
+                                      isDarkMode,
+                                    ).withValues(
+                                      alpha: AppDimens.opacityMedium,
+                                    ),
+                                thumbColor: _volumeColor(_volume),
+                              ),
+                              child: Slider(
+                                value: _volume,
+                                onChanged: _setVolume,
+                                min: 0.0,
+                                max: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(width: AppDimens.spacingSm),
+                      ],
+                    ),
+                  ),
+                  if (!isWideScreen)
+                    PlayerControls.buildProgressBar(
+                      context: context,
+                      isMini: true,
+                      isDarkMode: isDarkMode,
+                      accentColor: accentColor,
+                      playerService: _playerService,
+                    ),
+                ],
               ),
-              if (!isWideScreen)
-                PlayerControls.buildProgressBar(
-                  context: context,
-                  isMini: true,
-                  isDarkMode: isDarkMode,
-                  accentColor: accentColor,
-                  playerService: _playerService,
-                ),
-            ],
+            ),
           ),
         ),
       ),
@@ -981,50 +995,25 @@ class PlayerUIState extends State<PlayerUI>
 
   void _handlePlayPause() async {
     try {
-      if (Platform.isAndroid) {
-        final isPlaying = _playerService.justAudioPlayer!.playing;
-        if (isPlaying) {
-          await _playerService.pause();
+      final isPlaying = _playerService.isPlaying;
+      if (isPlaying) {
+        await _playerService.pause();
+      } else {
+        if (_playerProvider.currentSong != null ||
+            _playerProvider.currentLocalSong != null) {
+          await _playerService.play();
         } else {
-          if (_playerProvider.currentSong != null ||
-              _playerProvider.currentLocalSong != null) {
-            await _playerService.play();
-          } else {
-            if (_queueProvider.queue.isNotEmpty &&
-                _queueProvider.currentIndex >= 0 &&
-                _queueProvider.currentIndex < _queueProvider.queue.length) {
-              final currentQueueSong =
-                  _queueProvider.queue[_queueProvider.currentIndex];
-              await _playerService.playSong(currentQueueSong);
-            } else if (_playerProvider.lastPlayedSong != null) {
-              final lastSong = _playerProvider.lastPlayedSong!;
-              _queueProvider.addToQueue(lastSong);
-              _queueProvider.setCurrentIndex(_queueProvider.queue.length - 1);
-              await _playerService.playSong(lastSong);
-            }
-          }
-        }
-      } else if (Platform.isWindows || Platform.isLinux) {
-        final state = await _playerService.windowsLinuxAudioPlayer.state;
-        if (state == audio_players.PlayerState.playing) {
-          await _playerService.pause();
-        } else {
-          if (_playerProvider.currentSong != null ||
-              _playerProvider.currentLocalSong != null) {
-            await _playerService.play();
-          } else {
-            if (_queueProvider.queue.isNotEmpty &&
-                _queueProvider.currentIndex >= 0 &&
-                _queueProvider.currentIndex < _queueProvider.queue.length) {
-              final currentQueueSong =
-                  _queueProvider.queue[_queueProvider.currentIndex];
-              await _playerService.playSong(currentQueueSong);
-            } else if (_playerProvider.lastPlayedSong != null) {
-              final lastSong = _playerProvider.lastPlayedSong!;
-              _queueProvider.addToQueue(lastSong);
-              _queueProvider.setCurrentIndex(_queueProvider.queue.length - 1);
-              await _playerService.playSong(lastSong);
-            }
+          if (_queueProvider.queue.isNotEmpty &&
+              _queueProvider.currentIndex >= 0 &&
+              _queueProvider.currentIndex < _queueProvider.queue.length) {
+            final currentQueueSong =
+                _queueProvider.queue[_queueProvider.currentIndex];
+            await _playerService.playSong(currentQueueSong);
+          } else if (_playerProvider.lastPlayedSong != null) {
+            final lastSong = _playerProvider.lastPlayedSong!;
+            _queueProvider.addToQueue(lastSong);
+            _queueProvider.setCurrentIndex(_queueProvider.queue.length - 1);
+            await _playerService.playSong(lastSong);
           }
         }
       }
@@ -1034,23 +1023,17 @@ class PlayerUIState extends State<PlayerUI>
   }
 
   void _openEqualizer() {
-    if (Platform.isAndroid) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        constraints: BoxConstraints(
-          maxHeight:
-              MediaQuery.of(context).size.height * AppDimens.sheetHeightFactor,
-        ),
-        backgroundColor: Colors.transparent,
-        builder: (context) => SafeArea(
-          child: EqualizerScreen(
-            audioPlayer: _playerService.justAudioPlayer!,
-            openedFromPlayer: true,
-          ),
-        ),
-      );
-    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * AppDimens.sheetHeightFactor,
+      ),
+      backgroundColor: Colors.transparent,
+      builder: (context) =>
+          const SafeArea(child: EqualizerScreen(openedFromPlayer: true)),
+    );
   }
 
   void _handleNext() async {
@@ -1118,7 +1101,20 @@ class PlayerUIState extends State<PlayerUI>
     );
   }
 
-  void _toggleVideoMode() {
+  void _toggleVideoMode() async {
+    final switchingToVideo = !_isVideoMode;
+    if (switchingToVideo && _playerService.isPlaying) {
+      try {
+        await _playerService.pause();
+      } catch (_) {
+        if (mounted) {
+          AppSnackBar.showError(context, 'Error pausing playback');
+        }
+      }
+    }
+
+    if (!mounted) return;
+
     setState(() {
       _isVideoMode = !_isVideoMode;
       if (_isVideoMode && !_hasShownVideoDialog) {
@@ -1157,7 +1153,7 @@ class PlayerUIState extends State<PlayerUI>
       context,
       listen: false,
     );
-    final accentColor = settingsProvider.accentColor ?? Colors.blueAccent;
+    final accentColor = settingsProvider.accentColor;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < AppDimens.breakpointSmallMobile;
@@ -1177,7 +1173,7 @@ class PlayerUIState extends State<PlayerUI>
           width: btnSize,
           height: btnSize,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(AppDimens.opacitySemi),
+            color: Colors.black.withValues(alpha: AppDimens.opacitySemi),
             shape: BoxShape.circle,
           ),
           child: IconButton(

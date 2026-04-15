@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive_ce/hive.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart' hide Thumbnail;
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
 import '../models/song_model.dart';
-import '../services/player_service.dart';
 import '../services/custom_audio_handler.dart';
+import '../services/player_service.dart';
 import 'queued_provider.dart';
 import 'download_provider.dart';
 import 'video_info_provider.dart';
@@ -20,7 +18,6 @@ class PlayerProvider extends ChangeNotifier {
   SongInfo? _lastPlayedSong;
   Map<String, dynamic>? _lastPlayedSongData;
   Map<String, dynamic>? _currentLocalSong;
-  Map<String, dynamic>? _currentDownloadedSong;
   List<Map<String, dynamic>> _lastPlayedSongs = [];
   static const int maxLastPlayed = 1000;
   List<Map<String, dynamic>> _recentPlaylists = [];
@@ -35,7 +32,6 @@ class PlayerProvider extends ChangeNotifier {
   final VideoInfoProvider _videoInfoProvider;
   final StatsProvider _statsProvider;
   final FavoriteSongProvider _favoriteSongProvider;
-  final _yt = GetIt.I<YoutubeExplode>();
 
   PlayerProvider(
     this._queueProvider,
@@ -80,7 +76,6 @@ class PlayerProvider extends ChangeNotifier {
       );
 
       _queueProvider.setPlayerService(_playerService);
-
       await _initializeAudioService();
 
       await _queueProvider.loadQueue();
@@ -128,6 +123,8 @@ class PlayerProvider extends ChangeNotifier {
     }
   }
 
+  CachedVideoInfo? get currentVideoDetails => _currentVideoDetails;
+
   Future<void> _initializeAudioService() async {
     try {
       await AudioService.init(
@@ -135,12 +132,11 @@ class PlayerProvider extends ChangeNotifier {
           _playerService,
           _queueProvider,
           this,
-          _downloadProvider,
           _favoriteSongProvider,
         ),
         config: const AudioServiceConfig(
           androidNotificationChannelId: 'com.anand.noize',
-          androidNotificationChannelName: 'Noize',
+          androidNotificationChannelName: 'Noize Playback',
           androidStopForegroundOnPause: true,
           androidShowNotificationBadge: true,
           androidNotificationOngoing: false,
@@ -152,8 +148,6 @@ class PlayerProvider extends ChangeNotifier {
       debugPrint('Failed to initialize AudioService: $e');
     }
   }
-
-  CachedVideoInfo? get currentVideoDetails => _currentVideoDetails;
 
   void _onQueueChanged() {
     if (_queueProvider.queue.isNotEmpty &&
@@ -171,6 +165,7 @@ class PlayerProvider extends ChangeNotifier {
 
         _currentSong = queueCurrentSong;
         _lastPlayedSong = queueCurrentSong;
+        _favoriteSongProvider.setCurrentSong(queueCurrentSong);
 
         if (_currentLocalSong == null) {
           final songData = {
@@ -217,6 +212,7 @@ class PlayerProvider extends ChangeNotifier {
 
     _currentSong = cleanedSong;
     _lastPlayedSong = cleanedSong;
+    _favoriteSongProvider.setCurrentSong(cleanedSong);
     _currentLocalSong = null;
 
     int songIndex = _queueProvider.queue.indexWhere(
@@ -244,7 +240,7 @@ class PlayerProvider extends ChangeNotifier {
       'playlistName': _queueProvider.playlistName,
     };
 
-    _updateLastPlayed(songData);
+    _updateLastPlayed(songData, notify: false);
     notifyListeners();
     _fetchAndSetVideoDetails(cleanedSong.videoId);
   }
@@ -294,7 +290,6 @@ class PlayerProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching video details: $e');
       _currentVideoDetails = null;
       notifyListeners();
     }
@@ -307,6 +302,7 @@ class PlayerProvider extends ChangeNotifier {
     _currentLocalSong = song;
     _currentSong = null;
     _lastPlayedSong = null;
+    _favoriteSongProvider.setCurrentSong(null);
     _currentVideoDetails = null;
 
     _queueProvider.clearQueue();
@@ -324,6 +320,7 @@ class PlayerProvider extends ChangeNotifier {
     _currentLocalSong = songWithQueue;
     _currentSong = null;
     _lastPlayedSong = null;
+    _favoriteSongProvider.setCurrentSong(null);
     _currentVideoDetails = null;
 
     _queueProvider.clearQueue();
@@ -357,6 +354,7 @@ class PlayerProvider extends ChangeNotifier {
     _currentLocalSong = songWithQueue;
     _currentSong = null;
     _lastPlayedSong = null;
+    _favoriteSongProvider.setCurrentSong(null);
     _currentVideoDetails = null;
 
     _queueProvider.setCurrentIndex(currentIndex);
@@ -375,11 +373,12 @@ class PlayerProvider extends ChangeNotifier {
     }
     _currentSong = null;
     _lastPlayedSong = null;
+    _favoriteSongProvider.setCurrentSong(null);
     _currentVideoDetails = null;
     notifyListeners();
   }
 
-  void _updateLastPlayed(Map<String, dynamic> songData) {
+  void _updateLastPlayed(Map<String, dynamic> songData, {bool notify = true}) {
     _lastPlayedSongs.removeWhere(
       (song) => song['id'].toString() == songData['id'].toString(),
     );
@@ -390,8 +389,10 @@ class PlayerProvider extends ChangeNotifier {
     }
 
     _lastPlayedSongData = songData;
-    _saveLastPlayed();
-    notifyListeners();
+    unawaited(_saveLastPlayed());
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   PlayerService get playerService => _playerService;

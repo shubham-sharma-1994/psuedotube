@@ -29,7 +29,9 @@ class ArtistList extends StatelessWidget {
           child: Text(
             'no_artist_data_yet'.tr(),
             style: AppTextStyles.bodyMd(isDarkMode: isDarkMode).copyWith(
-              color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.5),
+              color: MainScreenColors.getTextColor(
+                isDarkMode,
+              ).withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -66,7 +68,7 @@ class ArtistList extends StatelessWidget {
                 style: AppTextStyles.body2(isDarkMode: isDarkMode).copyWith(
                   color: MainScreenColors.getTextColor(
                     isDarkMode,
-                  ).withOpacity(0.7),
+                  ).withValues(alpha: 0.7),
                 ),
               ),
               if (artistSongCounts != null &&
@@ -77,7 +79,7 @@ class ArtistList extends StatelessWidget {
                       .copyWith(
                         color: MainScreenColors.getTextColor(
                           isDarkMode,
-                        ).withOpacity(0.5),
+                        ).withValues(alpha: 0.5),
                       ),
                 ),
             ],

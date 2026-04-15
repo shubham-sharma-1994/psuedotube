@@ -87,13 +87,9 @@ class _SpeechCircularSliderState extends State<SpeechCircularSlider> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    speedColor.withOpacity(0.1),
-                    speedColor.withOpacity(0.05),
+                    speedColor.withValues(alpha: 0.1),
+                    speedColor.withValues(alpha: 0.05),
                   ],
-                ),
-                border: Border.all(
-                  color: speedColor.withOpacity(0.2),
-                  width: 1,
                 ),
               ),
               child: SizedBox(
@@ -124,7 +120,7 @@ class _SpeechCircularSliderState extends State<SpeechCircularSlider> {
                             message: 'Reset speed',
                             child: Icon(
                               Icons.replay_rounded,
-                              color: speedColor.withOpacity(0.75),
+                              color: speedColor.withValues(alpha: 0.75),
                               size: AppDimens.iconXs * 0.85,
                             ),
                           ),
@@ -139,7 +135,7 @@ class _SpeechCircularSliderState extends State<SpeechCircularSlider> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: speedColor.withOpacity(0.2),
+                            color: speedColor.withValues(alpha: 0.2),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -158,11 +154,11 @@ class _SpeechCircularSliderState extends State<SpeechCircularSlider> {
                                 ? Colors.grey[800]!
                                 : Colors.grey[300]!,
                             progressBarColors: [
-                              speedColor.withOpacity(0.7),
+                              speedColor.withValues(alpha: 0.7),
                               speedColor,
-                              speedColor.withOpacity(0.9),
+                              speedColor.withValues(alpha: 0.9),
                             ],
-                            shadowColor: speedColor.withOpacity(0.4),
+                            shadowColor: speedColor.withValues(alpha: 0.4),
                             shadowMaxOpacity: 0.6,
                             dotColor: Colors.white,
                           ),

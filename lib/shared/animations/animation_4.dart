@@ -112,7 +112,7 @@ class _RipplePainter extends CustomPainter {
       if (opacity < 0.02) continue;
 
       ringPaint
-        ..color = accentColor.withOpacity(opacity)
+        ..color = accentColor.withValues(alpha: opacity)
         ..strokeWidth = 2.5 * (1.0 - ringProgress * 0.6);
       canvas.drawCircle(center, radius, ringPaint);
     }
@@ -121,13 +121,16 @@ class _RipplePainter extends CustomPainter {
     final pulseSize = 5.0 + 3.0 * sin(pulseT);
     final pulseOpacity = (0.5 + 0.3 * sin(pulseT)).clamp(0.0, 1.0);
     final dotPaint = Paint()
-      ..color = accentColor.withOpacity(pulseOpacity)
+      ..color = accentColor.withValues(alpha: pulseOpacity)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, pulseSize, dotPaint);
 
     final glowPaint = Paint()
       ..shader = RadialGradient(
-        colors: [accentColor.withOpacity(0.22), accentColor.withOpacity(0.0)],
+        colors: [
+          accentColor.withValues(alpha: 0.22),
+          accentColor.withValues(alpha: 0.0),
+        ],
       ).createShader(Rect.fromCircle(center: center, radius: 30));
     canvas.drawCircle(center, 30, glowPaint);
 
@@ -154,7 +157,7 @@ class _RipplePainter extends CustomPainter {
       final dotOpacity = (0.3 + 0.3 * sin(tRad * 3 + i * 1.5)).clamp(0.0, 1.0);
       final dotSize = 1.5 + 0.8 * sin(tRad * 2 + i * 0.8);
 
-      dotPaint.color = accentColor.withOpacity(dotOpacity);
+      dotPaint.color = accentColor.withValues(alpha: dotOpacity);
       canvas.drawCircle(Offset(x, y), dotSize, dotPaint);
     }
   }

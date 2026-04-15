@@ -21,17 +21,41 @@ class LocalFolderManagementScreen extends StatefulWidget {
 
 class _LocalFolderManagementScreenState
     extends State<LocalFolderManagementScreen> {
+  bool _containsFolder(List<String> folders, String folder) {
+    if (Platform.isWindows) {
+      final normalizedFolder = folder.toLowerCase();
+      return folders.any((f) => f.toLowerCase() == normalizedFolder);
+    }
+    return folders.contains(folder);
+  }
+
   Future<void> _pickFolder(SettingsProvider settings, bool include) async {
-    String? result = await FilePicker.platform.getDirectoryPath();
+    String? result = await FilePicker.getDirectoryPath();
 
     if (result != null) {
       setState(() {
         if (include) {
-          if (!settings.includedFolders.contains(result)) {
+          if (_containsFolder(settings.excludedFolders, result)) {
+            AppSnackBar.showWarning(
+              context,
+              'Folder already exists in excluded folders',
+            );
+            return;
+          }
+
+          if (!_containsFolder(settings.includedFolders, result)) {
             settings.includedFolders = [...settings.includedFolders, result];
           }
         } else {
-          if (!settings.excludedFolders.contains(result)) {
+          if (_containsFolder(settings.includedFolders, result)) {
+            AppSnackBar.showWarning(
+              context,
+              'Folder already exists in included folders',
+            );
+            return;
+          }
+
+          if (!_containsFolder(settings.excludedFolders, result)) {
             settings.excludedFolders = [...settings.excludedFolders, result];
           }
         }
@@ -85,7 +109,7 @@ class _LocalFolderManagementScreenState
                             .copyWith(
                               color: MainScreenColors.getTextColor(
                                 isDarkMode,
-                              ).withOpacity(0.5),
+                              ).withValues(alpha: 0.5),
                             ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
@@ -94,7 +118,7 @@ class _LocalFolderManagementScreenState
                           borderSide: BorderSide(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
-                            ).withOpacity(0.3),
+                            ).withValues(alpha: 0.3),
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -133,23 +157,46 @@ class _LocalFolderManagementScreenState
                                   '".ogg" files are not supported on Windows/Linux',
                                 );
                               } else {
+                                final includedExts = settings.includedExtensions
+                                    .map((e) => e.toLowerCase())
+                                    .toSet();
+                                final excludedExts = settings.excludedExtensions
+                                    .map((e) => e.toLowerCase())
+                                    .toSet();
+
+                                if (include &&
+                                    excludedExts.contains(extLower)) {
+                                  AppSnackBar.showWarning(
+                                    context,
+                                    'Extension already exists in excluded extensions',
+                                  );
+                                  Navigator.pop(context);
+                                  return;
+                                }
+
+                                if (!include &&
+                                    includedExts.contains(extLower)) {
+                                  AppSnackBar.showWarning(
+                                    context,
+                                    'Extension already exists in included extensions',
+                                  );
+                                  Navigator.pop(context);
+                                  return;
+                                }
+
                                 setState(() {
                                   if (include) {
-                                    if (!settings.includedExtensions.contains(
-                                      extension,
-                                    )) {
+                                    if (!includedExts.contains(extLower)) {
                                       settings.includedExtensions = [
                                         ...settings.includedExtensions,
-                                        extension,
+                                        extLower,
                                       ];
                                     }
                                   } else {
-                                    if (!settings.excludedExtensions.contains(
-                                      extension,
-                                    )) {
+                                    if (!excludedExts.contains(extLower)) {
                                       settings.excludedExtensions = [
                                         ...settings.excludedExtensions,
-                                        extension,
+                                        extLower,
                                       ];
                                     }
                                   }
@@ -320,19 +367,38 @@ class _LocalFolderManagementScreenState
                         'minimum_song_duration'.tr(),
                         style: AppTextStyles.subtitle(isDarkMode: isDarkMode),
                       ),
-                      Slider(
-                        value: settingsProvider.minSongDuration.toDouble(),
-                        min: 0,
-                        max: 300,
-                        divisions: 20,
-                        label: '${settingsProvider.minSongDuration}s',
-                        onChanged: (value) {
-                          settingsProvider.minSongDuration = value.toInt();
-                        },
-                        activeColor: accentColor,
-                        inactiveColor: MainScreenColors.getTextColor(
-                          isDarkMode,
-                        ).withOpacity(0.3),
+                      SizedBox(height: AppDimens.spacingSm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Slider(
+                              value: settingsProvider.minSongDuration
+                                  .toDouble(),
+                              min: 0,
+                              max: 300,
+                              divisions: 30,
+                              label: '${settingsProvider.minSongDuration}s',
+                              onChanged: (value) {
+                                settingsProvider.minSongDuration = value
+                                    .toInt();
+                              },
+                              activeColor: accentColor,
+                              inactiveColor: MainScreenColors.getTextColor(
+                                isDarkMode,
+                              ).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          SizedBox(width: AppDimens.spacingSm),
+                          Text(
+                            '${settingsProvider.minSongDuration}s',
+                            style: AppTextStyles.bodyMd(isDarkMode: isDarkMode)
+                                .copyWith(
+                                  color: MainScreenColors.getTextColor(
+                                    isDarkMode,
+                                  ).withValues(alpha: 0.8),
+                                ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -447,7 +513,7 @@ class _LocalFolderManagementScreenState
                     style: AppTextStyles.body2(isDarkMode: isDarkMode).copyWith(
                       color: MainScreenColors.getTextColor(
                         isDarkMode,
-                      ).withOpacity(0.7),
+                      ).withValues(alpha: 0.7),
                     ),
                   ),
                 )
@@ -531,7 +597,7 @@ class _LocalFolderManagementScreenState
                     style: AppTextStyles.body2(isDarkMode: isDarkMode).copyWith(
                       color: MainScreenColors.getTextColor(
                         isDarkMode,
-                      ).withOpacity(0.7),
+                      ).withValues(alpha: 0.7),
                     ),
                   ),
                 )
@@ -551,7 +617,7 @@ class _LocalFolderManagementScreenState
                             label: Text(ext),
                             onDeleted: () => onRemove(ext),
                             deleteIconColor: Colors.redAccent,
-                            backgroundColor: accentColor.withOpacity(0.1),
+                            backgroundColor: accentColor.withValues(alpha: 0.1),
                             labelStyle: AppTextStyles.chipLabel(
                               color: accentColor,
                             ),

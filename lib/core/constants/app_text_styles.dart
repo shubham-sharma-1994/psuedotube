@@ -132,7 +132,7 @@ class AppTextStyles {
       subtitleBase().copyWith(color: MainScreenColors.getTextColor(isDarkMode));
   static TextStyle settingsSubtitle({bool isDarkMode = true}) =>
       body2Base().copyWith(
-        color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+        color: MainScreenColors.getTextColor(isDarkMode).withValues(alpha: 0.7),
       );
   static TextStyle queueItemPlaying({
     bool isDarkMode = true,
@@ -157,7 +157,7 @@ class AppTextStyles {
         fontWeight: isHighlighted ? weightSemiBold : weightRegular,
         color: isHighlighted
             ? (accentColor ?? Colors.white)
-            : Colors.white.withOpacity(0.5),
+            : Colors.white.withValues(alpha: 0.5),
         height: lineHeightRelaxed,
       );
   static TextStyle otaBannerTitle({bool isDarkMode = true}) =>
@@ -167,7 +167,7 @@ class AppTextStyles {
       );
   static TextStyle otaBannerSubtitle({bool isDarkMode = true}) =>
       captionBase().copyWith(
-        color: MainScreenColors.getTextColor(isDarkMode).withOpacity(0.7),
+        color: MainScreenColors.getTextColor(isDarkMode).withValues(alpha: 0.7),
       );
   static TextStyle chipLabel({bool isDarkMode = true, Color? color}) =>
       captionBase().copyWith(
@@ -179,7 +179,7 @@ class AppTextStyles {
     required Color accentColor,
     double scale = 1.0,
   }) => GoogleFonts.poppins(
-    color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+    color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
     fontWeight: isSelected ? weightBold : weightRegular,
     fontSize: fontSizeBody * scale,
   );
@@ -193,7 +193,7 @@ class AppTextStyles {
   static TextStyle actionLabel() => GoogleFonts.poppins(
     fontSize: fontSizeCaption,
     fontWeight: weightMedium,
-    color: Colors.white.withOpacity(0.9),
+    color: Colors.white.withValues(alpha: 0.9),
   );
 
   static const double maxTextScaleFactor = 1.0;
