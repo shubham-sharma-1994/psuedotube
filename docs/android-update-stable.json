@@ -1,40 +1,46 @@
 {
-  "latestVersion": "0.0.1",
-  "versionCode": 1,
+  "latestVersion": "1.0.0",
+  "versionCode": 2,
   "abis": {
     "arm64-v8a": {
-      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-arm64-v8a.apk",
-      "size": "25.6 MB",
-      "checksum": "sha256:abcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab"
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v1.0.0/app-arm64-v8a-release.apk",
+      "size": "17.4 MB",
+      "checksum": "sha256:c5aa9019b7dd6288b3b673efcfaefc90a9f3c24697336044a2aea89affd99fb4"
     },
     "armeabi-v7a": {
-      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-armeabi-v7a.apk",
-      "size": "22.3 MB",
-      "checksum": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v1.0.0/app-armeabi-v7a-release.apk",
+      "size": "17.1 MB",
+      "checksum": "sha256:9e7810a82d306bb1c9d06eb3d42dbea63b0b44d58b9e8c6643bb2b8d47b5903f"
     },
     "x86_64": {
-      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v0.0.1/noize-v0.0.1-x86_64.apk",
-      "size": "27.1 MB",
-      "checksum": "sha256:ef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd"
+      "downloadUrl": "https://github.com/anandssm/noize/releases/download/v1.0.0/app-x86_64-release.apk",
+      "size": "17.8 MB",
+      "checksum": "sha256:3dffce21f52ddba692b07c6b057e21ac9f5a9da3c2f724b645e61d426d18fda4"
     }
   },
-  "releaseDate": "2026-03-02T12:00:00Z",
+  "releaseDate": "2026-04-15T00:00:00Z",
   "updateLog": [
-    "� Initial release of Noize",
-    "🎵 Stream songs, albums, artists, and playlists from YouTube Music",
-    "📥 Download tracks and playlists for offline listening",
-    "🎤 Synced lyrics support via YouTube Music and LRCLib"
+    "🔔 Reminder: take a backup before updating via Settings > Export screen > Export",
+    "🚀 Noize 1.0.0 is here with unified media_kit playback, equalizer Curve mode, gapless playback, voice search, and audio caching",
+    "🎵 Added expanded related songs queue support up to 250 from search",
+    "🌍 Added translations and improved language-specific home titles",
+    "🛠 Improved playback reliability, equalizer stability, and downloads experience"
   ],
   "features": [
-    "YouTube Music streaming with search and discovery",
+    "Unified media playback with media_kit",
+    "Built-in equalizer with Curve mode and presets",
+    "Gapless playback and audio caching",
+    "Voice search and expanded queue support",
     "Background playback with media session integration",
     "Download songs and playlists for offline use",
-    "Built-in equalizer, sleep timer, and playback stats",
-    "Local music library management",
-    "Synced and plain lyrics support",
     "Light, Dark, and System theme modes",
     "Multi-language support"
   ],
-  "bugFixes": [],
-  "releaseNotes": "Welcome to Noize! This is the first public release of your privacy-first YouTube Music client for Android."
+  "bugFixes": [
+    "Fixed low-quality thumbnail support in media notifications",
+    "Fixed YouTube / YT Music button and translation mismatches",
+    "Fixed equalizer crashes and audio playback issues",
+    "Improved resume playback, lyrics handling, and download controls"
+  ],
+  "releaseNotes": "Noize 1.0.0 brings unified media_kit playback, equalizer Curve mode, gapless playback, voice search, and wider translation support. Please backup your data before updating: Settings > Export screen > Export."
 }
