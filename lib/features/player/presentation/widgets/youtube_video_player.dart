@@ -1,9 +1,10 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../../../../core/constants/app_dimens.dart';
-import 'dart:io' show Platform;
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoId;
@@ -20,37 +21,51 @@ class VideoPlayerWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late YoutubePlayerController _controller;
   bool _isFullScreen = false;
+  bool _isReadyCalled = false;
   late InAppWebViewController _webViewController;
 
   @override
   void initState() {
     super.initState();
-    if (!Platform.isWindows && !Platform.isLinux) {
+    // youtube_player_flutter 10.0+ supports Android, iOS, macOS, and Web.
+    // We still fallback to InAppWebView for Windows and Linux.
+    if (kIsWeb || (!Platform.isWindows && !Platform.isLinux)) {
       _initializeYoutubePlayer();
     }
   }
 
   void _initializeYoutubePlayer() {
-    _controller = YoutubePlayerController(
-      initialVideoId: widget.videoId,
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
+    _controller = YoutubePlayerController.fromVideoId(
+      videoId: widget.videoId,
+      autoPlay: true,
+      params: const YoutubePlayerParams(
+        showControls: true,
+        showFullscreenButton: true,
         mute: false,
-        enableCaption: false,
-        showLiveFullscreenButton: true,
-        hideControls: false,
-        disableDragSeek: false,
       ),
     );
 
-    _controller.addListener(() {
-      if (_controller.value.isReady) {
+    // Fullscreen behavior is fully managed internally now.
+    // We just listen to changes to bubble up the callback.
+    _controller.setFullScreenListener((isFullScreen) {
+      if (mounted) {
+        setState(() {
+          _isFullScreen = isFullScreen;
+        });
+        widget.onFullScreenChange();
+      }
+    });
+
+    // Notify ready once the player transitions out of unknown state.
+    _controller.listen((event) {
+      if (!_isReadyCalled && event.playerState != PlayerState.unknown) {
+        _isReadyCalled = true;
         widget.onReady();
       }
     });
@@ -58,7 +73,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isWindows || Platform.isLinux) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
       return Container(
         height: AppDimens.progressCircleLarge,
         width: double.infinity,
@@ -106,56 +121,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         borderRadius: _isFullScreen
             ? BorderRadius.zero
             : BorderRadius.circular(AppDimens.radiusXxl),
-        child: YoutubePlayerBuilder(
-          player: YoutubePlayer(
-            controller: _controller,
-            showVideoProgressIndicator: true,
-            progressIndicatorColor: Colors.white,
-            progressColors: const ProgressBarColors(
-              playedColor: Colors.white,
-              handleColor: Colors.white,
-            ),
-            topActions: [
-              IconButton(
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  if (_isFullScreen) {
-                    _controller.toggleFullScreenMode();
-                  }
-                },
-              ),
-            ],
-            bottomActions: const [
-              CurrentPosition(),
-              SizedBox(width: AppDimens.spacingSmMd),
-              ProgressBar(
-                isExpanded: true,
-                colors: ProgressBarColors(
-                  playedColor: Colors.white,
-                  handleColor: Colors.white,
-                  bufferedColor: Colors.white54,
-                  backgroundColor: Colors.grey,
-                ),
-              ),
-              SizedBox(width: AppDimens.spacingSmMd),
-              RemainingDuration(),
-            ],
-          ),
-          builder: (context, player) {
-            return player;
-          },
-        ),
+        // YoutubePlayer directly renders and supports its own Overlay features for controls.
+        child: YoutubePlayer(controller: _controller),
       ),
     );
   }
 
   @override
   void dispose() {
-    if (!Platform.isWindows && !Platform.isLinux) {
-      _controller.dispose();
+    if (kIsWeb || (!Platform.isWindows && !Platform.isLinux)) {
+      _controller.close();
     }
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();

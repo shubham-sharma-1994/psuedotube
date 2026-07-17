@@ -285,24 +285,27 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                                 ],
                               ),
                               SizedBox(height: AppDimens.spacingMd),
-                              SwitchListTile.adaptive(
-                                value: settings.loggingOnStartup,
-                                activeColor: themeData.accentColor,
-                                onChanged: (v) {
-                                  settings.loggingOnStartup = v;
-                                  if (v) {
-                                    GetIt.I<CrashLogService>().startLogging();
-                                  } else {
-                                    GetIt.I<CrashLogService>().stopLogging();
-                                  }
-                                },
-                                title: Text(
-                                  'start_logging_on_startup'.tr(),
-                                  style: AppTextStyles.bodyMd(
-                                    isDarkMode: themeData.isDarkMode,
+                              Material(
+                                color: Colors.transparent,
+                                child: SwitchListTile.adaptive(
+                                  value: settings.loggingOnStartup,
+                                  activeColor: themeData.accentColor,
+                                  onChanged: (v) {
+                                    settings.loggingOnStartup = v;
+                                    if (v) {
+                                      GetIt.I<CrashLogService>().startLogging();
+                                    } else {
+                                      GetIt.I<CrashLogService>().stopLogging();
+                                    }
+                                  },
+                                  title: Text(
+                                    'start_logging_on_startup'.tr(),
+                                    style: AppTextStyles.bodyMd(
+                                      isDarkMode: themeData.isDarkMode,
+                                    ),
                                   ),
+                                  contentPadding: EdgeInsets.zero,
                                 ),
-                                contentPadding: EdgeInsets.zero,
                               ),
                               SizedBox(height: AppDimens.spacingSm),
                               Text(
@@ -353,113 +356,118 @@ class _CrashLogsScreenState extends State<CrashLogsScreen> {
                               width: AppDimens.borderWidthThin,
                             ),
                           ),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: AppDimens.paddingLg,
-                              vertical: AppDimens.paddingSm,
-                            ),
-                            leading: Icon(
-                              Icons.insert_drive_file,
-                              color: themeData.accentColor,
-                              size: AppDimens.iconLg,
-                            ),
-                            title: Text(
-                              ch.toUpperCase(),
-                              style: AppTextStyles.subtitle(
-                                isDarkMode: themeData.isDarkMode,
+                          child: Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+                            clipBehavior: Clip.antiAlias,
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: AppDimens.paddingLg,
+                                vertical: AppDimens.paddingSm,
                               ),
-                            ),
-                            subtitle: FutureBuilder<String>(
-                              future: GetIt.I<CrashLogService>().readLog(
-                                ch,
-                                tail: 120,
+                              leading: Icon(
+                                Icons.insert_drive_file,
+                                color: themeData.accentColor,
+                                size: AppDimens.iconLg,
                               ),
-                              builder: (context, snap) {
-                                if (!snap.hasData) {
+                              title: Text(
+                                ch.toUpperCase(),
+                                style: AppTextStyles.subtitle(
+                                  isDarkMode: themeData.isDarkMode,
+                                ),
+                              ),
+                              subtitle: FutureBuilder<String>(
+                                future: GetIt.I<CrashLogService>().readLog(
+                                  ch,
+                                  tail: 120,
+                                ),
+                                builder: (context, snap) {
+                                  if (!snap.hasData) {
+                                    return Text(
+                                      '...',
+                                      style: AppTextStyles.body2(
+                                        isDarkMode: themeData.isDarkMode,
+                                      ),
+                                    );
+                                  }
+                                  final s = snap.data ?? '';
+                                  if (s.isEmpty) {
+                                    return Text(
+                                      'no_logs_available'.tr(),
+                                      style:
+                                          AppTextStyles.body2(
+                                            isDarkMode: themeData.isDarkMode,
+                                          ).copyWith(
+                                            color: MainScreenColors.getTextColor(
+                                              themeData.isDarkMode,
+                                            ).withValues(alpha: 0.5),
+                                          ),
+                                    );
+                                  }
                                   return Text(
-                                    '...',
-                                    style: AppTextStyles.body2(
-                                      isDarkMode: themeData.isDarkMode,
-                                    ),
-                                  );
-                                }
-                                final s = snap.data ?? '';
-                                if (s.isEmpty) {
-                                  return Text(
-                                    'no_logs_available'.tr(),
+                                    s
+                                        .replaceAll('\n', ' ')
+                                        .replaceAll(RegExp('\\s+'), ' '),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                     style:
                                         AppTextStyles.body2(
                                           isDarkMode: themeData.isDarkMode,
                                         ).copyWith(
                                           color: MainScreenColors.getTextColor(
                                             themeData.isDarkMode,
-                                          ).withValues(alpha: 0.5),
+                                          ).withValues(alpha: 0.7),
                                         ),
                                   );
-                                }
-                                return Text(
-                                  s
-                                      .replaceAll('\n', ' ')
-                                      .replaceAll(RegExp('\\s+'), ' '),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      AppTextStyles.body2(
-                                        isDarkMode: themeData.isDarkMode,
-                                      ).copyWith(
-                                        color: MainScreenColors.getTextColor(
-                                          themeData.isDarkMode,
-                                        ).withValues(alpha: 0.7),
-                                      ),
-                                );
-                              },
-                            ),
-                            trailing: PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: MainScreenColors.getTextColor(
-                                  themeData.isDarkMode,
-                                ),
+                                },
                               ),
-                              color: themeData.isDarkMode
-                                  ? MainScreenColors.darkSurfaceColor
-                                  : MainScreenColors.lightSurfaceColor,
-                              onSelected: (v) async {
-                                if (v == 'view') _openLogViewer(ch);
-                                if (v == 'share') await _shareChannel(ch);
-                                if (v == 'clear') await _clearChannel(ch);
-                              },
-                              itemBuilder: (c) => [
-                                PopupMenuItem(
-                                  value: 'view',
-                                  child: Text(
-                                    'view_logs'.tr(),
-                                    style: AppTextStyles.bodyMd(
-                                      isDarkMode: themeData.isDarkMode,
-                                    ),
+                              trailing: PopupMenuButton<String>(
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: MainScreenColors.getTextColor(
+                                    themeData.isDarkMode,
                                   ),
                                 ),
-                                PopupMenuItem(
-                                  value: 'share',
-                                  child: Text(
-                                    'share'.tr(),
-                                    style: AppTextStyles.bodyMd(
-                                      isDarkMode: themeData.isDarkMode,
+                                color: themeData.isDarkMode
+                                    ? MainScreenColors.darkSurfaceColor
+                                    : MainScreenColors.lightSurfaceColor,
+                                onSelected: (v) async {
+                                  if (v == 'view') _openLogViewer(ch);
+                                  if (v == 'share') await _shareChannel(ch);
+                                  if (v == 'clear') await _clearChannel(ch);
+                                },
+                                itemBuilder: (c) => [
+                                  PopupMenuItem(
+                                    value: 'view',
+                                    child: Text(
+                                      'view_logs'.tr(),
+                                      style: AppTextStyles.bodyMd(
+                                        isDarkMode: themeData.isDarkMode,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'clear',
-                                  child: Text(
-                                    'clear'.tr(),
-                                    style: AppTextStyles.bodyMd(
-                                      isDarkMode: themeData.isDarkMode,
+                                  PopupMenuItem(
+                                    value: 'share',
+                                    child: Text(
+                                      'share'.tr(),
+                                      style: AppTextStyles.bodyMd(
+                                        isDarkMode: themeData.isDarkMode,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  PopupMenuItem(
+                                    value: 'clear',
+                                    child: Text(
+                                      'clear'.tr(),
+                                      style: AppTextStyles.bodyMd(
+                                        isDarkMode: themeData.isDarkMode,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () => _openLogViewer(ch),
                             ),
-                            onTap: () => _openLogViewer(ch),
                           ),
                         ),
                       ),

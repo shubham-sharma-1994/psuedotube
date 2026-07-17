@@ -551,163 +551,171 @@ class _QueueBottomSheetState extends State<QueueBottomSheet> {
                                       ? accentColor.withValues(alpha: 0.2)
                                       : null,
                                 ),
-                                child: ListTile(
-                                  leading: Stack(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          AppDimens.radiusSm,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: ListTile(
+                                    leading: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            AppDimens.radiusSm,
+                                          ),
+                                          child: _buildThumbnail(
+                                            song,
+                                            queueProvider,
+                                          ),
                                         ),
-                                        child: _buildThumbnail(
-                                          song,
-                                          queueProvider,
-                                        ),
-                                      ),
-                                      if (isPlaying)
-                                        Positioned.fill(
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.4,
+                                        if (isPlaying)
+                                          Positioned.fill(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.4,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      AppDimens.radiusSm,
+                                                    ),
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppDimens.radiusSm,
-                                                  ),
-                                            ),
-                                            child: Icon(
-                                              Icons.equalizer,
-                                              color: accentColor,
+                                              child: Icon(
+                                                Icons.equalizer,
+                                                color: accentColor,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                  title: Text(
-                                    song.name,
-                                    style: isPlaying
-                                        ? AppTextStyles.queueItemPlaying(
-                                            isDarkMode: isDarkMode,
-                                            accentColor: accentColor,
-                                          )
-                                        : AppTextStyles.queueItem(
-                                            isDarkMode: isDarkMode,
-                                          ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    song.artists
-                                        .map((artist) => artist.name)
-                                        .join(', '),
-                                    style: AppTextStyles.settingsSubtitle(
-                                      isDarkMode: isDarkMode,
+                                      ],
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.remove_circle_outline,
-                                          color:
-                                              MainScreenColors.getTextColor(
-                                                isDarkMode,
-                                              ).withValues(
-                                                alpha: AppDimens.opacityMuted,
-                                              ),
-                                        ),
-                                        onPressed: () => queueProvider
-                                            .removeFromQueue(index),
+                                    title: Text(
+                                      song.name,
+                                      style: isPlaying
+                                          ? AppTextStyles.queueItemPlaying(
+                                              isDarkMode: isDarkMode,
+                                              accentColor: accentColor,
+                                            )
+                                          : AppTextStyles.queueItem(
+                                              isDarkMode: isDarkMode,
+                                            ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      song.artists
+                                          .map((artist) => artist.name)
+                                          .join(', '),
+                                      style: AppTextStyles.settingsSubtitle(
+                                        isDarkMode: isDarkMode,
                                       ),
-                                      ReorderableDragStartListener(
-                                        index: index,
-                                        child: Icon(
-                                          Icons.drag_handle,
-                                          color:
-                                              MainScreenColors.getTextColor(
-                                                isDarkMode,
-                                              ).withValues(
-                                                alpha: AppDimens.opacityMuted,
-                                              ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.remove_circle_outline,
+                                            color:
+                                                MainScreenColors.getTextColor(
+                                                  isDarkMode,
+                                                ).withValues(
+                                                  alpha: AppDimens.opacityMuted,
+                                                ),
+                                          ),
+                                          onPressed: () => queueProvider
+                                              .removeFromQueue(index),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  onTap: () async {
-                                    final playerProvider =
-                                        Provider.of<PlayerProvider>(
-                                          context,
-                                          listen: false,
-                                        );
+                                        ReorderableDragStartListener(
+                                          index: index,
+                                          child: Icon(
+                                            Icons.drag_handle,
+                                            color:
+                                                MainScreenColors.getTextColor(
+                                                  isDarkMode,
+                                                ).withValues(
+                                                  alpha: AppDimens.opacityMuted,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () async {
+                                      final playerProvider =
+                                          Provider.of<PlayerProvider>(
+                                            context,
+                                            listen: false,
+                                          );
 
-                                    final playlistId = queueProvider.playlistId;
+                                      final playlistId =
+                                          queueProvider.playlistId;
 
-                                    if (playlistId == 'local_music') {
-                                      queueProvider.setCurrentIndex(index);
+                                      if (playlistId == 'local_music') {
+                                        queueProvider.setCurrentIndex(index);
 
-                                      final localContainer =
-                                          playerProvider.currentLocalSong;
-                                      final localQueue = localContainer != null
-                                          ? (localContainer['queue']
-                                                as List<Map<String, dynamic>>?)
-                                          : null;
+                                        final localContainer =
+                                            playerProvider.currentLocalSong;
+                                        final localQueue =
+                                            localContainer != null
+                                            ? (localContainer['queue']
+                                                  as List<
+                                                    Map<String, dynamic>
+                                                  >?)
+                                            : null;
 
-                                      if (localQueue != null &&
-                                          index < localQueue.length) {
-                                        final localSong = localQueue[index];
+                                        if (localQueue != null &&
+                                            index < localQueue.length) {
+                                          final localSong = localQueue[index];
 
-                                        playerProvider.updateCurrentLocalSong(
-                                          localSong,
-                                        );
+                                          playerProvider.updateCurrentLocalSong(
+                                            localSong,
+                                          );
 
-                                        if (playerProvider
+                                          if (playerProvider
+                                                  .playerService
+                                                  .audioPlayerInstance !=
+                                              null) {
+                                            await playerProvider
                                                 .playerService
-                                                .audioPlayerInstance !=
-                                            null) {
-                                          await playerProvider
-                                              .playerService
-                                              .audioPlayerInstance!
-                                              .seek(
-                                                Duration.zero,
-                                                index: index,
-                                              );
-                                        } else {
-                                          final localPath =
-                                              localSong['localPath'];
-                                          if (localPath != null) {
-                                            try {
-                                              await playerProvider.playerService
-                                                  .playLocalAudioWithQueue(
-                                                    localPath,
-                                                    localSong,
-                                                    localQueue,
-                                                    index,
-                                                  );
-                                            } catch (e) {
-                                              AppSnackBar.showError(
-                                                context,
-                                                'Failed to play song',
-                                              );
-                                              playerProvider.playerService
-                                                  .playNext();
+                                                .audioPlayerInstance!
+                                                .seek(
+                                                  Duration.zero,
+                                                  index: index,
+                                                );
+                                          } else {
+                                            final localPath =
+                                                localSong['localPath'];
+                                            if (localPath != null) {
+                                              try {
+                                                await playerProvider
+                                                    .playerService
+                                                    .playLocalAudioWithQueue(
+                                                      localPath,
+                                                      localSong,
+                                                      localQueue,
+                                                      index,
+                                                    );
+                                              } catch (e) {
+                                                AppSnackBar.showError(
+                                                  context,
+                                                  'Failed to play song',
+                                                );
+                                                playerProvider.playerService
+                                                    .playNext();
+                                              }
                                             }
                                           }
+                                        } else {
+                                          AppSnackBar.showWarning(
+                                            context,
+                                            'Local queue data not available',
+                                          );
                                         }
                                       } else {
-                                        AppSnackBar.showWarning(
-                                          context,
-                                          'Local queue data not available',
-                                        );
+                                        // queueProvider.setCurrentIndex(index);
+                                        await playerProvider.playerService
+                                            .playSong(song);
                                       }
-                                    } else {
-                                      // queueProvider.setCurrentIndex(index);
-                                      await playerProvider.playerService
-                                          .playSong(song);
-                                    }
-                                  },
+                                    },
+                                  ),
                                 ),
                               ),
                             );

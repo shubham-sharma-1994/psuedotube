@@ -128,68 +128,73 @@ class _DownloadsScreenState extends State<DownloadsScreen>
             color: MainScreenColors.getSurfaceColor(isDarkMode),
             borderRadius: BorderRadius.circular(AppDimens.radiusLg),
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(AppDimens.paddingSm),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(AppDimens.radiusSm),
-              child: _buildThumbnail(song['thumbnail'], isDarkMode),
-            ),
-            title: Text(
-              song['title'],
-              style: AppTextStyles.queueItem(isDarkMode: isDarkMode),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  song['artist'],
-                  style: AppTextStyles.settingsSubtitle(isDarkMode: isDarkMode),
-                ),
-                if (progress != null) ...[
-                  const SizedBox(height: AppDimens.spacingSm),
-                  LinearProgressIndicator(
-                    value: progress.progress,
-                    backgroundColor: isDarkMode
-                        ? Colors.grey[800]
-                        : Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                    borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
-                  ),
-                  const SizedBox(height: AppDimens.spacingXs),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(AppDimens.paddingSm),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                child: _buildThumbnail(song['thumbnail'], isDarkMode),
+              ),
+              title: Text(
+                song['title'],
+                style: AppTextStyles.queueItem(isDarkMode: isDarkMode),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '${(progress.progress * 100).toInt()}%',
-                    style: AppTextStyles.caption(isDarkMode: isDarkMode)
-                        .copyWith(
-                          color: isDarkMode
-                              ? Colors.grey[400]
-                              : Colors.grey[600],
-                        ),
+                    song['artist'],
+                    style: AppTextStyles.settingsSubtitle(isDarkMode: isDarkMode),
                   ),
+                  if (progress != null) ...[
+                    const SizedBox(height: AppDimens.spacingSm),
+                    LinearProgressIndicator(
+                      value: progress.progress,
+                      backgroundColor: isDarkMode
+                          ? Colors.grey[800]
+                          : Colors.grey[300],
+                      valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusXxs),
+                    ),
+                    const SizedBox(height: AppDimens.spacingXs),
+                    Text(
+                      '${(progress.progress * 100).toInt()}%',
+                      style: AppTextStyles.caption(isDarkMode: isDarkMode)
+                          .copyWith(
+                            color: isDarkMode
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                          ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (progress == null)
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (progress == null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.download,
+                        color: MainScreenColors.getTextColor(isDarkMode),
+                      ),
+                      onPressed: () =>
+                          downloadProvider.startQueuedDownload(song['id']),
+                    ),
                   IconButton(
                     icon: Icon(
-                      Icons.download,
+                      Icons.close,
                       color: MainScreenColors.getTextColor(isDarkMode),
                     ),
-                    onPressed: () =>
-                        downloadProvider.startQueuedDownload(song['id']),
+                    onPressed: () => downloadProvider.removeDownload(song),
                   ),
-                IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: MainScreenColors.getTextColor(isDarkMode),
-                  ),
-                  onPressed: () => downloadProvider.removeDownload(song),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

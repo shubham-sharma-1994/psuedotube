@@ -199,11 +199,10 @@ class _SongOptionsBottomSheetlibraryState
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+      child: Material(
+        color: backgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        clipBehavior: Clip.antiAlias,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Padding(

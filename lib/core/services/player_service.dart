@@ -350,11 +350,16 @@ class PlayerService {
   }
 
   Future<void> loadSong(SongInfo song) async {
-    _updateSmtcMetadata(song);
-    await _openSong(song, playWhenReady: false);
-    updateBackgroundColor(
-      song.thumbnails.isNotEmpty ? song.thumbnails.first.url : null,
-    );
+    try {
+      _updateSmtcMetadata(song);
+      await _openSong(song, playWhenReady: false);
+      updateBackgroundColor(
+        song.thumbnails.isNotEmpty ? song.thumbnails.first.url : null,
+      );
+    } catch (e, stack) {
+      debugPrint('Error loading song: $e');
+      debugPrint('$stack');
+    }
   }
 
   Future<void> _openSong(
@@ -396,23 +401,15 @@ class PlayerService {
           if (audioUrl == null) {
             throw Exception('Failed to get audio URL');
           }
-          if (playWhenReady) {
-            await _mediaKitAdapter.openUri(audioUrl, play: true);
-            if (isTempCacheEnabled) {
-              unawaited(
-                _tempAudioCacheService
-                    .downloadAndCacheFile(audioUrl, song)
-                    .catchError((_) {}),
-              );
-            }
-          } else {
-            if (isTempCacheEnabled) {
-              final tempFile = await _tempAudioCacheService
-                  .downloadAndCacheFile(audioUrl, song);
-              await _mediaKitAdapter.openPath(tempFile.path, play: false);
-            } else {
-              await _mediaKitAdapter.openUri(audioUrl, play: false);
-            }
+          await _mediaKitAdapter.openUri(audioUrl, play: playWhenReady);
+          if (isTempCacheEnabled) {
+            unawaited(
+              _tempAudioCacheService
+                  .downloadAndCacheFile(audioUrl, song)
+                  .catchError((e) {
+                debugPrint('Failed to cache song in background: $e');
+              }),
+            );
           }
         }
       }
@@ -423,6 +420,10 @@ class PlayerService {
       _durationController.add(_duration);
       _processingState = ProcessingState.ready;
       _emitState();
+    } catch (e) {
+      _processingState = ProcessingState.idle;
+      _emitState();
+      rethrow;
     } finally {
       isFetchingStreamUrlNotifier.value = false;
     }

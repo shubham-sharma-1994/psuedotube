@@ -22,13 +22,12 @@ class LocalSongOptionsBottomSheet extends StatelessWidget {
     final textColor = MainScreenColors.getTextColor(isDarkMode);
     final backgroundColor = MainScreenColors.getBackgroundColor(isDarkMode);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusLg),
-        ),
+    return Material(
+      color: backgroundColor,
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(AppDimens.radiusLg),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -24,39 +24,42 @@ class SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      visualDensity: VisualDensity(vertical: -2, horizontal: -2),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingSm,
-        vertical: AppDimens.paddingXs,
-      ),
-      minLeadingWidth: AppDimens.iconLg,
-      horizontalTitleGap: AppDimens.spacingSm,
-      leading: Container(
-        padding: EdgeInsets.all(AppDimens.paddingXs),
-        decoration: BoxDecoration(
-          color: accentColor.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        dense: true,
+        visualDensity: VisualDensity(vertical: -2, horizontal: -2),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingSm,
+          vertical: AppDimens.paddingXs,
         ),
-        child: Icon(icon, color: accentColor, size: AppDimens.iconMd),
+        minLeadingWidth: AppDimens.iconLg,
+        horizontalTitleGap: AppDimens.spacingSm,
+        leading: Container(
+          padding: EdgeInsets.all(AppDimens.paddingXs),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+          ),
+          child: Icon(icon, color: accentColor, size: AppDimens.iconMd),
+        ),
+        title: Text(
+          title,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.bodyMd(
+            isDarkMode: isDarkMode,
+          ).copyWith(fontWeight: AppTextStyles.weightMedium),
+        ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle!,
+                style: AppTextStyles.settingsSubtitle(isDarkMode: isDarkMode),
+                overflow: TextOverflow.ellipsis,
+              ),
+        trailing: trailing,
+        onTap: onTap,
       ),
-      title: Text(
-        title,
-        overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bodyMd(
-          isDarkMode: isDarkMode,
-        ).copyWith(fontWeight: AppTextStyles.weightMedium),
-      ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle!,
-              style: AppTextStyles.settingsSubtitle(isDarkMode: isDarkMode),
-              overflow: TextOverflow.ellipsis,
-            ),
-      trailing: trailing,
-      onTap: onTap,
     );
   }
 }
