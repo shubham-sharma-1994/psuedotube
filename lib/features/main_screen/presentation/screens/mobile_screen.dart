@@ -17,7 +17,7 @@ import '../../../ota/data/providers/ota_provider.dart';
 import '../../../ota/presentation/widgets/ota_bottomsheet.dart';
 import '../../../player/presentation/screens/player_ui.dart';
 import '../../../search/presentation/screens/search_screen.dart';
-import '../../../trending/presentation/screens/trending_screen.dart';
+import '../../../explore/presentation/screens/explore_screen.dart';
 import '../widgets/audio_output_bottomsheet.dart';
 import '../widgets/profile_menu.dart';
 import 'full_player_screen.dart';
@@ -99,7 +99,6 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                   backgroundColor: theme.scaffoldBackgroundColor,
                   controller: _controller,
                   tabs: [
-                    // ── Home ──────────────────────────────────────────────
                     PersistentTabConfig(
                       screen: _TabWrapper(
                         key: const ValueKey('home_tab'),
@@ -119,13 +118,12 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         inactiveForegroundColor: inactiveColor,
                       ),
                     ),
-                    // ── Explore (charts / trending until full Explore) ────
                     PersistentTabConfig(
                       screen: _TabWrapper(
                         key: const ValueKey('explore_tab'),
                         titleKey: 'explore',
                         onSearchTap: _openSearch,
-                        child: const TrendingScreen(),
+                        child: const ExploreScreen(),
                       ),
                       item: ItemConfig(
                         icon: Icon(Icons.explore_rounded, size: navIconSize),
@@ -133,12 +131,11 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                           Icons.explore_outlined,
                           size: navIconSize,
                         ),
-                        title: 'explore'.tr(),
+                        title: 'Explore',
                         activeForegroundColor: accentColor,
                         inactiveForegroundColor: inactiveColor,
                       ),
                     ),
-                    // ── Library ───────────────────────────────────────────
                     PersistentTabConfig(
                       screen: _TabWrapper(
                         key: const ValueKey('library_tab'),
@@ -376,7 +373,6 @@ class _TabWrapper extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // No drawer — profile menu replaces the hamburger.
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
