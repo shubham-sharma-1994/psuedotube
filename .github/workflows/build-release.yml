@@ -3,6 +3,7 @@ name: Flutter Release Builds
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 on:
+  # Manual run from Actions tab
   workflow_dispatch:
     inputs:
       targets:
@@ -15,12 +16,14 @@ on:
           - android
           - linux
           - windows
-  push:
+  # PR-based: open + every new commit on an open PR → full CI + signed APK
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - master
-      - 'feature/**'
-  pull_request:
+  # Post-merge only (no feature/** push — avoids double builds while a PR is open)
+  push:
     branches:
       - main
       - master
@@ -103,7 +106,8 @@ jobs:
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: android-apks-release
+          # Distinct name per PR / run so each commit on a PR keeps its own APK
+          name: android-apks-pr${{ github.event.pull_request.number || '0' }}-run${{ github.run_number }}
           path: |
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/flutter-apk/*.sha256
