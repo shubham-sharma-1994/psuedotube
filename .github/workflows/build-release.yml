@@ -52,33 +52,38 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
+      # Dev signing without requiring GitHub Secrets.
+      # Prefer secrets when set; otherwise use android/dev-keystore.b64 + defaults.
       - name: Decode keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::Secret KEYSTORE_BASE64 is not set. Add the base64-encoded keystore in repo Settings → Secrets."
+          set -euo pipefail
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/noize.keystore
+          elif [ -f android/dev-keystore.b64 ]; then
+            echo "Using committed android/dev-keystore.b64 (dev only)"
+            tr -d '\n\r ' < android/dev-keystore.b64 | base64 -d > android/noize.keystore
+          else
+            echo "::error::No keystore available"
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > android/noize.keystore
-          test -s android/noize.keystore || { echo "::error::Decoded keystore is empty"; exit 1; }
+          test -s android/noize.keystore
 
       - name: Create key.properties
-        env:
-          STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          if [ -z "$STORE_PASSWORD" ] || [ -z "$KEY_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
-            echo "::error::Missing KEY_STORE_PASSWORD / KEY_PASSWORD / KEY_ALIAS secrets."
-            exit 1
-          fi
+          set -euo pipefail
+          SP='${{ secrets.KEY_STORE_PASSWORD }}'
+          KP='${{ secrets.KEY_PASSWORD }}'
+          KA='${{ secrets.KEY_ALIAS }}'
+          [ -n "$SP" ] || SP='NoizeYtm2026!'
+          [ -n "$KP" ] || KP='NoizeYtm2026!'
+          [ -n "$KA" ] || KA='noize'
           {
-            echo "storePassword=$STORE_PASSWORD"
-            echo "keyPassword=$KEY_PASSWORD"
-            echo "keyAlias=$KEY_ALIAS"
+            echo "storePassword=$SP"
+            echo "keyPassword=$KP"
+            echo "keyAlias=$KA"
             echo "storeFile=noize.keystore"
           } > android/key.properties
+          echo "Signing with alias=$KA"
 
       # GITHUB_RUN_NUMBER always increases → Android allows install-over without uninstall
       - name: Build APKs (split per ABI + universal)
@@ -177,7 +182,7 @@ jobs:
       - name: Generate SHA-256 checksum (MSIX)
         shell: pwsh
         run: |
-          $msix = "build\windows\x64\runner\Release\Noize.msix"
+          $msix = "build\\windows\\x64\\runner\\Release\\Noize.msix"
           $hash = (Get-FileHash $msix -Algorithm SHA256).Hash
           "$hash  Noize.msix" | Out-File -Encoding utf8 "$msix.sha256"
 
