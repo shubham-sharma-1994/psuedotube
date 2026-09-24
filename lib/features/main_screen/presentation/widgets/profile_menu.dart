@@ -13,7 +13,7 @@ import '../../../settings/presentation/screens/settings_screen.dart';
 import '../../../stats/presentation/screens/stats_screen.dart';
 
 /// YTM-style profile menu opened from the top-bar avatar.
-/// Migrates every entry that used to live in [MainDrawer].
+/// Migrates every entry that used to live in the hamburger drawer.
 Future<void> showProfileMenu(BuildContext context) {
   final settings = Provider.of<SettingsProvider>(context, listen: false);
   final isDark = settings.themeMode == ThemeMode.dark;
@@ -55,7 +55,7 @@ Future<void> showProfileMenu(BuildContext context) {
                 ),
                 title: Text(
                   'Noize',
-                  style: AppTextStyles.titleMd(isDarkMode: isDark),
+                  style: AppTextStyles.titleSm(isDarkMode: isDark),
                 ),
                 subtitle: Text(
                   'welcome'.tr(),
