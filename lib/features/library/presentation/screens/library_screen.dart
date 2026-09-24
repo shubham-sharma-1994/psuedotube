@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../../../favorite_artist/presentation/screens/favorite_artist_screen.dart';
 import '../widgets/library_song_list_tile.dart';
+import '../widgets/library_filter_chips.dart';
 import '../../../../shared/components/app_snackbar.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -79,48 +80,51 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
           body: Column(
             children: [
-              TabBar(
-                physics: _isSelectionMode
-                    ? const NeverScrollableScrollPhysics()
-                    : null,
-                onTap: _isSelectionMode
-                    ? null
-                    : (index) {
-                        setState(() {
-                          _isSelectionMode = false;
-                          _selectedSongs.clear();
-                          switch (index) {
-                            case 0:
-                              _currentTab = 'favorites';
-                              break;
-                            case 1:
-                              _currentTab = 'downloads';
-                              break;
-                            case 2:
-                              _currentTab = 'recently_played';
-                              break;
-                            case 3:
-                              _currentTab = 'local_music';
-                              break;
-                          }
-                        });
-                      },
-                tabs: [
-                  Tab(text: 'favorites'.tr()),
-                  Tab(text: 'downloads'.tr()),
-                  Tab(text: 'recently_played'.tr()),
-                  Tab(text: 'local_music'.tr()),
-                ],
-                indicatorColor: accentColor,
-                labelStyle: AppTextStyles.bodyMd(
-                  isDarkMode: isDarkMode,
-                  color: accentColor,
-                ).copyWith(fontWeight: AppTextStyles.weightBold),
-                labelColor: accentColor,
-                unselectedLabelStyle: AppTextStyles.bodyMd(
-                  isDarkMode: isDarkMode,
-                ),
-                isScrollable: true,
+              Builder(
+                builder: (context) {
+                  final tabController = DefaultTabController.of(context);
+                  return AnimatedBuilder(
+                    animation: tabController,
+                    builder: (context, _) {
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          top: AppDimens.spacingSm,
+                        ),
+                        child: LibraryFilterChips(
+                          selectedIndex: tabController.index,
+                          labels: [
+                            'favorites'.tr(),
+                            'downloads'.tr(),
+                            'recently_played'.tr(),
+                            'local_music'.tr(),
+                          ],
+                          onSelected: (index) {
+                            if (_isSelectionMode) return;
+                            setState(() {
+                              _isSelectionMode = false;
+                              _selectedSongs.clear();
+                              switch (index) {
+                                case 0:
+                                  _currentTab = 'favorites';
+                                  break;
+                                case 1:
+                                  _currentTab = 'downloads';
+                                  break;
+                                case 2:
+                                  _currentTab = 'recently_played';
+                                  break;
+                                case 3:
+                                  _currentTab = 'local_music';
+                                  break;
+                              }
+                            });
+                            tabController.animateTo(index);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
               if (_isSelectionMode)
                 _buildSelectionMenu(accentColor, isDarkMode),

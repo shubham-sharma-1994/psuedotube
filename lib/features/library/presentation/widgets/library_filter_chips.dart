@@ -29,7 +29,8 @@ class LibraryFilterChips extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingLg),
         itemCount: labels.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppDimens.spacingSm),
+        separatorBuilder: (context, index) =>
+            const SizedBox(width: AppDimens.spacingSm),
         itemBuilder: (context, index) {
           final selected = selectedIndex == index;
           return FilterChip(
