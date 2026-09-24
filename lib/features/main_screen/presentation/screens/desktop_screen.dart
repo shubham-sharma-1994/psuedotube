@@ -16,7 +16,7 @@ import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../player/presentation/screens/player_ui.dart';
 import '../../../library/presentation/screens/library_screen.dart';
-import '../../../trending/presentation/screens/trending_screen.dart';
+import '../../../explore/presentation/screens/explore_screen.dart';
 import 'full_player_screen.dart';
 
 class DesktopMainScreen extends StatefulWidget {
@@ -38,7 +38,7 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const TrendingScreen(), // Explore
+    const ExploreScreen(), // Explore Charts
     const LibraryScreen(),
   ];
 
