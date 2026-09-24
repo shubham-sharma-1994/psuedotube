@@ -910,7 +910,9 @@ class PlayerUIState extends State<PlayerUI>
                           handlePlayPause: _handlePlayPause,
                           handleNext: _handleNext,
                         ),
-                        if (_playerProvider.currentLocalSong == null)
+                        // YTM mini: no Like on embedded compact chrome
+                        if (!widget.isEmbedded &&
+                            _playerProvider.currentLocalSong == null)
                           Consumer<FavoriteSongProvider>(
                             builder: (context, favoriteSongProvider, child) {
                               return PlayerControls.buildFavoriteButton(
