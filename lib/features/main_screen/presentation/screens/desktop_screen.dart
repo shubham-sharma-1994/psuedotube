@@ -8,19 +8,14 @@ import '../../../../core/constants/app_text_styles.dart';
 
 import 'package:provider/provider.dart';
 
-import '../../../favorite_artist/presentation/screens/favorite_artist_screen.dart';
 import '../widgets/audio_output_bottomsheet.dart';
 
-import '../../../downloads/presentation/screens/downloads_screen.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../player/presentation/screens/player_ui.dart';
 import '../../../library/presentation/screens/library_screen.dart';
-import '../../../playlists/presentation/screens/playlists_screen.dart';
-import '../../../search/presentation/screens/search_screen.dart';
-import '../../../stats/presentation/screens/stats_screen.dart';
 import '../../../trending/presentation/screens/trending_screen.dart';
 import 'full_player_screen.dart';
 
@@ -43,14 +38,8 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const SearchScreen(),
-    const TrendingScreen(),
-    const PlaylistScreen(),
+    const TrendingScreen(), // Explore
     const LibraryScreen(),
-    const FavoriteArtistsScreen(),
-    const SettingsScreen(),
-    const DownloadsScreen(),
-    StatsScreen(),
   ];
 
   @override
@@ -93,7 +82,6 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
         );
   }
 
-  // --- Custom Navigation Item Builder ---
   Widget _buildNavItem({
     required int index,
     required IconData icon,
@@ -240,6 +228,22 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                                 onPressed: () => settingsProvider.toggleTheme(),
                                 tooltip: 'Toggle Theme',
                               ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.settings_rounded,
+                                  color: MainScreenColors.getTextColor(
+                                    isDarkMode,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const SettingsScreen(),
+                                    ),
+                                  );
+                                },
+                                tooltip: 'settings'.tr(),
+                              ),
                             ],
                           ),
                         ),
@@ -249,7 +253,7 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                             children: [
                               _buildNavItem(
                                 index: 0,
-                                icon: Icons.home,
+                                icon: Icons.home_rounded,
                                 label: 'home'.tr(),
                                 isSelected: _currentIndex == 0,
                                 settingsProvider: settingsProvider,
@@ -257,65 +261,17 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                               ),
                               _buildNavItem(
                                 index: 1,
-                                icon: Icons.search,
-                                label: 'search'.tr(),
+                                icon: Icons.explore_rounded,
+                                label: 'Explore',
                                 isSelected: _currentIndex == 1,
                                 settingsProvider: settingsProvider,
                                 isDarkMode: isDarkMode,
                               ),
                               _buildNavItem(
                                 index: 2,
-                                icon: Icons.trending_up,
-                                label: 'trending'.tr(),
-                                isSelected: _currentIndex == 2,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 3,
-                                icon: Icons.playlist_play,
-                                label: 'playlists'.tr(),
-                                isSelected: _currentIndex == 3,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 4,
-                                icon: Icons.library_music_outlined,
+                                icon: Icons.library_music_rounded,
                                 label: 'library'.tr(),
-                                isSelected: _currentIndex == 4,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 5,
-                                icon: Icons.person_outline,
-                                label: 'artists'.tr(),
-                                isSelected: _currentIndex == 5,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 6,
-                                icon: Icons.settings,
-                                label: 'settings'.tr(),
-                                isSelected: _currentIndex == 6,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 7,
-                                icon: Icons.download_done_sharp,
-                                label: 'downloads'.tr(),
-                                isSelected: _currentIndex == 7,
-                                settingsProvider: settingsProvider,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _buildNavItem(
-                                index: 8,
-                                icon: Icons.show_chart,
-                                label: 'stats'.tr(),
-                                isSelected: _currentIndex == 8,
+                                isSelected: _currentIndex == 2,
                                 settingsProvider: settingsProvider,
                                 isDarkMode: isDarkMode,
                               ),
@@ -339,7 +295,6 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                       ],
                     ),
                   ),
-                  // --- Main Content Area ---
                   Expanded(
                     child: Navigator(
                       key: _innerNavKey,
@@ -377,9 +332,7 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                                 if (Navigator.of(wrapperContext).canPop()) {
                                   Navigator.of(wrapperContext).pop();
                                 }
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
                                   if (MediaQuery.of(wrapperContext).size.width <
                                       AppDimens.breakpointMobile) {
                                     showModalBottomSheet(
@@ -389,9 +342,7 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                                       enableDrag: true,
                                       builder: (context) => SafeArea(
                                         child: SizedBox(
-                                          height: MediaQuery.of(
-                                            context,
-                                          ).size.height,
+                                          height: MediaQuery.of(context).size.height,
                                           child: const FullPlayerScreen(),
                                         ),
                                       ),
@@ -402,11 +353,11 @@ class _DesktopMainScreenState extends State<DesktopMainScreen> {
                             ),
                         transitionsBuilder:
                             (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
                         transitionDuration: const Duration(milliseconds: 300),
                       ),
                     );
