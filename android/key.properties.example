@@ -1,0 +1,16 @@
+# Copy this file to android/key.properties and fill in real values.
+# key.properties and *.keystore / *.jks are gitignored — never commit them.
+#
+# With this file present, both debug and release builds use the same keystore,
+# so you can install over previous builds without uninstalling.
+#
+# Generate a keystore (once):
+#   keytool -genkey -v -keystore android/noize.keystore -alias noize \
+#     -keyalg RSA -keysize 2048 -validity 10000
+#
+# Paths are relative to the android/ directory (rootProject).
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=noize
+storeFile=noize.keystore
