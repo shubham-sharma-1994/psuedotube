@@ -13,10 +13,12 @@ class FullPlayerScreen extends StatelessWidget {
       context,
       listen: true,
     ).animationType;
+    // YTM default: true black static. Optional animation backgrounds only when enabled.
+    final bg = animationType == 'Default'
+        ? const Color(0xFF000000)
+        : const Color(0xFF040404);
     return Scaffold(
-      backgroundColor: animationType == 'Default'
-          ? Colors.transparent
-          : const Color(0xFF040404),
+      backgroundColor: bg,
       body: PlayerUI(
         showFullScreen: true,
         isBottomSheet: true,
