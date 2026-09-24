@@ -53,17 +53,17 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
-        slivers: [
-          const (SliverToBoxAdapter(child: SizedBox(height: AppDimens.spacingSm))),
-          const SliverToBoxAdapter(child: MoodChipsRow()),
-          const (SliverToBoxAdapter(child: GreetingHeader())),
-          const (SliverToBoxAdapter(child: SizedBox(height: AppDimens.spacingSm))),
-          const SliverToBoxAdapter(child: RecentPlaylistsSection()),
-          const SliverToBoxAdapter(child: LastPlayedSection()),
-          const SliverToBoxAdapter(child: LikedSongsSection()),
-          const SliverToBoxAdapter(child: FavoriteArtistsSection()),
-          const SliverToBoxAdapter(child: HomeSections()),
-          SliverToBoxAdapter(child: SizedBox(height: AppDimens.paddingXl)),
+        slivers: const [
+          (SliverToBoxAdapter(child: SizedBox(height: AppDimens.spacingSm))),
+          (SliverToBoxAdapter(child: MoodChipsRow())),
+          (SliverToBoxAdapter(child: GreetingHeader())),
+          (SliverToBoxAdapter(child: SizedBox(height: AppDimens.spacingSm))),
+          (SliverToBoxAdapter(child: RecentPlaylistsSection())),
+          (SliverToBoxAdapter(child: LastPlayedSection())),
+          (SliverToBoxAdapter(child: LikedSongsSection())),
+          (SliverToBoxAdapter(child: FavoriteArtistsSection())),
+          (SliverToBoxAdapter(child: HomeSections())),
+          (SliverToBoxAdapter(child: SizedBox(height: AppDimens.paddingXl))),
         ],
       ),
     );
