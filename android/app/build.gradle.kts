@@ -10,8 +10,10 @@ plugins {
 
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
-    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+val hasReleaseKeystore = keystorePropertiesFile.exists().also { exists ->
+    if (exists) {
+        FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+    }
 }
 
 android {
@@ -30,11 +32,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.anand.noize"
         multiDexEnabled = true
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode
@@ -42,16 +41,21 @@ android {
     }
 
     signingConfigs {
+        // Named "release" but also used for debug when key.properties is present,
+        // so local debug installs and CI APKs share one signature and can upgrade
+        // in place without uninstalling.
         create("release") {
-            val storeFilePath: String? = keystoreProperties.getProperty("storeFile")
-            val storePassword: String? = keystoreProperties.getProperty("storePassword")
-            val keyAlias: String? = keystoreProperties.getProperty("keyAlias")
-            val keyPassword: String? = keystoreProperties.getProperty("keyPassword")
+            if (hasReleaseKeystore) {
+                val storeFilePath: String? = keystoreProperties.getProperty("storeFile")
+                val storePassword: String? = keystoreProperties.getProperty("storePassword")
+                val keyAlias: String? = keystoreProperties.getProperty("keyAlias")
+                val keyPassword: String? = keystoreProperties.getProperty("keyPassword")
 
-            storeFilePath?.let { storeFile = rootProject.file(it) }
-            storePassword?.let { this.storePassword = it }
-            keyAlias?.let { this.keyAlias = it }
-            keyPassword?.let { this.keyPassword = it }
+                storeFilePath?.let { storeFile = rootProject.file(it) }
+                storePassword?.let { this.storePassword = it }
+                keyAlias?.let { this.keyAlias = it }
+                keyPassword?.let { this.keyPassword = it }
+            }
         }
     }
 
@@ -65,10 +69,21 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Prefer the same keystore as release so sideloaded debug/CI builds
+            // update over each other. Falls back to the default debug keystore
+            // when key.properties is missing (e.g. fresh clone without secrets).
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-           signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            // If no keystore is configured, Gradle still produces an unsigned
+            // or debug-signed artifact depending on AGP defaults — CI always
+            // injects key.properties so release builds are signed there.
 
             isMinifyEnabled = true
             isShrinkResources = true
