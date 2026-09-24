@@ -126,6 +126,8 @@ Future<void> main() async {
       Hive.registerAdapter(PlaylistDetailedDTOAdapter());
       Hive.registerAdapter(ArtistBasicDTOAdapter());
       Hive.registerAdapter(ThumbnailFullDTOAdapter());
+      Hive.registerAdapter(SongDetailedDTOAdapter());
+      Hive.registerAdapter(ArtistDetailedDTOAdapter());
 
       final settingsProvider = SettingsProvider();
       GetIt.I.registerSingleton<SettingsProvider>(settingsProvider);
