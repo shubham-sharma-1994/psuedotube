@@ -1,0 +1,13 @@
+--- a/lib/features/player/presentation/screens/player_ui.dart
++++ b/lib/features/player/presentation/screens/player_ui.dart
+@@ -910,7 +910,9 @@
+                           handlePlayPause: _handlePlayPause,
+                           handleNext: _handleNext,
+                         ),
+-                        if (_playerProvider.currentLocalSong == null)
++                        // YTM mini: no Like on embedded compact chrome
++                        if (!widget.isEmbedded &&
++                            _playerProvider.currentLocalSong == null)
+                           Consumer<FavoriteSongProvider>(
+                             builder: (context, favoriteSongProvider, child) {
+                               return PlayerControls.buildFavoriteButton(

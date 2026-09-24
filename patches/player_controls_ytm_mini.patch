@@ -1,0 +1,44 @@
+--- a/lib/features/player/presentation/widgets/player_controls.dart
++++ b/lib/features/player/presentation/widgets/player_controls.dart
+@@ -270,12 +270,13 @@
+     );
+   }
+ 
++  /// YTM mini chrome: Play/Pause + Next only (no Previous).
+   static Widget buildMiniControls({
+     required bool isDarkMode,
+     required Color accentColor,
+     required QueueProvider queueProvider,
+     required PlayerService playerService,
+-    required VoidCallback handlePrevious,
++    VoidCallback? handlePrevious, // API compat; unused in mini
+     required VoidCallback handlePlayPause,
+     required VoidCallback handleNext,
+   }) {
+@@ -324,26 +325,6 @@
+             return Row(
+               mainAxisSize: MainAxisSize.min,
+               children: [
+-                SizedBox(
+-                  width: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
+-                  height: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
+-                  child: IconButton(
+-                    padding: EdgeInsets.zero,
+-                    constraints: const BoxConstraints(),
+-                    icon: Icon(
+-                      Icons.skip_previous_rounded,
+-                      size: isCompact ? AppDimens.iconMdLg : AppDimens.iconXxl,
+-                      color: queueProvider.hasPrevious
+-                          ? MainScreenColors.getTextColor(isDarkMode)
+-                          : MainScreenColors.getTextColor(
+-                              isDarkMode,
+-                            ).withValues(alpha: 0.3),
+-                    ),
+-                    onPressed: queueProvider.hasPrevious
+-                        ? handlePrevious
+-                        : null,
+-                  ),
+-                ),
+                 buildPlayPauseButton(
+                   context: context,
+                   isMini: true,
