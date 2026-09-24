@@ -62,8 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
           ),
-          const SliverToBoxAdapter(child: RecentPlaylistsSection()),
+          // YTM: Listen again is the first content shelf
           const SliverToBoxAdapter(child: LastPlayedSection()),
+          const SliverToBoxAdapter(child: RecentPlaylistsSection()),
           const SliverToBoxAdapter(child: LikedSongsSection()),
           const SliverToBoxAdapter(child: FavoriteArtistsSection()),
           const SliverToBoxAdapter(child: HomeSections()),
