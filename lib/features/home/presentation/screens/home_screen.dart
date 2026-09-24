@@ -54,19 +54,19 @@ class _HomeScreenState extends State<HomeScreen> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          SliverToBoxAdapter(
+          (SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
-          ),
-          const (SliverToBoxAdapter(child: MoodChipsRow())),
-          const (SliverToBoxAdapter(child: GreetingHeader())),
-          SliverToBoxAdapter(
+          )),
+          const SliverToBoxAdapter(child: MoodChipsRow()),
+          const SliverToBoxAdapter(child: GreetingHeader()),
+          (SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
-          ),
-          const (SliverToBoxAdapter(child: RecentPlaylistsSection())),
+          )),
+          const SliverToBoxAdapter(child: RecentPlaylistsSection()),
           const (SliverToBoxAdapter(child: LastPlayedSection())),
-          const (SliverToBoxAdapter(child: LikedSongsSection())),
-          const (SliverToBoxAdapter(child: FavoriteArtistsSection())),
-          const (SliverToBoxAdapter(child: HomeSections())),
+          const SliverToBoxAdapter(child: LikedSongsSection()),
+          const SliverToBoxAdapter(child: FavoriteArtistsSection()),
+          const SliverToBoxAdapter(child: HomeSections()),
           (SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.paddingXl),
           )),
