@@ -58,11 +58,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SizedBox(height: AppDimens.spacingSm),
           ),
           const SliverToBoxAdapter(child: MoodChipsRow()),
-          const (SliverToBoxAdapter(child: GreetingHeader())),
+          const SliverToBoxAdapter(child: GreetingHeader()),
           SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
           ),
-          const SliverToBoxAdapter(child: RecentPlaylistsSection()),
+          const (SliverToBoxAdapter(child: RecentPlaylistsSection())),
           const SliverToBoxAdapter(child: LastPlayedSection()),
           const SliverToBoxAdapter(child: LikedSongsSection()),
           const SliverToBoxAdapter(child: FavoriteArtistsSection()),
