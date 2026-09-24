@@ -13,7 +13,7 @@ import '../widgets/liked_songs_section.dart';
 import '../widgets/mood_chips_row.dart';
 import '../widgets/recent_playlists_section.dart';
 
-/// YouTube Music–style Home: mood chips, greeting, horizontal shelves.
+/// YouTube Music-style Home: mood chips, greeting, horizontal shelves.
 /// Stats and Explore/trending live elsewhere (Profile / Explore tab).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -54,17 +54,17 @@ class _HomeScreenState extends State<HomeScreen> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          (SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
-          )),
+          ),
           const SliverToBoxAdapter(child: MoodChipsRow()),
-          const SliverToBoxAdapter(child: GreetingHeader()),
+          const (SliverToBoxAdapter(child: GreetingHeader())),
           (SliverToBoxAdapter(
             child: SizedBox(height: AppDimens.spacingSm),
           )),
           const SliverToBoxAdapter(child: RecentPlaylistsSection()),
-          const (SliverToBoxAdapter(child: LastPlayedSection())),
-          const SliverToBoxAdapter(child: LikedSongsSection()),
+          const SliverToBoxAdapter(child: LastPlayedSection()),
+          const (SliverToBoxAdapter(child: LikedSongsSection())),
           const SliverToBoxAdapter(child: FavoriteArtistsSection()),
           const SliverToBoxAdapter(child: HomeSections()),
           (SliverToBoxAdapter(
