@@ -99,9 +99,10 @@ class SearchBarWidget extends StatelessWidget {
                           ),
                         ),
                         filled: true,
+                        // YTM search field: soft grey pill
                         fillColor: isDarkMode
-                            ? const Color(0xFF212121)
-                            : const Color(0xFFF0F0F0),
+                            ? const Color(0xFF282828)
+                            : const Color(0xFFE8E8E8),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppDimens.paddingXl,
                         ),
