@@ -1,7 +1,5 @@
 name: PR Android CI
 
-# Exactly one check on a PR: open, reopen, or new commits on an open PR.
-# Does NOT run on merge / push to main.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -46,7 +44,7 @@ jobs:
           elif [ -f android/dev-keystore.b64 ]; then
             tr -d '\n\r ' < android/dev-keystore.b64 | base64 -d > android/noize.keystore
           else
-            echo "::error::No keystore (KEYSTORE_BASE64 secret or android/dev-keystore.b64)"
+            echo "::error::No keystore"
             exit 1
           fi
           test -s android/noize.keystore
@@ -74,14 +72,16 @@ jobs:
             --build-name="1.0.0+${{ github.run_number }}"
 
       - name: Checksum
-        working-directory: build/app/outputs/flutter-apk
         run: |
-          sha256sum app-release.apk > app-release.apk.sha256
-          ls -lah app-release.apk*
+          set -euo pipefail
+          OUT=build/app/outputs/flutter-apk
+          ls -lah "$OUT"
+          test -f "$OUT/app-release.apk"
+          sha256sum "$OUT/app-release.apk" | tee "$OUT/app-release.apk.sha256"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: noize-apk-pr${{ github.event.pull_request.number }}-run${{ github.run_number }}
+          name: psuedotube-apk-pr${{ github.event.pull_request.number }}-run${{ github.run_number }}
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-release.apk.sha256
