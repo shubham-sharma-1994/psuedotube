@@ -1,0 +1,91 @@
+name: Build Android APK
+
+# Manual only — Actions → Build Android APK → Run workflow
+# Choose any branch; produces one signed universal APK artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: "Version name (e.g. 1.0.0)"
+        required: false
+        default: "1.0.0"
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    name: Build signed APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Decode keystore
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/noize.keystore
+          elif [ -f android/dev-keystore.b64 ]; then
+            tr -d '\n\r ' < android/dev-keystore.b64 | base64 -d > android/noize.keystore
+          else
+            echo "::error::No keystore (KEYSTORE_BASE64 secret or android/dev-keystore.b64)"
+            exit 1
+          fi
+          test -s android/noize.keystore
+
+      - name: key.properties
+        run: |
+          set -euo pipefail
+          SP='${{ secrets.KEY_STORE_PASSWORD }}'
+          KP='${{ secrets.KEY_PASSWORD }}'
+          KA='${{ secrets.KEY_ALIAS }}'
+          [ -n "$SP" ] || SP='NoizeYtm2026!'
+          [ -n "$KP" ] || KP='NoizeYtm2026!'
+          [ -n "$KA" ] || KA='noize'
+          {
+            echo "storePassword=$SP"
+            echo "keyPassword=$KP"
+            echo "keyAlias=$KA"
+            echo "storeFile=noize.keystore"
+          } > android/key.properties
+
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+            --build-number="${{ github.run_number }}" \
+            --build-name="${{ inputs.build_name }}+${{ github.run_number }}"
+
+      - name: Checksum
+        working-directory: build/app/outputs/flutter-apk
+        run: |
+          sha256sum app-release.apk > app-release.apk.sha256
+          ls -lah app-release.apk*
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: noize-apk-${{ github.ref_name }}-run${{ github.run_number }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
