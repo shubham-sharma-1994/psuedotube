@@ -19,9 +19,15 @@ class LastPlayedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = context.select((SettingsProvider p) => p.accentColor);
+    final settings = context.watch<SettingsProvider>();
+    final accentColor = settings.accentColor;
     final playerProvider = context.watch<PlayerProvider>();
     final homeScreenQueueService = HomeScreenQueueService(context);
+
+    // YTM: hide shelf when history is off or empty
+    if (!settings.playbackHistoryEnabled) {
+      return const SizedBox.shrink();
+    }
 
     if (playerProvider.isLoadingLastPlayedSongs) {
       return ShimmerLoading.buildShimmerList();
@@ -52,7 +58,8 @@ class LastPlayedSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'recently_played'.tr(),
+                // YTM primary Home shelf label
+                'Listen again',
                 style: AppTextStyles.titleLg().copyWith(color: accentColor),
               ),
             ],

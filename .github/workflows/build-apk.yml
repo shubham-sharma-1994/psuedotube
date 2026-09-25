@@ -81,6 +81,7 @@ jobs:
           test -f "$OUT/app-release.apk"
           sha256sum "$OUT/app-release.apk" | tee "$OUT/app-release.apk.sha256"
 
+      # Artifact names cannot contain / : * ? etc. Sanitize branch name.
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

@@ -81,15 +81,11 @@ class SearchBarWidget extends StatelessWidget {
                               ).withValues(alpha: 0.5),
                             ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimens.radiusMd,
-                          ),
+                          borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimens.radiusMd,
-                          ),
+                          borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide(
                             color: MainScreenColors.getTextColor(
                               isDarkMode,
@@ -97,17 +93,16 @@ class SearchBarWidget extends StatelessWidget {
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppDimens.radiusMd,
-                          ),
+                          borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide(
                             color: accentColor.withValues(alpha: 0.9),
                           ),
                         ),
                         filled: true,
-                        fillColor: MainScreenColors.getSurfaceColor(
-                          isDarkMode,
-                        ).withValues(alpha: 0.95),
+                        // YTM search field: soft grey pill
+                        fillColor: isDarkMode
+                            ? const Color(0xFF282828)
+                            : const Color(0xFFE8E8E8),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppDimens.paddingXl,
                         ),
@@ -190,12 +185,10 @@ class SearchBarWidget extends StatelessWidget {
     VoidCallback onPressed,
   ) {
     final bool isMobile = AppDimens.isMobile(context);
-    final double horizontalPadding = isMobile
-        ? AppDimens.paddingSm
-        : AppDimens.paddingMd;
-    final double verticalPadding = isMobile
-        ? AppDimens.spacingXs
-        : AppDimens.spacingSm;
+    final double horizontalPadding =
+        isMobile ? AppDimens.paddingSm : AppDimens.paddingMd;
+    final double verticalPadding =
+        isMobile ? AppDimens.spacingXs : AppDimens.spacingSm;
 
     final TextStyle textStyle = AppTextStyles.caption(isDarkMode: isDarkMode)
         .copyWith(

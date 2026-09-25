@@ -12,6 +12,23 @@ import '../../../../core/providers/settings_provider.dart';
 class HomeSections extends StatelessWidget {
   const HomeSections({Key? key}) : super(key: key);
 
+  /// Map InnerTube section titles toward YTM-style shelf labels.
+  static String _displayTitle(String raw) {
+    final t = raw.trim();
+    final lower = t.toLowerCase();
+    if (lower.contains('quick pick')) return 'Quick picks';
+    if (lower.contains('forgotten')) return 'Forgotten favorites';
+    if (lower.contains('new release') || lower.contains('new album')) {
+      return 'New releases';
+    }
+    if (lower.contains('mixed for you') || lower.contains('mix for you')) {
+      return 'Mixed for you';
+    }
+    if (lower.contains('recommended')) return 'Recommended';
+    if (lower.contains('listen again')) return 'Listen again';
+    return t;
+  }
+
   void _openContentDetail(BuildContext context, dynamic content) {
     Navigator.push(
       context,
@@ -37,7 +54,7 @@ class HomeSections extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(AppDimens.paddingLg),
               child: Text(
-                section.title,
+                _displayTitle(section.title),
                 style: AppTextStyles.titleLg().copyWith(color: accentColor),
               ),
             ),
@@ -51,7 +68,7 @@ class HomeSections extends StatelessWidget {
                   final content = section.contents[index];
                   return ContentCard(
                     content: content,
-                    isArtist: content.type == 'artist',
+                    isArtist: content.type.toString().toLowerCase() == 'artist',
                     onTap: () => _openContentDetail(context, content),
                   );
                 },

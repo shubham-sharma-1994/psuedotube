@@ -1,0 +1,16 @@
+# Copy to android/key.properties (gitignored).
+# Paths are relative to the android/ directory.
+#
+# Generated project keystore credentials (also put these in GitHub Actions secrets):
+#   KEY_ALIAS=noize
+#   KEY_STORE_PASSWORD / KEY_PASSWORD = NoizeYtm2026!
+#   KEYSTORE_BASE64 = base64 -w0 of android/noize.keystore
+#
+# Generate your own instead if you prefer:
+#   keytool -genkey -v -keystore android/noize.keystore -alias noize \
+#     -keyalg RSA -keysize 2048 -validity 10000
+
+storePassword=NoizeYtm2026!
+keyPassword=NoizeYtm2026!
+keyAlias=noize
+storeFile=noize.keystore

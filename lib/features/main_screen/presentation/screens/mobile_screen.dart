@@ -2,25 +2,24 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_dimens.dart';
-import '../../../../core/constants/app_text_styles.dart';
-import '../widgets/audio_output_bottomsheet.dart';
-
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
-import '../../../home/presentation/screens/home_screen.dart';
-import '../../../../core/theme/app_theme.dart';
+
+import '../../../../core/constants/app_dimens.dart';
+import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/models/ota_model.dart';
-import '../../../ota/data/providers/ota_provider.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
-import '../../../player/presentation/screens/player_ui.dart';
-import 'desktop_screen.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../home/presentation/screens/home_screen.dart';
 import '../../../library/presentation/screens/library_screen.dart';
-import '../../../playlists/presentation/screens/playlists_screen.dart';
-import '../../../search/presentation/screens/search_screen.dart';
-import '../widgets/mobile_drawer.dart';
+import '../../../ota/data/providers/ota_provider.dart';
 import '../../../ota/presentation/widgets/ota_bottomsheet.dart';
+import '../../../player/presentation/screens/player_ui.dart';
+import '../../../search/presentation/screens/search_screen.dart';
+import '../../../explore/presentation/screens/explore_screen.dart';
+import '../widgets/audio_output_bottomsheet.dart';
+import '../widgets/profile_menu.dart';
 import 'full_player_screen.dart';
 
 class MobileMainScreen extends StatefulWidget {
@@ -47,6 +46,15 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
         Provider.of<OTAProvider>(context, listen: false).checkForUpdates();
       }
     });
+  }
+
+  void _openSearch() {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const SearchScreen(),
+        fullscreenDialog: false,
+      ),
+    );
   }
 
   @override
@@ -79,6 +87,9 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                 ? 1.0
                 : mq.textScaleFactor;
             final double navIconSize = AppDimens.iconXl * navIconScale;
+            final inactiveColor =
+                theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.55) ??
+                    Colors.grey;
 
             return Theme(
               data: theme,
@@ -91,81 +102,59 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                     PersistentTabConfig(
                       screen: _TabWrapper(
                         key: const ValueKey('home_tab'),
-                        child: const HomeScreen(),
                         titleKey: 'home',
-                        isHome: true,
-                        onSearchTap: () => _controller.jumpToTab(1),
+                        showLogo: true,
+                        onSearchTap: _openSearch,
+                        child: const HomeScreen(),
                       ),
                       item: ItemConfig(
                         icon: Icon(Icons.home_rounded, size: navIconSize),
-                        title: 'home'.tr(),
-                        activeForegroundColor: accentColor,
-                        inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withValues(
-                              alpha: 0.6,
-                            ) ??
-                            Colors.grey,
-                      ),
-                    ),
-                    PersistentTabConfig(
-                      screen: const _TabWrapper(
-                        key: ValueKey('search_tab'),
-                        child: SearchScreen(),
-                        titleKey: 'search',
-                        isHome: false,
-                        showAppBar: false,
-                      ),
-                      item: ItemConfig(
-                        icon: Icon(Icons.search_rounded, size: navIconSize),
-                        title: 'search'.tr(),
-                        activeForegroundColor: accentColor,
-                        inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withValues(
-                              alpha: 0.6,
-                            ) ??
-                            Colors.grey,
-                      ),
-                    ),
-                    PersistentTabConfig(
-                      screen: const _TabWrapper(
-                        key: ValueKey('playlists_tab'),
-                        child: PlaylistScreen(),
-                        titleKey: 'playlists',
-                        isHome: false,
-                      ),
-                      item: ItemConfig(
-                        icon: Icon(
-                          Icons.playlist_play_rounded,
+                        inactiveIcon: Icon(
+                          Icons.home_outlined,
                           size: navIconSize,
                         ),
-                        title: 'playlists'.tr(),
+                        title: 'home'.tr(),
                         activeForegroundColor: accentColor,
-                        inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withValues(
-                              alpha: 0.6,
-                            ) ??
-                            Colors.grey,
+                        inactiveForegroundColor: inactiveColor,
                       ),
                     ),
                     PersistentTabConfig(
-                      screen: const _TabWrapper(
-                        key: ValueKey('library_tab'),
-                        child: LibraryScreen(),
+                      screen: _TabWrapper(
+                        key: const ValueKey('explore_tab'),
+                        titleKey: 'explore',
+                        onSearchTap: _openSearch,
+                        child: const ExploreScreen(),
+                      ),
+                      item: ItemConfig(
+                        icon: Icon(Icons.explore_rounded, size: navIconSize),
+                        inactiveIcon: Icon(
+                          Icons.explore_outlined,
+                          size: navIconSize,
+                        ),
+                        title: 'Explore',
+                        activeForegroundColor: accentColor,
+                        inactiveForegroundColor: inactiveColor,
+                      ),
+                    ),
+                    PersistentTabConfig(
+                      screen: _TabWrapper(
+                        key: const ValueKey('library_tab'),
                         titleKey: 'library',
-                        isHome: false,
+                        onSearchTap: _openSearch,
+                        child: const LibraryScreen(),
                       ),
                       item: ItemConfig(
                         icon: Icon(
                           Icons.library_music_rounded,
                           size: navIconSize,
                         ),
+                        inactiveIcon: Icon(
+                          Icons.library_music_outlined,
+                          size: navIconSize,
+                        ),
                         title: 'library'.tr(),
                         activeForegroundColor: accentColor,
-                        inactiveForegroundColor:
-                            theme.textTheme.bodyLarge?.color?.withValues(
-                              alpha: 0.6,
-                            ) ??
-                            Colors.grey,
+                        inactiveForegroundColor: inactiveColor,
                       ),
                     ),
                   ],
@@ -214,7 +203,7 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withValues(
-                                        alpha: 0.1,
+                                        alpha: 0.12,
                                       ),
                                       blurRadius: 10,
                                       offset: const Offset(0, -2),
@@ -269,24 +258,22 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         const FullPlayerScreen(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position:
-                                Tween<Offset>(
-                                  begin: const Offset(0, 1),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  ),
-                                ),
-                            child: child,
-                          );
-                        },
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 1),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
                     transitionDuration: const Duration(milliseconds: 350),
-                    reverseTransitionDuration: const Duration(
-                      milliseconds: 300,
-                    ),
+                    reverseTransitionDuration:
+                        const Duration(milliseconds: 300),
                   ),
                 );
               }
@@ -345,24 +332,21 @@ class _MobileFullPlayerResponsiveWrapperState
   }
 
   @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
+  Widget build(BuildContext context) => widget.child;
 }
 
+/// Shared chrome for each root tab: YTM top bar (logo / title + actions).
 class _TabWrapper extends StatelessWidget {
   final Widget child;
   final String titleKey;
-  final bool isHome;
-  final bool showAppBar;
+  final bool showLogo;
   final VoidCallback? onSearchTap;
 
   const _TabWrapper({
     super.key,
     required this.child,
     required this.titleKey,
-    required this.isHome,
-    this.showAppBar = true,
+    this.showLogo = false,
     this.onSearchTap,
   });
 
@@ -371,12 +355,10 @@ class _TabWrapper extends StatelessWidget {
       context,
       listen: false,
     );
-    final isDarkMode = settingsProvider.themeMode == ThemeMode.dark;
-    final accentColor = settingsProvider.accentColor;
     await showAudioOutputBottomSheet(
       context,
-      isDarkMode: isDarkMode,
-      accentColor: accentColor,
+      isDarkMode: settingsProvider.themeMode == ThemeMode.dark,
+      accentColor: settingsProvider.accentColor,
     );
   }
 
@@ -385,105 +367,67 @@ class _TabWrapper extends StatelessWidget {
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final accentColor = settingsProvider.accentColor;
     final mq = MediaQuery.of(context);
-    final double _appBarIconScale = mq.textScaleFactor > 1.0
+    final double scale = mq.textScaleFactor > 1.0
         ? (1.0 / mq.textScaleFactor).clamp(0.75, 1.0).toDouble()
         : 1.0;
-    final double _appBarTextCap = mq.textScaleFactor > 1.0
-        ? 1.0
-        : mq.textScaleFactor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      drawer: const MainDrawer(),
-      appBar: showAppBar
-          ? AppBar(
-              elevation: 0,
-              titleSpacing: 0,
-              title: Row(
-                children: [
-                  Expanded(
-                    child: isHome
-                        ? GestureDetector(
-                            onTap: onSearchTap,
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                left: AppDimens.spacingSm * _appBarIconScale,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    AppDimens.paddingLg * _appBarIconScale,
-                                vertical:
-                                    AppDimens.paddingSm * _appBarIconScale,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(
-                                  AppDimens.radiusFull,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.search,
-                                    color: accentColor,
-                                    size: AppDimens.iconSm * _appBarIconScale,
-                                  ),
-                                  SizedBox(
-                                    width:
-                                        AppDimens.spacingMd * _appBarIconScale,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      'search_hint'.tr(),
-                                      style: AppTextStyles.bodyMd(
-                                        isDarkMode:
-                                            Theme.of(context).brightness ==
-                                            Brightness.dark,
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.color
-                                            ?.withValues(alpha: 0.7),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : Container(
-                            margin: EdgeInsets.only(
-                              left: AppDimens.spacingSm * _appBarIconScale,
-                            ),
-                            child: Text(
-                              titleKey.tr(),
-                              style: AppTextStyles.titleLg(
-                                isDarkMode:
-                                    Theme.of(context).brightness ==
-                                    Brightness.dark,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.titleLarge?.color,
-                              ).copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                  ),
-                  if (Platform.isAndroid)
-                    IconButton(
-                      icon: Icon(
-                        Icons.speaker_rounded,
-                        size: AppDimens.iconLg * _appBarIconScale,
-                      ),
-                      onPressed: () => _showAudioOutputSheet(context),
-                      tooltip: 'Audio Output',
-                    ),
-                ],
+      appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: AppDimens.spacingMd * scale,
+        title: showLogo
+            ? Text(
+                'Noize',
+                style: AppTextStyles.titleLg(isDarkMode: isDark).copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: accentColor,
+                ),
+              )
+            : Text(
+                titleKey.tr(),
+                style: AppTextStyles.titleLg(isDarkMode: isDark).copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            )
-          : null,
+        actions: [
+          if (Platform.isAndroid)
+            IconButton(
+              icon: Icon(
+                Icons.speaker_rounded,
+                size: AppDimens.iconLg * scale,
+              ),
+              onPressed: () => _showAudioOutputSheet(context),
+              tooltip: 'Audio Output',
+            ),
+          IconButton(
+            icon: Icon(Icons.search_rounded, size: AppDimens.iconLg * scale),
+            onPressed: onSearchTap,
+            tooltip: 'search'.tr(),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: AppDimens.spacingSm * scale),
+            child: IconButton(
+              onPressed: () => showProfileMenu(context),
+              tooltip: 'Profile',
+              icon: CircleAvatar(
+                radius: 14 * scale,
+                backgroundColor: accentColor.withValues(alpha: 0.2),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/default_artwork.png',
+                    width: 28 * scale,
+                    height: 28 * scale,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: child,
     );
   }

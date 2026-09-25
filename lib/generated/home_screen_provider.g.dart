@@ -1,4 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// Extended manually for SongDetailedDTO / ArtistDetailedDTO (SHU-35)
 
 part of '../features/home/data/providers/home_screen_provider.dart';
 
@@ -246,6 +247,104 @@ class ThumbnailFullDTOAdapter extends TypeAdapter<ThumbnailFullDTO> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ThumbnailFullDTOAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class SongDetailedDTOAdapter extends TypeAdapter<SongDetailedDTO> {
+  @override
+  final int typeId = 9;
+
+  @override
+  SongDetailedDTO read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return SongDetailedDTO(
+      name: fields[0] as String,
+      contentType: fields[1] as String,
+      playlistId: fields[2] as String,
+      thumbnails: (fields[3] as List).cast<ThumbnailFullDTO>(),
+      videoId: fields[4] as String,
+      artist: fields[5] as ArtistBasicDTO,
+      duration: fields[6] as int?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, SongDetailedDTO obj) {
+    writer
+      ..writeByte(7)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.contentType)
+      ..writeByte(2)
+      ..write(obj.playlistId)
+      ..writeByte(3)
+      ..write(obj.thumbnails)
+      ..writeByte(4)
+      ..write(obj.videoId)
+      ..writeByte(5)
+      ..write(obj.artist)
+      ..writeByte(6)
+      ..write(obj.duration);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SongDetailedDTOAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class ArtistDetailedDTOAdapter extends TypeAdapter<ArtistDetailedDTO> {
+  @override
+  final int typeId = 10;
+
+  @override
+  ArtistDetailedDTO read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return ArtistDetailedDTO(
+      name: fields[0] as String,
+      contentType: fields[1] as String,
+      playlistId: fields[2] as String,
+      thumbnails: (fields[3] as List).cast<ThumbnailFullDTO>(),
+      artistId: fields[4] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, ArtistDetailedDTO obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.contentType)
+      ..writeByte(2)
+      ..write(obj.playlistId)
+      ..writeByte(3)
+      ..write(obj.thumbnails)
+      ..writeByte(4)
+      ..write(obj.artistId);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ArtistDetailedDTOAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

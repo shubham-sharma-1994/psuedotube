@@ -1,0 +1,24 @@
+--- a/lib/features/library/presentation/screens/library_screen.dart
++++ b/lib/features/library/presentation/screens/library_screen.dart
+@@ -11,6 +11,7 @@
+ import '../widgets/library_song_list_tile.dart';
+ import '../widgets/library_filter_chips.dart';
++import '../widgets/liked_songs_library_row.dart';
+ import '../../../../shared/components/app_snackbar.dart';
+@@
+           body: Column(
+             children: [
++              LikedSongsLibraryRow(
++                onTap: () {
++                  final c = DefaultTabController.of(context);
++                  setState(() {
++                    _isSelectionMode = false;
++                    _selectedSongs.clear();
++                    _currentTab = 'favorites';
++                  });
++                  c.animateTo(0);
++                },
++              ),
+               Builder(
+                 builder: (context) {
+                   final tabController = DefaultTabController.of(context);

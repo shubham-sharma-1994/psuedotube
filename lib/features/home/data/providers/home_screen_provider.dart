@@ -64,7 +64,7 @@ class HomeScreenProvider with ChangeNotifier {
     try {
       final box = await Hive.openBox<dynamic>('home_sections_cache');
       await box.put(
-        'homeSections',
+        'homeSections_v2',
         _homeSections
             .map((section) => HomeSectionDTO.fromHomeSection(section))
             .toList(),
@@ -78,7 +78,7 @@ class HomeScreenProvider with ChangeNotifier {
   Future<void> loadSavedHomeSections() async {
     try {
       final box = await Hive.openBox<dynamic>('home_sections_cache');
-      final cachedData = box.get('homeSections');
+      final cachedData = box.get('homeSections_v2');
       if (cachedData != null) {
         final newSections = (cachedData as List)
             .cast<HomeSectionDTO>()
@@ -209,31 +209,38 @@ class HomeSectionDTO {
   HomeSectionDTO({required this.title, required this.contents});
 
   factory HomeSectionDTO.fromHomeSection(HomeSection section) {
-    return HomeSectionDTO(
-      title: section.title,
-      contents: section.contents.map((content) {
-        if (content is AlbumDetailed) {
-          return AlbumDetailedDTO.fromAlbumDetailed(content);
-        } else if (content is PlaylistDetailed) {
-          return PlaylistDetailedDTO.fromPlaylistDetailed(content);
-        }
-        throw Exception('Unknown content type for DTO conversion');
-      }).toList(),
-    );
+    final mapped = <ContentItemDTO>[];
+    for (final content in section.contents) {
+      if (content is AlbumDetailed) {
+        mapped.add(AlbumDetailedDTO.fromAlbumDetailed(content));
+      } else if (content is PlaylistDetailed) {
+        mapped.add(PlaylistDetailedDTO.fromPlaylistDetailed(content));
+      } else if (content is SongDetailed) {
+        mapped.add(SongDetailedDTO.fromSongDetailed(content));
+      } else if (content is VideoDetailed) {
+        mapped.add(SongDetailedDTO.fromVideoDetailed(content));
+      } else if (content is ArtistDetailed) {
+        mapped.add(ArtistDetailedDTO.fromArtistDetailed(content));
+      }
+      // Skip unknown types instead of throwing (YTM shelves are mixed).
+    }
+    return HomeSectionDTO(title: section.title, contents: mapped);
   }
 
   HomeSection toHomeSection() {
-    return HomeSection(
-      title: title,
-      contents: contents.map((dto) {
-        if (dto is AlbumDetailedDTO) {
-          return dto.toAlbumDetailed();
-        } else if (dto is PlaylistDetailedDTO) {
-          return dto.toPlaylistDetailed();
-        }
-        throw Exception('Unknown content type for original conversion');
-      }).toList(),
-    );
+    final mapped = <dynamic>[];
+    for (final dto in contents) {
+      if (dto is AlbumDetailedDTO) {
+        mapped.add(dto.toAlbumDetailed());
+      } else if (dto is PlaylistDetailedDTO) {
+        mapped.add(dto.toPlaylistDetailed());
+      } else if (dto is SongDetailedDTO) {
+        mapped.add(dto.toSongDetailed());
+      } else if (dto is ArtistDetailedDTO) {
+        mapped.add(dto.toArtistDetailed());
+      }
+    }
+    return HomeSection(title: title, contents: mapped);
   }
 }
 
@@ -334,6 +341,110 @@ class PlaylistDetailedDTO extends ContentItemDTO {
       playlistId: playlistId,
       thumbnails: thumbnails.map((t) => t.toThumbnailFull()).toList(),
       artist: ArtistBasic(name: ''),
+    );
+  }
+}
+
+@HiveType(typeId: 9)
+class SongDetailedDTO extends ContentItemDTO {
+  @HiveField(4)
+  final String videoId;
+  @HiveField(5)
+  final ArtistBasicDTO artist;
+  @HiveField(6)
+  final int? duration;
+
+  SongDetailedDTO({
+    required String name,
+    required String contentType,
+    required String playlistId,
+    required List<ThumbnailFullDTO> thumbnails,
+    required this.videoId,
+    required this.artist,
+    this.duration,
+  }) : super(
+         name: name,
+         contentType: contentType,
+         playlistId: playlistId,
+         thumbnails: thumbnails,
+       );
+
+  factory SongDetailedDTO.fromSongDetailed(SongDetailed song) {
+    return SongDetailedDTO(
+      name: song.name,
+      contentType: song.type,
+      playlistId: song.videoId,
+      thumbnails: song.thumbnails
+          .map((t) => ThumbnailFullDTO.fromThumbnailFull(t))
+          .toList(),
+      videoId: song.videoId,
+      artist: ArtistBasicDTO.fromArtistBasic(song.artist),
+      duration: song.duration,
+    );
+  }
+
+  factory SongDetailedDTO.fromVideoDetailed(VideoDetailed video) {
+    return SongDetailedDTO(
+      name: video.name,
+      contentType: video.type,
+      playlistId: video.videoId,
+      thumbnails: video.thumbnails
+          .map((t) => ThumbnailFullDTO.fromThumbnailFull(t))
+          .toList(),
+      videoId: video.videoId,
+      artist: ArtistBasicDTO.fromArtistBasic(video.artist),
+      duration: video.duration,
+    );
+  }
+
+  SongDetailed toSongDetailed() {
+    return SongDetailed(
+      name: name,
+      type: contentType,
+      videoId: videoId,
+      thumbnails: thumbnails.map((t) => t.toThumbnailFull()).toList(),
+      artist: artist.toArtistBasic(),
+      duration: duration,
+    );
+  }
+}
+
+@HiveType(typeId: 10)
+class ArtistDetailedDTO extends ContentItemDTO {
+  @HiveField(4)
+  final String artistId;
+
+  ArtistDetailedDTO({
+    required String name,
+    required String contentType,
+    required String playlistId,
+    required List<ThumbnailFullDTO> thumbnails,
+    required this.artistId,
+  }) : super(
+         name: name,
+         contentType: contentType,
+         playlistId: playlistId,
+         thumbnails: thumbnails,
+       );
+
+  factory ArtistDetailedDTO.fromArtistDetailed(ArtistDetailed artist) {
+    return ArtistDetailedDTO(
+      name: artist.name,
+      contentType: artist.type,
+      playlistId: artist.artistId,
+      thumbnails: artist.thumbnails
+          .map((t) => ThumbnailFullDTO.fromThumbnailFull(t))
+          .toList(),
+      artistId: artist.artistId,
+    );
+  }
+
+  ArtistDetailed toArtistDetailed() {
+    return ArtistDetailed(
+      name: name,
+      type: contentType,
+      artistId: artistId,
+      thumbnails: thumbnails.map((t) => t.toThumbnailFull()).toList(),
     );
   }
 }

@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../providers/player_provider.dart';
 
 class WindowsFileService {
-  static const _channel = MethodChannel('com.anand.noize/file_open');
+  static const _channel = MethodChannel('com.psuedotube.app/file_open');
 
   final PlayerProvider _playerProvider;
 

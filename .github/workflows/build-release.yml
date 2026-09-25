@@ -1,7 +1,6 @@
 name: Flutter Release Builds
 
 # Manual only — never on PR or push/merge to main.
-# Use Actions → Flutter Release Builds → Run workflow when you need a full release.
 on:
   workflow_dispatch:
     inputs:
