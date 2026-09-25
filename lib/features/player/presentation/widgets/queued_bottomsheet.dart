@@ -11,6 +11,7 @@ import '../../../../core/providers/queued_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import 'music_search.dart';
 import '../../../../shared/components/app_snackbar.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class QueueBottomSheet extends StatefulWidget {
   const QueueBottomSheet({Key? key}) : super(key: key);
@@ -142,7 +143,7 @@ class _QueueBottomSheetState extends State<QueueBottomSheet> {
 
   Widget _buildThumbnail(dynamic song, QueueProvider queueProvider) {
     final playlistId = queueProvider.playlistId;
-    final thumbnailUrl = song.thumbnails.first.url;
+    final thumbnailUrl = thumbUrl(song.thumbnails);
 
     if (playlistId == 'local_music') {
       if (thumbnailUrl.isNotEmpty) {

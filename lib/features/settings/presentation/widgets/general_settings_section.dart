@@ -20,7 +20,7 @@ class GeneralSettingsSection extends StatelessWidget {
   const GeneralSettingsSection({Key? key}) : super(key: key);
 
   static const MethodChannel _batteryOptimizationChannel = MethodChannel(
-    'com.anand.noize/battery_optimization',
+    'com.psuedotube.app/battery_optimization',
   );
 
   Future<void> _openDisableRestrictionsSettings() async {

@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/song_model.dart';
 import '../../../../core/providers/download_provider.dart';
 import 'songs_options_bottomsheet_artist.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class ArtistSongListTile extends StatelessWidget {
   final dynamic song;
@@ -115,7 +116,7 @@ class ArtistSongListTile extends StatelessWidget {
                       AppDimens.radiusSm * uiScale,
                     ),
                     child: CachedNetworkImage(
-                      imageUrl: song.thumbnails.first.url,
+                      imageUrl: thumbUrl(song.thumbnails),
                       width: AppDimens.thumbnailDefault * uiScale,
                       height: AppDimens.thumbnailDefault * uiScale,
                       fit: BoxFit.cover,

@@ -33,9 +33,9 @@ class DownloadNotificationService {
 
     const WindowsInitializationSettings initializationSettingsWindows =
         WindowsInitializationSettings(
-          appName: 'Noize',
+          appName: 'PsuedoTube',
           iconPath: 'assets/default_artwork.png',
-          appUserModelId: 'com.anand.noize',
+          appUserModelId: 'com.psuedotube.app',
           guid: '27D44D0C-A542-5B90-BCDB-AC3126048BA2',
         );
 

@@ -16,6 +16,7 @@ import '../../../../core/providers/download_provider.dart' as dp;
 import '../../data/providers/playlist_album_content_provider.dart';
 import '../widgets/search_song_delegate.dart';
 import '../../../../shared/components/app_snackbar.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class PlaylistAlbumContent extends StatefulWidget {
   final dynamic content;
@@ -193,7 +194,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                 child: CachedNetworkImage(
-                  imageUrl: widget.content.thumbnails.last.url,
+                  imageUrl: thumbUrl(widget.content.thumbnails, last: true),
                   width: imageSize,
                   height: imageSize,
                   fit: BoxFit.cover,
@@ -278,7 +279,7 @@ class _PlaylistAlbumContentState extends State<PlaylistAlbumContent> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                     child: CachedNetworkImage(
-                      imageUrl: widget.content.thumbnails.last.url,
+                      imageUrl: thumbUrl(widget.content.thumbnails, last: true),
                       width: imageSize,
                       height: imageSize,
                       fit: BoxFit.cover,

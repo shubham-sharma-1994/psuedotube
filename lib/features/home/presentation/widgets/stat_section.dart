@@ -14,6 +14,7 @@ import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/providers/stats_provider.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class StatsSection extends StatelessWidget {
   const StatsSection({Key? key}) : super(key: key);
@@ -237,7 +238,7 @@ class StatsSection extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                         child: _buildThumbnail(
-                          nextSong.thumbnails.first.url,
+                          thumbUrl(nextSong.thumbnails),
                           isDesktop
                               ? AppDimens.thumbnailLarge
                               : AppDimens.thumbnailDefault,

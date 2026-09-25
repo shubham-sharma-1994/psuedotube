@@ -6,6 +6,7 @@ import '../../../playlists/data/providers/playlist_album_library_provider.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
 import '../../../../core/providers/download_provider.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class PlaylistAlbumContentProvider extends ChangeNotifier {
   final ContentDetailsService _contentService = ContentDetailsService();
@@ -76,7 +77,7 @@ class PlaylistAlbumContentProvider extends ChangeNotifier {
         : 'Album';
     final contentData = {
       'name': content.name,
-      'thumbnail': content.thumbnails.last.url,
+      'thumbnail': thumbUrl(content.thumbnails, last: true),
       'duration': totalDuration.inSeconds,
       'playlistId': content.playlistId,
       'contentType': contentType,

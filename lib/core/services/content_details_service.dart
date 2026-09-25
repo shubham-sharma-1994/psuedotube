@@ -9,6 +9,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart'
 
 import '../providers/video_info_provider.dart';
 import 'yt-music-api.dart';
+import '../../core/utils/thumbnail_utils.dart';
 
 class ContentDetailsService {
   final YTMusic _ytMusic = GetIt.I<YTMusic>();
@@ -57,7 +58,7 @@ class ContentDetailsService {
             (similarArtist) => ArtistInfo(
               id: similarArtist.artistId,
               name: similarArtist.name,
-              thumbnailUrl: similarArtist.thumbnails.last.url.replaceAll(
+              thumbnailUrl: thumbUrl(similarArtist.thumbnails, last: true).replaceAll(
                 'w60-h60',
                 'w600-h600',
               ),

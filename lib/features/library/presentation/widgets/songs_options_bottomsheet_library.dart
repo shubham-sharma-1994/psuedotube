@@ -17,6 +17,7 @@ import '../../../../core/providers/download_provider.dart';
 import '../../../../shared/components/add_to_playlist_bottomsheet.dart';
 import '../../../../shared/components/app_snackbar.dart';
 import '../../../../core/utils/content_router.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class SongOptionsBottomSheetlibrary extends StatefulWidget {
   final Map<String, dynamic> song;
@@ -145,7 +146,7 @@ class _SongOptionsBottomSheetlibraryState
             name: artist.name,
             thumbnails: [
               ThumbnailFull(
-                url: _songInfo.thumbnails.first.url,
+                url: thumbUrl(_songInfo.thumbnails),
                 width: 0,
                 height: 0,
               ),
@@ -241,7 +242,7 @@ class _SongOptionsBottomSheetlibraryState
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                 child: CachedNetworkImage(
-                  imageUrl: _songInfo.thumbnails.first.url,
+                  imageUrl: thumbUrl(_songInfo.thumbnails),
                   width: AppDimens.thumbnailDefault,
                   height: AppDimens.thumbnailDefault,
                   fit: BoxFit.cover,
@@ -629,7 +630,7 @@ class _SongOptionsBottomSheetlibraryState
       'title': _songInfo.name,
       'artistId': _songInfo.artists.isNotEmpty ? _songInfo.artists[0].id : '',
       'duration': _songInfo.duration.inSeconds,
-      'thumbnail': _songInfo.thumbnails.first.url,
+      'thumbnail': thumbUrl(_songInfo.thumbnails),
       'artist': _getArtistsText(),
     };
 
