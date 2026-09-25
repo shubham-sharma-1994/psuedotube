@@ -126,7 +126,7 @@ class MainDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Noize',
+                  'PsuedoTube',
                   style: AppTextStyles.titleLg(isDarkMode: isDarkMode).copyWith(
                     color: Colors.white,
                     fontWeight: AppTextStyles.weightBold,

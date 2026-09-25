@@ -1,121 +1,65 @@
-import 'dart:math';
-
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_dimens.dart';
-import '../../../../core/constants/app_text_styles.dart';
-import 'home_screen_shimmer.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../data/services/home_screen_queue_service.dart';
 import 'home_screen_helpers.dart';
-import 'music_list_tile.dart';
+import 'ytm_home_widgets.dart';
 
+/// YTM "Listen again": two rows of compact cards built from play history.
 class LastPlayedSection extends StatelessWidget {
   const LastPlayedSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final settings = context.watch<SettingsProvider>();
-    final accentColor = settings.accentColor;
-    final playerProvider = context.watch<PlayerProvider>();
-    final homeScreenQueueService = HomeScreenQueueService(context);
-
-    // YTM: hide shelf when history is off or empty
-    if (!settings.playbackHistoryEnabled) {
-      return const SizedBox.shrink();
-    }
-
-    if (playerProvider.isLoadingLastPlayedSongs) {
-      return ShimmerLoading.buildShimmerList();
-    }
-
-    if (playerProvider.lastPlayedSongs.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final itemCount = playerProvider.lastPlayedSongs.length;
-    final itemHeight = AppDimens.miniPlayerHeightCompact;
-    final rowsPerPage = AppDimens.isMobile(context) ? 3 : 4;
-    final baseHeight = min(
-      itemHeight * min(itemCount, rowsPerPage),
-      AppDimens.shimmerSection,
+    final historyEnabled = context.select(
+      (SettingsProvider p) => p.playbackHistoryEnabled,
     );
-    final bottomGap = AppDimens.isMobile(context)
-        ? AppDimens.spacingLg
-        : AppDimens.spacing5Xl;
-    final height = baseHeight + bottomGap;
+    final playerProvider = context.watch<PlayerProvider>();
+
+    if (!historyEnabled ||
+        playerProvider.isLoadingLastPlayedSongs ||
+        playerProvider.lastPlayedSongs.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final songs = List<Map<String, dynamic>>.from(
+      playerProvider.lastPlayedSongs,
+    );
+
+    Future<void> playAt(int index) async {
+      try {
+        await HomeScreenQueueService(
+          context,
+        ).playAll('recently_played', currentIndex: index);
+      } catch (e) {
+        if (!context.mounted) return;
+        showErrorSnackbar(context, 'Failed to play song');
+        debugPrint('Error playing recently played: $e');
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(AppDimens.paddingLg),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                // YTM primary Home shelf label
-                'Listen again',
-                style: AppTextStyles.titleLg().copyWith(color: accentColor),
-              ),
-            ],
-          ),
+        YtmShelfHeader(
+          title: 'Listen again',
+          leading: const YtmAvatar(size: 32),
         ),
-        SizedBox(
-          height: height,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: (playerProvider.lastPlayedSongs.length / rowsPerPage)
-                .ceil(),
-            itemBuilder: (context, pageIndex) {
-              final startIndex = pageIndex * rowsPerPage;
-              final endIndex = min(
-                startIndex + rowsPerPage,
-                playerProvider.lastPlayedSongs.length,
-              );
-              final pageItems = playerProvider.lastPlayedSongs.sublist(
-                startIndex,
-                endIndex,
-              );
-
-              return Container(
-                width: AppDimens.maxContentWidth * 0.25,
-                margin: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.spacingSm,
-                ),
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: pageItems.length,
-                  itemBuilder: (context, index) {
-                    final song = pageItems[index];
-                    final globalIndex = pageIndex * rowsPerPage + index;
-                    return MusicListTile(
-                      song: song,
-                      onTap: () async {
-                        try {
-                          await homeScreenQueueService.playAll(
-                            'recently_played',
-                            currentIndex: globalIndex,
-                          );
-                        } catch (e) {
-                          showErrorSnackbar(
-                            context,
-                            'Failed to play song: ${e.toString()}',
-                          );
-                        }
-                      },
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+        YtmCardShelf(
+          rows: 2,
+          cardSize: 104,
+          items: [
+            for (var i = 0; i < songs.length; i++)
+              YtmCardData(
+                title: songMapTitle(songs[i]),
+                subtitle: songMapArtists(songs[i]),
+                imageUrl: songs[i]['thumbnail']?.toString(),
+                onTap: () => playAt(i),
+                onLongPress: () => showSongMapOptions(context, songs[i]),
+              ),
+          ],
         ),
       ],
     );

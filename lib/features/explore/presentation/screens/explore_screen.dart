@@ -29,7 +29,7 @@ class ExploreScreen extends StatelessWidget {
   void _openSearch(BuildContext context, [String? query]) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
-        builder: (_) => const SearchScreen(),
+        builder: (_) => SearchScreen(initialQuery: query),
       ),
     );
   }

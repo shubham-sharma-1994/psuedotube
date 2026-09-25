@@ -2,16 +2,17 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/models/ota_model.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../home/presentation/screens/home_screen.dart';
+import '../../../home/presentation/widgets/ytm_home_widgets.dart';
 import '../../../library/presentation/screens/library_screen.dart';
 import '../../../ota/data/providers/ota_provider.dart';
 import '../../../ota/presentation/widgets/ota_bottomsheet.dart';
@@ -74,153 +75,104 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
 
         return Consumer<SettingsProvider>(
           builder: (context, settingsProvider, child) {
-            final accentColor = settingsProvider.accentColor;
             final theme = settingsProvider.themeMode == ThemeMode.dark
                 ? AppTheme.darkTheme
                 : AppTheme.lightTheme;
 
             final mq = MediaQuery.of(context);
-            final double navIconScale = mq.textScaleFactor > 1.0
-                ? (1.0 / mq.textScaleFactor).clamp(0.75, 1.0).toDouble()
+            final textScale = mq.textScaler.scale(1);
+            final double navIconScale = textScale > 1.0
+                ? (1.0 / textScale).clamp(0.75, 1.0).toDouble()
                 : 1.0;
-            final double navTextCap = mq.textScaleFactor > 1.0
-                ? 1.0
-                : mq.textScaleFactor;
-            final double navIconSize = AppDimens.iconXl * navIconScale;
-            final inactiveColor =
-                theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.55) ??
-                    Colors.grey;
+            final double navTextCap = textScale > 1.0 ? 1.0 : textScale;
 
             return Theme(
               data: theme,
-              child: SafeArea(
-                top: false,
-                child: PersistentTabView(
-                  backgroundColor: theme.scaffoldBackgroundColor,
-                  controller: _controller,
-                  tabs: [
-                    PersistentTabConfig(
-                      screen: _TabWrapper(
-                        key: const ValueKey('home_tab'),
-                        titleKey: 'home',
-                        showLogo: true,
-                        onSearchTap: _openSearch,
-                        child: const HomeScreen(),
-                      ),
-                      item: ItemConfig(
-                        icon: Icon(Icons.home_rounded, size: navIconSize),
-                        inactiveIcon: Icon(
-                          Icons.home_outlined,
-                          size: navIconSize,
-                        ),
-                        title: 'home'.tr(),
-                        activeForegroundColor: accentColor,
-                        inactiveForegroundColor: inactiveColor,
-                      ),
+              child: PersistentTabView(
+                backgroundColor: theme.scaffoldBackgroundColor,
+                controller: _controller,
+                tabs: [
+                  PersistentTabConfig(
+                    screen: _TabWrapper(
+                      key: const ValueKey('home_tab'),
+                      titleKey: 'home',
+                      showLogo: true,
+                      child: const HomeScreen(),
                     ),
-                    PersistentTabConfig(
-                      screen: _TabWrapper(
-                        key: const ValueKey('explore_tab'),
-                        titleKey: 'explore',
-                        onSearchTap: _openSearch,
-                        child: const ExploreScreen(),
-                      ),
-                      item: ItemConfig(
-                        icon: Icon(Icons.explore_rounded, size: navIconSize),
-                        inactiveIcon: Icon(
-                          Icons.explore_outlined,
-                          size: navIconSize,
-                        ),
-                        title: 'Explore',
-                        activeForegroundColor: accentColor,
-                        inactiveForegroundColor: inactiveColor,
-                      ),
+                    item: ItemConfig(
+                      icon: const Icon(Icons.home_filled),
+                      inactiveIcon: const Icon(Icons.home_outlined),
+                      title: 'home'.tr(),
                     ),
-                    PersistentTabConfig(
-                      screen: _TabWrapper(
-                        key: const ValueKey('library_tab'),
-                        titleKey: 'library',
-                        onSearchTap: _openSearch,
-                        child: const LibraryScreen(),
-                      ),
-                      item: ItemConfig(
-                        icon: Icon(
-                          Icons.library_music_rounded,
-                          size: navIconSize,
-                        ),
-                        inactiveIcon: Icon(
-                          Icons.library_music_outlined,
-                          size: navIconSize,
-                        ),
-                        title: 'library'.tr(),
-                        activeForegroundColor: accentColor,
-                        inactiveForegroundColor: inactiveColor,
-                      ),
+                  ),
+                  PersistentTabConfig(
+                    screen: _TabWrapper(
+                      key: const ValueKey('explore_tab'),
+                      titleKey: 'explore',
+                      child: const ExploreScreen(),
                     ),
-                  ],
-                  navBarBuilder: (navBarConfig) => Consumer<PlayerProvider>(
-                    builder: (context, playerProvider, child) {
-                      final hasPlayer =
-                          playerProvider.currentSong != null ||
-                          playerProvider.lastPlayedSong != null ||
-                          playerProvider.currentLocalSong != null;
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (hasPlayer)
-                            Container(
-                              decoration: BoxDecoration(
-                                color: theme.appBarTheme.backgroundColor,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(AppDimens.radiusMd),
-                                ),
-                              ),
-                              child: SizedBox(
-                                height:
-                                    AppDimens.miniPlayerHeight * navIconScale,
-                                child: PlayerUI(
-                                  showFullScreen: false,
-                                  isEmbedded: true,
-                                  onMinimize: () {},
-                                  onExpand: () =>
-                                      _showFullPlayerBottomSheet(context),
-                                ),
-                              ),
-                            ),
-                          MediaQuery(
-                            data: mq.copyWith(textScaleFactor: navTextCap),
-                            child: MediaQuery.removePadding(
-                              context: context,
-                              removeBottom: true,
-                              child: Style2BottomNavBar(
-                                navBarConfig: navBarConfig,
-                                navBarDecoration: NavBarDecoration(
-                                  color: theme.appBarTheme.backgroundColor,
-                                  borderRadius: BorderRadius.zero,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppDimens.spacingSmMd,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.12,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, -2),
-                                    ),
-                                  ],
-                                ),
-                                itemAnimationProperties: const ItemAnimation(
-                                  duration: Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                ),
+                    item: ItemConfig(
+                      icon: const Icon(Icons.explore),
+                      inactiveIcon: const Icon(Icons.explore_outlined),
+                      title: 'Explore',
+                    ),
+                  ),
+                  PersistentTabConfig(
+                    screen: _TabWrapper(
+                      key: const ValueKey('library_tab'),
+                      titleKey: 'library',
+                      child: const LibraryScreen(),
+                    ),
+                    item: ItemConfig(
+                      icon: const Icon(Icons.bookmark),
+                      inactiveIcon: const Icon(Icons.bookmark_border),
+                      title: 'library'.tr(),
+                    ),
+                  ),
+                ],
+                navBarBuilder: (navBarConfig) => Consumer<PlayerProvider>(
+                  builder: (context, playerProvider, child) {
+                    final hasPlayer =
+                        playerProvider.currentSong != null ||
+                        playerProvider.lastPlayedSong != null ||
+                        playerProvider.currentLocalSong != null;
+                    final isDark = theme.brightness == Brightness.dark;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasPlayer)
+                          ColoredBox(
+                            color: isDark
+                                ? YtmColors.bar
+                                : theme.colorScheme.surface,
+                            child: SizedBox(
+                              height: 64,
+                              child: PlayerUI(
+                                showFullScreen: false,
+                                isEmbedded: true,
+                                onMinimize: () {},
+                                onExpand: () =>
+                                    _showFullPlayerBottomSheet(context),
                               ),
                             ),
                           ),
-                        ],
-                      );
-                    },
-                  ),
+                        MediaQuery(
+                          data: mq.copyWith(
+                            textScaler: TextScaler.linear(navTextCap),
+                          ),
+                          child: _YtmBottomNavBar(
+                            config: navBarConfig,
+                            isDark: isDark,
+                            iconScale: navIconScale,
+                            onSearch: _openSearch,
+                            backgroundColor: isDark
+                                ? YtmColors.bar
+                                : theme.colorScheme.surface,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             );
@@ -258,22 +210,24 @@ class _MobileMainScreenState extends State<MobileMainScreen> {
                         const FullPlayerScreen(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 1),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutCubic,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
+                          return SlideTransition(
+                            position:
+                                Tween<Offset>(
+                                  begin: const Offset(0, 1),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                ),
+                            child: child,
+                          );
+                        },
                     transitionDuration: const Duration(milliseconds: 350),
-                    reverseTransitionDuration:
-                        const Duration(milliseconds: 300),
+                    reverseTransitionDuration: const Duration(
+                      milliseconds: 300,
+                    ),
                   ),
                 );
               }
@@ -335,20 +289,119 @@ class _MobileFullPlayerResponsiveWrapperState
   Widget build(BuildContext context) => widget.child;
 }
 
+/// YTM bottom navigation: flat bar, filled icon for the selected tab,
+/// white labels. "Search" opens the search screen instead of a tab.
+class _YtmBottomNavBar extends StatelessWidget {
+  final NavBarConfig config;
+  final bool isDark;
+  final double iconScale;
+  final VoidCallback onSearch;
+  final Color backgroundColor;
+
+  const _YtmBottomNavBar({
+    required this.config,
+    required this.isDark,
+    required this.iconScale,
+    required this.onSearch,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final color = YtmColors.text(isDark);
+
+    Widget entry({
+      required Widget icon,
+      required String label,
+      required bool selected,
+      required VoidCallback onTap,
+    }) {
+      return Expanded(
+        child: InkResponse(
+          onTap: onTap,
+          radius: 32,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconTheme(
+                data: IconThemeData(color: color, size: 26 * iconScale),
+                child: icon,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.font(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget tab(int index) {
+      final item = config.items[index];
+      final selected = config.selectedIndex == index;
+      return entry(
+        icon: selected ? item.icon : item.inactiveIcon,
+        label: item.title ?? '',
+        selected: selected,
+        onTap: () => config.onItemSelected(index),
+      );
+    }
+
+    return Container(
+      color: backgroundColor,
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: SizedBox(
+        height: 64,
+        child: Row(
+          children: [
+            for (var i = 0; i < config.items.length; i++) ...[
+              // Search sits between Explore and Library, as in YT Music.
+              if (i == config.items.length - 1)
+                entry(
+                  icon: const Icon(Icons.search),
+                  label: 'search'.tr(),
+                  selected: false,
+                  onTap: onSearch,
+                ),
+              tab(i),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Shared chrome for each root tab: YTM top bar (logo / title + actions).
-class _TabWrapper extends StatelessWidget {
+/// On Home the bar is transparent over the colour wash and turns solid
+/// once the content scrolls underneath it.
+class _TabWrapper extends StatefulWidget {
   final Widget child;
   final String titleKey;
   final bool showLogo;
-  final VoidCallback? onSearchTap;
 
   const _TabWrapper({
     super.key,
     required this.child,
     required this.titleKey,
     this.showLogo = false,
-    this.onSearchTap,
   });
+
+  @override
+  State<_TabWrapper> createState() => _TabWrapperState();
+}
+
+class _TabWrapperState extends State<_TabWrapper> {
+  bool _scrolled = false;
 
   Future<void> _showAudioOutputSheet(BuildContext context) async {
     final settingsProvider = Provider.of<SettingsProvider>(
@@ -362,73 +415,73 @@ class _TabWrapper extends StatelessWidget {
     );
   }
 
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final scrolled = notification.metrics.pixels > 8;
+    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context);
-    final accentColor = settingsProvider.accentColor;
-    final mq = MediaQuery.of(context);
-    final double scale = mq.textScaleFactor > 1.0
-        ? (1.0 / mq.textScaleFactor).clamp(0.75, 1.0).toDouble()
-        : 1.0;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final overlay = widget.showLogo;
+    final barColor = overlay && !_scrolled
+        ? Colors.transparent
+        : theme.scaffoldBackgroundColor;
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      extendBodyBehindAppBar: overlay,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
+        backgroundColor: barColor,
+        surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        titleSpacing: AppDimens.spacingMd * scale,
-        title: showLogo
-            ? Text(
-                'Noize',
-                style: AppTextStyles.titleLg(isDarkMode: isDark).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
-                ),
+        titleSpacing: YtmDimens.sidePadding,
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light.copyWith(
+                statusBarColor: Colors.transparent,
               )
+            : SystemUiOverlayStyle.dark.copyWith(
+                statusBarColor: Colors.transparent,
+              ),
+        title: widget.showLogo
+            ? YtmLogo(isDark: isDark)
             : Text(
-                titleKey.tr(),
-                style: AppTextStyles.titleLg(isDarkMode: isDark).copyWith(
-                  fontWeight: FontWeight.w600,
+                widget.titleKey.tr(),
+                style: AppTextStyles.font(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: YtmColors.text(isDark),
                 ),
               ),
         actions: [
           if (Platform.isAndroid)
             IconButton(
-              icon: Icon(
-                Icons.speaker_rounded,
-                size: AppDimens.iconLg * scale,
-              ),
+              icon: const Icon(Icons.cast),
+              color: YtmColors.text(isDark),
               onPressed: () => _showAudioOutputSheet(context),
-              tooltip: 'Audio Output',
+              tooltip: 'Audio output',
             ),
-          IconButton(
-            icon: Icon(Icons.search_rounded, size: AppDimens.iconLg * scale),
-            onPressed: onSearchTap,
-            tooltip: 'search'.tr(),
-          ),
           Padding(
-            padding: EdgeInsets.only(right: AppDimens.spacingSm * scale),
+            padding: const EdgeInsets.only(right: 8),
             child: IconButton(
               onPressed: () => showProfileMenu(context),
               tooltip: 'Profile',
-              icon: CircleAvatar(
-                radius: 14 * scale,
-                backgroundColor: accentColor.withValues(alpha: 0.2),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/default_artwork.png',
-                    width: 28 * scale,
-                    height: 28 * scale,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+              icon: const YtmAvatar(size: 30),
             ),
           ),
         ],
       ),
-      body: child,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _onScroll,
+        child: widget.child,
+      ),
     );
   }
 }

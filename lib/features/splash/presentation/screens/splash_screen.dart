@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               SizedBox(height: _getResponsiveSpacing(size)),
                               Text(
-                                'Noize',
+                                'PsuedoTube',
                                 style: TextStyle(
                                   fontSize: _getResponsiveFontSize(size),
                                   fontWeight: FontWeight.bold,

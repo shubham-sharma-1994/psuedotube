@@ -54,7 +54,7 @@ Future<void> showProfileMenu(BuildContext context) {
                   ),
                 ),
                 title: Text(
-                  'Noize',
+                  'PsuedoTube',
                   style: AppTextStyles.titleSm(isDarkMode: isDark),
                 ),
                 subtitle: Text(
