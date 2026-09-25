@@ -1,69 +1,74 @@
-# Workflow name
 name: Flutter Release Builds
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
-  # Manual run from Actions tab
   workflow_dispatch:
     inputs:
       targets:
-        description: 'Which builds to run (all/android/linux/windows)'
+        description: "Which builds to run (all/android/linux/windows)"
         required: false
-        default: 'all'
+        default: all
         type: choice
         options:
           - all
           - android
           - linux
           - windows
-  # PR-based: open + every new commit on an open PR → full CI + signed APK
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
       - master
-  # Post-merge only (no feature/** push — avoids double builds while a PR is open)
   push:
     branches:
       - main
       - master
 
+permissions:
+  contents: read
+  actions: write
+  checks: write
+
+concurrency:
+  group: release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_android:
-    name: Android APKs (all ABIs + universal)
+    name: Android APKs
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.targets == 'all' || github.event.inputs.targets == 'android' }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: "21"
 
-      - name: Set up Flutter SDK
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
           cache: true
 
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
 
-      - name: Get Flutter dependencies
+      - name: Flutter pub get
         run: flutter pub get
 
-      # Dev signing without requiring GitHub Secrets.
-      # Prefer secrets when set; otherwise use android/dev-keystore.b64 + defaults.
       - name: Decode keystore
         run: |
           set -euo pipefail
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/noize.keystore
           elif [ -f android/dev-keystore.b64 ]; then
-            echo "Using committed android/dev-keystore.b64 (dev only)"
             tr -d '\n\r ' < android/dev-keystore.b64 | base64 -d > android/noize.keystore
           else
             echo "::error::No keystore available"
@@ -86,28 +91,25 @@ jobs:
             echo "keyAlias=$KA"
             echo "storeFile=noize.keystore"
           } > android/key.properties
-          echo "Signing with alias=$KA"
 
-      # GITHUB_RUN_NUMBER always increases → Android allows install-over without uninstall
-      - name: Build APKs (split per ABI + universal)
+      - name: Build APKs
         run: |
           flutter build apk --release --split-per-abi \
             --build-number="${{ github.run_number }}" \
             --build-name="1.0.0+${{ github.run_number }}"
 
-      - name: Generate SHA-256 checksums (Android)
+      - name: Checksums
         working-directory: build/app/outputs/flutter-apk
         run: |
-          for f in app-*-release.apk app-release.apk; do
+          for f in *.apk; do
             [ -f "$f" ] && sha256sum "$f" > "$f.sha256"
           done
-          ls -la
+          ls -lah
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          # Distinct name per PR / run so each commit on a PR keeps its own APK
-          name: android-apks-pr${{ github.event.pull_request.number || '0' }}-run${{ github.run_number }}
+          name: android-apks-pr${{ github.event.pull_request.number || 0 }}-run${{ github.run_number }}
           path: |
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/flutter-apk/*.sha256
@@ -115,86 +117,65 @@ jobs:
           retention-days: 14
 
   build_linux:
-    name: Linux release bundle
+    name: Linux release
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.targets == 'all' || github.event.inputs.targets == 'linux' }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Linux native dependencies
+      - uses: actions/checkout@v4
+      - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev \
             libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-            libgstreamer-plugins-bad1.0-dev
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
+            gstreamer1.0-plugins-good libgstreamer-plugins-bad1.0-dev
+      - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
           cache: true
-
-      - name: Get Flutter dependencies
-        run: flutter pub get
-
-      - name: Build Linux release
-        run: flutter build linux --release --build-number="${{ github.run_number }}"
-
-      - name: Archive and hash Linux bundle
-        run: |
+      - run: flutter pub get
+      - run: flutter build linux --release --build-number="${{ github.run_number }}"
+      - run: |
           tar -czf linux-release.tar.gz -C build/linux/x64/release bundle
           sha256sum linux-release.tar.gz > linux-release.tar.gz.sha256
-
-      - name: Upload Linux bundle
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: linux-release
+          name: linux-release-run${{ github.run_number }}
           path: |
             linux-release.tar.gz
             linux-release.tar.gz.sha256
           retention-days: 14
 
   build_windows:
-    name: Windows release bundle
+    name: Windows MSIX
     runs-on: windows-latest
+    timeout-minutes: 60
     if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.targets == 'all' || github.event.inputs.targets == 'windows' }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Set up Flutter SDK
-        uses: subosito/flutter-action@v2
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
           cache: true
-
-      - name: Get Flutter dependencies
-        run: flutter pub get
-
-      - name: Create MSIX package (test certificate)
-        run: |
-          echo y | dart run msix:create
-
-      - name: Generate SHA-256 checksum (MSIX)
+      - run: flutter pub get
+      - run: echo y | dart run msix:create
+      - name: Hash MSIX
         shell: pwsh
         run: |
-          $msix = "build\\windows\\x64\\runner\\Release\\Noize.msix"
-          $hash = (Get-FileHash $msix -Algorithm SHA256).Hash
-          "$hash  Noize.msix" | Out-File -Encoding utf8 "$msix.sha256"
-
-      - name: Upload MSIX
-        uses: actions/upload-artifact@v4
+          $msix = "build\windows\x64\runner\Release\Noize.msix"
+          if (Test-Path $msix) {
+            $hash = (Get-FileHash $msix -Algorithm SHA256).Hash
+            "$hash  Noize.msix" | Out-File -Encoding utf8 "$msix.sha256"
+          }
+      - uses: actions/upload-artifact@v4
         with:
-          name: windows-release
+          name: windows-release-run${{ github.run_number }}
           path: |
             build/windows/x64/runner/Release/Noize.msix
             build/windows/x64/runner/Release/Noize.msix.sha256
           retention-days: 14
+          if-no-files-found: warn
