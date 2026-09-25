@@ -4,7 +4,6 @@ import java.io.FileInputStream
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -17,7 +16,7 @@ val hasReleaseKeystore = keystorePropertiesFile.exists().also { exists ->
 }
 
 android {
-    namespace = "com.anand.noize"
+    namespace = "com.psuedotube.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -32,7 +31,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.anand.noize"
+        applicationId = "com.psuedotube.app"
         multiDexEnabled = true
         minSdk = 24
         targetSdk = 36
@@ -41,9 +40,6 @@ android {
     }
 
     signingConfigs {
-        // Named "release" but also used for debug when key.properties is present,
-        // so local debug installs and CI APKs share one signature and can upgrade
-        // in place without uninstalling.
         create("release") {
             if (hasReleaseKeystore) {
                 val storeFilePath: String? = keystoreProperties.getProperty("storeFile")
@@ -70,9 +66,6 @@ android {
 
     buildTypes {
         debug {
-            // Prefer the same keystore as release so sideloaded debug/CI builds
-            // update over each other. Falls back to the default debug keystore
-            // when key.properties is missing (e.g. fresh clone without secrets).
             if (hasReleaseKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -81,10 +74,6 @@ android {
             if (hasReleaseKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            // If no keystore is configured, Gradle still produces an unsigned
-            // or debug-signed artifact depending on AGP defaults — CI always
-            // injects key.properties so release builds are signed there.
-
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
