@@ -1,5 +1,5 @@
 name: noize
-description: "Your ultimate groove companion – a powerful, privacy‑first YouTube Music experience."
+description: "PsuedoTube – a free, privacy-first YouTube Music client."
 
 publish_to: none
 
@@ -9,14 +9,10 @@ license: GPL-3.0-or-later
 environment:
   sdk: ^3.12.0
 
-# ─────────────────────────────────────────────
-# Dependencies
-# ─────────────────────────────────────────────
 dependencies:
   flutter:
     sdk: flutter
 
-  # Audio – playback, session & background service
   audio_service: ^0.18.19
   audio_session: ^0.2.4
   audio_video_progress_bar: ^2.0.3
@@ -26,9 +22,8 @@ dependencies:
   media_kit_libs_windows_audio: ^1.0.9
   media_kit_libs_linux: ^1.2.1
   sleek_circular_slider: ^2.1.0
-  smtc_windows: ^1.1.0               # Windows SMTC integration
+  smtc_windows: ^1.1.0
 
-  # Music sources & metadata
   audio_metadata_reader: ^1.6.0
   dart_ytmusic_api: ^1.3.7
   jiosaavn: ^0.1.1
@@ -41,19 +36,15 @@ dependencies:
   flutter_inappwebview: ^6.1.5
   speech_to_text: ^7.4.0
 
-  # Networking & HTTP
   connectivity_plus: ^7.3.0
   dio: ^5.10.0
 
-  # Storage & persistence
   hive_ce: ^2.19.3
   path_provider: ^2.1.6
   shared_preferences: ^2.5.5
 
-  # Navigation & routing
   go_router: ^17.1.0
 
-  # UI – components & theming
   cached_network_image: ^3.4.1
   dynamic_color: ^1.8.1
   fl_chart: ^1.2.0
@@ -65,10 +56,8 @@ dependencies:
   persistent_bottom_nav_bar_v2: ^6.3.0
   shimmer: ^3.0.0
   flutter_native_splash: ^2.4.8
-  # Localisation
   easy_localization: ^3.0.8
 
-  # Platform & system utilities
   android_intent_plus: ^6.0.0
   android_package_installer: ^0.0.3
   device_info_plus: ^12.3.0
@@ -84,7 +73,6 @@ dependencies:
   terminate_restart: ^1.1.0
   url_launcher: ^6.3.2
 
-  # General utilities
   async: ^2.13.0
   collection: ^1.19.1
   crypto: ^3.0.7
@@ -94,16 +82,10 @@ dependencies:
   synchronized: ^3.4.0
   talker_flutter: ^5.1.16
 
-# ─────────────────────────────────────────────
-# Dependency overrides
-# ─────────────────────────────────────────────
 dependency_overrides:
   go_router: ^16.3.0
   intl: ^0.20.3
 
-# ─────────────────────────────────────────────
-# Dev dependencies
-# ─────────────────────────────────────────────
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -113,68 +95,50 @@ dev_dependencies:
   hive_ce_generator: ^1.9.3
   msix: ^3.16.12
 
-# ─────────────────────────────────────────────
-# Windows MSIX packaging
-# ─────────────────────────────────────────────
 msix_config:
-  display_name: Noize
+  display_name: PsuedoTube
   publisher_display_name: Anand Kumar
-  identity_name: com.anand.noize
+  identity_name: com.psuedotube.app
   msix_version: 1.0.0.2
   logo_path: assets/default_artwork.png
   capabilities: internetClient,musicLibrary
   store: false
 
-# ─────────────────────────────────────────────
-# Flutter
-# ─────────────────────────────────────────────
 flutter:
   uses-material-design: true
 
   assets:
-    # App images
     - assets/default_artwork.png
     - assets/images/intro_ai_music.svg
     - assets/images/intro_discover.svg
     - assets/images/intro_download.svg
-
-    # Translations
-    - assets/translations/ar.json        # Arabic
-    - assets/translations/bn.json        # Bengali
-    - assets/translations/de.json        # German
-    - assets/translations/en.json        # English
-    - assets/translations/es.json        # Spanish
-    - assets/translations/fr.json        # French
-    - assets/translations/gu.json        # Gujarati
-    - assets/translations/hi.json        # Hindi
-    - assets/translations/id.json        # Indonesian
-    - assets/translations/ja.json        # Japanese
-    - assets/translations/kn.json        # Kannada
-    - assets/translations/ko.json        # Korean
-    - assets/translations/pt.json        # Portuguese
-    - assets/translations/mr.json        # Marathi
-    - assets/translations/ru.json        # Russian
-    - assets/translations/ta.json        # Tamil
-    - assets/translations/tr.json        # Turkish
-    - assets/translations/te.json        # Telugu
-    - assets/translations/uk.json        # Ukrainian
-    - assets/translations/ur.json        # Urdu
-    - assets/translations/vi.json        # Vietnamese
-    - assets/translations/zh.json        # Chinese
-
+    - assets/translations/ar.json
+    - assets/translations/bn.json
+    - assets/translations/de.json
+    - assets/translations/en.json
+    - assets/translations/es.json
+    - assets/translations/fr.json
+    - assets/translations/gu.json
+    - assets/translations/hi.json
+    - assets/translations/id.json
+    - assets/translations/ja.json
+    - assets/translations/kn.json
+    - assets/translations/ko.json
+    - assets/translations/pt.json
+    - assets/translations/mr.json
+    - assets/translations/ru.json
+    - assets/translations/ta.json
+    - assets/translations/tr.json
+    - assets/translations/te.json
+    - assets/translations/uk.json
+    - assets/translations/ur.json
+    - assets/translations/vi.json
+    - assets/translations/zh.json
 
 flutter_native_splash:
-  # The color of the background
-  color: "#000000" # Standard Black (or use "#E0E0E0" for Light Grey)
-  
-  # The main splash image
+  color: "#000000"
   image: assets/default_artwork.png
-
-  # Keep fullscreen true if you want to hide the status bar during splash
   fullscreen: true
-
-  # Android 12+ specific configuration (Crucial for newer phones)
   android_12:
     color: "#000000"
     image: assets/default_artwork.png
-    
