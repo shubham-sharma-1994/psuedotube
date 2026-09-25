@@ -7,7 +7,7 @@ import '../../../../core/providers/settings_provider.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../../trending/presentation/screens/trending_screen.dart';
 
-/// YTM Explore: Charts + Moods & genres.
+/// YTM Explore: Charts + New releases + Moods & genres.
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
 
@@ -78,6 +78,53 @@ class ExploreScreen extends StatelessWidget {
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.42,
             child: const TrendingScreen(),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppDimens.paddingLg,
+              AppDimens.paddingXl,
+              AppDimens.paddingLg,
+              AppDimens.spacingMd,
+            ),
+            child: Text(
+              'New albums & singles',
+              style: AppTextStyles.titleLg().copyWith(
+                color: accentColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 48,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingLg),
+              children: [
+                for (final label in [
+                  'New releases',
+                  'Albums',
+                  'Singles',
+                  'Music videos',
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppDimens.spacingSm),
+                    child: ActionChip(
+                      label: Text(label),
+                      onPressed: () => _openSearch(context, label),
+                      backgroundColor: isDarkMode
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
         SliverToBoxAdapter(
