@@ -101,16 +101,19 @@ msix_config:
   publisher_display_name: Anand Kumar
   identity_name: com.psuedotube.app
   msix_version: 1.0.0.2
-  logo_path: assets/images/psuedotube_logo.svg
+  logo_path: assets/default_artwork.png
   capabilities: internetClient,musicLibrary
   store: false
 
+# After adding assets/images/psuedotube_logo.png (from the SVG):
+#   dart run flutter_launcher_icons
+#   dart run flutter_native_splash:create
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: assets/images/psuedotube_logo.png
+  image_path: assets/default_artwork.png
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: assets/images/psuedotube_logo.png
+  adaptive_icon_foreground: assets/default_artwork.png
   min_sdk_android: 24
 
 flutter:
@@ -119,7 +122,6 @@ flutter:
   assets:
     - assets/default_artwork.png
     - assets/images/psuedotube_logo.svg
-    - assets/images/psuedotube_logo.png
     - assets/images/intro_ai_music.svg
     - assets/images/intro_discover.svg
     - assets/images/intro_download.svg
@@ -148,8 +150,8 @@ flutter:
 
 flutter_native_splash:
   color: "#000000"
-  image: assets/images/psuedotube_logo.png
+  image: assets/default_artwork.png
   fullscreen: true
   android_12:
     color: "#000000"
-    image: assets/images/psuedotube_logo.png
+    image: assets/default_artwork.png
