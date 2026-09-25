@@ -1,7 +1,6 @@
 name: Build Android APK
 
 # Manual only — Actions → Build Android APK → Run workflow
-# Choose any branch; produces one signed universal APK artifact.
 on:
   workflow_dispatch:
     inputs:
@@ -74,16 +73,19 @@ jobs:
             --build-number="${{ github.run_number }}" \
             --build-name="${{ inputs.build_name }}+${{ github.run_number }}"
 
-      - name: Checksum
-        working-directory: build/app/outputs/flutter-apk
+      - name: Checksum + list outputs
         run: |
-          sha256sum app-release.apk > app-release.apk.sha256
-          ls -lah app-release.apk*
+          set -euo pipefail
+          OUT=build/app/outputs/flutter-apk
+          ls -lah "$OUT"
+          test -f "$OUT/app-release.apk"
+          sha256sum "$OUT/app-release.apk" | tee "$OUT/app-release.apk.sha256"
 
+      # Artifact names cannot contain / : * ? etc. Sanitize branch name.
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: noize-apk-${{ github.ref_name }}-run${{ github.run_number }}
+          name: psuedotube-apk-run${{ github.run_number }}
           path: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-release.apk.sha256
