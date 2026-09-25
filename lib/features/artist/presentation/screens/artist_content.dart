@@ -20,6 +20,7 @@ import '../../../../core/providers/queued_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import 'popular_songs_list_screen.dart';
 import '../../../../shared/components/app_snackbar.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class ArtistContent extends StatefulWidget {
   final ArtistDetailed artist;
@@ -170,7 +171,7 @@ class _ArtistContentState extends State<ArtistContent>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimens.radiusXl),
                 child: CachedNetworkImage(
-                  imageUrl: widget.artist.thumbnails.last.url,
+                  imageUrl: thumbUrl(widget.artist.thumbnails, last: true),
                   width: imageSize,
                   height: imageSize,
                   fit: BoxFit.cover,
@@ -268,7 +269,7 @@ class _ArtistContentState extends State<ArtistContent>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                       child: CachedNetworkImage(
-                        imageUrl: widget.artist.thumbnails.last.url,
+                        imageUrl: thumbUrl(widget.artist.thumbnails, last: true),
                         width: imageSize,
                         height: imageSize,
                         fit: BoxFit.cover,

@@ -83,7 +83,7 @@ class PlayerControls {
                   constraints: const BoxConstraints(),
                   icon: Icon(
                     isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: accentColor,
+                    color: MainScreenColors.getTextColor(isDarkMode),
                     size: _icon,
                   ),
                   onPressed: handlePlayPause,
@@ -207,16 +207,14 @@ class PlayerControls {
                                 ? position.inMilliseconds /
                                       duration.inMilliseconds
                                 : 0.0,
-                            backgroundColor: isDarkMode
-                                ? Colors.grey[800]
-                                : accentColor.withValues(
-                                    alpha: AppDimens.opacityMedium,
-                                  ),
+                            backgroundColor: MainScreenColors.getTextColor(
+                              isDarkMode,
+                            ).withValues(alpha: 0.2),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              accentColor,
+                              MainScreenColors.getTextColor(isDarkMode),
                             ),
                             year2023: false,
-                            minHeight: AppDimens.sliderTrackHeight * 1,
+                            minHeight: 2,
                           ),
                         ),
                       );
@@ -279,6 +277,7 @@ class PlayerControls {
     VoidCallback? handlePrevious, // API compat; unused in mini
     required VoidCallback handlePlayPause,
     required VoidCallback handleNext,
+    VoidCallback? onCast,
   }) {
     return StreamBuilder<PlayerState>(
       stream: playerService.playerStateStream,
@@ -312,9 +311,7 @@ class PlayerControls {
                   child: CircularProgressIndicator(
                     strokeWidth: stroke,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isFetchingStreamUrl
-                          ? accentColor
-                          : MainScreenColors.darkTirtiaryColor,
+                      MainScreenColors.getTextColor(isDarkMode),
                     ),
                     year2023: false,
                   ),
@@ -322,9 +319,22 @@ class PlayerControls {
               );
             }
 
+            final castButton = onCast == null
+                ? null
+                : IconButton(
+                    onPressed: onCast,
+                    tooltip: 'Audio output',
+                    icon: Icon(
+                      Icons.cast,
+                      color: MainScreenColors.getTextColor(isDarkMode),
+                      size: AppDimens.iconLg,
+                    ),
+                  );
+
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (castButton != null) castButton,
                 buildPlayPauseButton(
                   context: context,
                   isMini: true,
@@ -333,24 +343,28 @@ class PlayerControls {
                   handlePlayPause: handlePlayPause,
                   playerService: playerService,
                 ),
-                SizedBox(
-                  width: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
-                  height: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      Icons.skip_next_rounded,
-                      size: isCompact ? AppDimens.iconMdLg : AppDimens.iconXxl,
-                      color: queueProvider.hasNext
-                          ? MainScreenColors.getTextColor(isDarkMode)
-                          : MainScreenColors.getTextColor(
-                              isDarkMode,
-                            ).withValues(alpha: 0.3),
+                // YTM mini player only shows "next" when there is one.
+                if (queueProvider.hasNext || onCast == null)
+                  SizedBox(
+                    width: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
+                    height: isCompact ? AppDimens.iconXl : AppDimens.iconXxl,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: Icon(
+                        Icons.skip_next_rounded,
+                        size: isCompact
+                            ? AppDimens.iconMdLg
+                            : AppDimens.iconXxl,
+                        color: queueProvider.hasNext
+                            ? MainScreenColors.getTextColor(isDarkMode)
+                            : MainScreenColors.getTextColor(
+                                isDarkMode,
+                              ).withValues(alpha: 0.3),
+                      ),
+                      onPressed: queueProvider.hasNext ? handleNext : null,
                     ),
-                    onPressed: queueProvider.hasNext ? handleNext : null,
                   ),
-                ),
               ],
             );
           },

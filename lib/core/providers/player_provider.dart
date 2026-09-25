@@ -135,7 +135,7 @@ class PlayerProvider extends ChangeNotifier {
           _favoriteSongProvider,
         ),
         config: const AudioServiceConfig(
-          androidNotificationChannelId: 'com.anand.noize',
+          androidNotificationChannelId: 'com.psuedotube.app',
           androidNotificationChannelName: 'Noize Playback',
           androidStopForegroundOnPause: true,
           androidShowNotificationBadge: true,

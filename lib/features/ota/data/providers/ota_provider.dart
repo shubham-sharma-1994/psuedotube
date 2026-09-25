@@ -312,7 +312,7 @@ class OTAProvider with ChangeNotifier {
         final result = await Process.run('powershell', [
           '-Command',
           'Add-AppxPackage -Path "$_downloadedFilePath" -ForceApplicationShutdown; '
-              r"$pkg = Get-AppxPackage -Name 'com.anand.noize'; "
+              r"$pkg = Get-AppxPackage -Name 'com.psuedotube.app'; "
               r'if ($pkg) { Start-Process "shell:AppsFolder\$($pkg.PackageFamilyName)!App" }',
         ], runInShell: true);
 

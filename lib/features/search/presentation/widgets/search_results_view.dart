@@ -5,6 +5,7 @@ import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/content_router.dart';
 import '../../data/search_screen_services.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class SearchResultsView extends StatelessWidget {
   final TabController tabController;
@@ -85,7 +86,7 @@ class SearchResultsView extends StatelessWidget {
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                 child: CachedNetworkImage(
-                  imageUrl: song.thumbnails.first.url,
+                  imageUrl: thumbUrl(song.thumbnails),
                   width: AppDimens.shimmerListTile,
                   height: AppDimens.shimmerListTile,
                   fit: BoxFit.cover,
@@ -268,7 +269,7 @@ class SearchResultsView extends StatelessWidget {
           type == 'artist' ? AppDimens.radiusAvatar : AppDimens.radiusSm,
         ),
         child: CachedNetworkImage(
-          imageUrl: item.thumbnails.first.url,
+          imageUrl: thumbUrl(item.thumbnails),
           width: AppDimens.shimmerListTile,
           height: AppDimens.shimmerListTile,
           fit: BoxFit.cover,
@@ -336,7 +337,7 @@ class SearchResultsView extends StatelessWidget {
                 type == 'artist' ? AppDimens.radiusAvatar : AppDimens.radiusSm,
               ),
               child: CachedNetworkImage(
-                imageUrl: item.thumbnails.first.url,
+                imageUrl: thumbUrl(item.thumbnails),
                 width: AppDimens.shimmerListTile,
                 height: AppDimens.shimmerListTile,
                 fit: BoxFit.cover,

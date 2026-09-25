@@ -7,6 +7,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/queued_provider.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class MusicSearch extends SearchDelegate<String> {
   final Color accentColor;
@@ -291,7 +292,7 @@ class MusicSearch extends SearchDelegate<String> {
 
   Widget _buildThumbnail(dynamic song, QueueProvider queueProvider) {
     final playlistId = queueProvider.playlistId;
-    final thumbnailUrl = song.thumbnails.first.url;
+    final thumbnailUrl = thumbUrl(song.thumbnails);
 
     if (playlistId == 'local_music' || playlistId == 'downloaded_music') {
       if (thumbnailUrl.isNotEmpty) {

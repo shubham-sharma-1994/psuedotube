@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
@@ -199,13 +198,13 @@ class _AiApiConfigScreenState extends State<AiApiConfigScreen> {
                     : _openAiApiKeyController,
                 decoration: InputDecoration(
                   labelText: 'enter_your_api_key_here'.tr(),
-                  labelStyle: GoogleFonts.poppins(
+                  labelStyle: AppTextStyles.font(
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
                     ).withValues(alpha: 0.7),
                   ),
                   hintText: 'e.g., sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                  hintStyle: GoogleFonts.poppins(
+                  hintStyle: AppTextStyles.font(
                     color: MainScreenColors.getTextColor(
                       isDarkMode,
                     ).withValues(alpha: 0.5),

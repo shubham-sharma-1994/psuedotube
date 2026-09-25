@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimens.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class SearchSuggestionsList extends StatelessWidget {
   final bool isDarkMode;
@@ -174,7 +175,7 @@ class SearchSuggestionsList extends StatelessWidget {
                               AppDimens.radiusSm,
                             ),
                             child: CachedNetworkImage(
-                              imageUrl: song.thumbnails.first.url,
+                              imageUrl: thumbUrl(song.thumbnails),
                               width: AppDimens.shimmerListTile,
                               height: AppDimens.shimmerListTile,
                               fit: BoxFit.cover,

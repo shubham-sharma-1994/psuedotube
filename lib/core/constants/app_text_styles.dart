@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -6,7 +8,43 @@ import 'app_dimens.dart';
 
 class AppTextStyles {
   AppTextStyles._();
-  static String get fontFamily => GoogleFonts.poppins().fontFamily!;
+
+  /// YouTube Music uses Roboto. On Android/iOS it is the system font, so no
+  /// runtime download is needed; desktop falls back to Google Fonts.
+  static bool get _useSystemRoboto => Platform.isAndroid || Platform.isIOS;
+
+  static String get fontFamily =>
+      _useSystemRoboto ? 'Roboto' : GoogleFonts.roboto().fontFamily!;
+
+  static TextStyle font({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    double? height,
+    double? letterSpacing,
+    List<Shadow>? shadows,
+  }) {
+    if (_useSystemRoboto) {
+      return TextStyle(
+        fontFamily: 'Roboto',
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        height: height,
+        letterSpacing: letterSpacing,
+        shadows: shadows,
+      );
+    }
+    return GoogleFonts.roboto(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      height: height,
+      letterSpacing: letterSpacing,
+      shadows: shadows,
+    );
+  }
+
   static const double fontSizeXxs = 8.0;
   static const double fontSizeXs = 10.0;
   static const double fontSizeSm = 11.0;
@@ -31,37 +69,33 @@ class AppTextStyles {
   static const double lineHeightBody = 1.4;
   static const double lineHeightRelaxed = 1.6;
   static TextStyle badgeBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeXxs, fontWeight: weightSemiBold);
+      font(fontSize: fontSizeXxs, fontWeight: weightSemiBold);
   static TextStyle finePrintBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeXs, fontWeight: weightRegular);
+      font(fontSize: fontSizeXs, fontWeight: weightRegular);
   static TextStyle captionBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeCaption, fontWeight: weightRegular);
+      font(fontSize: fontSizeCaption, fontWeight: weightRegular);
   static TextStyle body2Base() =>
-      GoogleFonts.poppins(fontSize: fontSizeBody2, fontWeight: weightRegular);
+      font(fontSize: fontSizeBody2, fontWeight: weightRegular);
   static TextStyle bodyBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeBody, fontWeight: weightRegular);
+      font(fontSize: fontSizeBody, fontWeight: weightRegular);
   static TextStyle bodyLgBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeBodyLg, fontWeight: weightMedium);
+      font(fontSize: fontSizeBodyLg, fontWeight: weightMedium);
   static TextStyle subtitleBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeSubtitle, fontWeight: weightMedium);
+      font(fontSize: fontSizeSubtitle, fontWeight: weightMedium);
   static TextStyle titleBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeTitle, fontWeight: weightSemiBold);
-  static TextStyle titleLgBase() => GoogleFonts.poppins(
-    fontSize: fontSizeTitleLg,
-    fontWeight: weightSemiBold,
-  );
-  static TextStyle headingBase() => GoogleFonts.poppins(
-    fontSize: fontSizeHeading,
-    fontWeight: weightSemiBold,
-  );
+      font(fontSize: fontSizeTitle, fontWeight: weightSemiBold);
+  static TextStyle titleLgBase() =>
+      font(fontSize: fontSizeTitleLg, fontWeight: weightSemiBold);
+  static TextStyle headingBase() =>
+      font(fontSize: fontSizeHeading, fontWeight: weightSemiBold);
   static TextStyle headingLgBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeHeadingLg, fontWeight: weightBold);
+      font(fontSize: fontSizeHeadingLg, fontWeight: weightBold);
   static TextStyle displayBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeDisplay, fontWeight: weightBold);
+      font(fontSize: fontSizeDisplay, fontWeight: weightBold);
   static TextStyle displayLgBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeDisplayLg, fontWeight: weightBold);
+      font(fontSize: fontSizeDisplayLg, fontWeight: weightBold);
   static TextStyle heroBase() =>
-      GoogleFonts.poppins(fontSize: fontSizeHero, fontWeight: weightBold);
+      font(fontSize: fontSizeHero, fontWeight: weightBold);
 
   static TextStyle badge({bool isDarkMode = true, Color? color}) => badgeBase()
       .copyWith(color: color ?? MainScreenColors.getTextColor(isDarkMode));
@@ -142,7 +176,7 @@ class AppTextStyles {
     color: MainScreenColors.getTextColor(isDarkMode),
     fontWeight: weightMedium,
   );
-  static TextStyle playerTitle() => GoogleFonts.poppins(
+  static TextStyle playerTitle() => font(
     fontWeight: weightBold,
     color: Colors.white,
     shadows: [
@@ -150,9 +184,9 @@ class AppTextStyles {
     ],
   );
   static TextStyle playerArtist() =>
-      GoogleFonts.poppins(fontWeight: weightRegular, color: Colors.white70);
+      font(fontWeight: weightRegular, color: Colors.white70);
   static TextStyle lyrics({bool isHighlighted = false, Color? accentColor}) =>
-      GoogleFonts.poppins(
+      font(
         fontSize: isHighlighted ? fontSizeSubtitle : fontSizeBody,
         fontWeight: isHighlighted ? weightSemiBold : weightRegular,
         color: isHighlighted
@@ -178,19 +212,19 @@ class AppTextStyles {
     required bool isSelected,
     required Color accentColor,
     double scale = 1.0,
-  }) => GoogleFonts.poppins(
+  }) => font(
     color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
     fontWeight: isSelected ? weightBold : weightRegular,
     fontSize: fontSizeBody * scale,
   );
   static TextStyle bottomSheetTitle({bool isDarkMode = true}) =>
       titleBase().copyWith(color: MainScreenColors.getTextColor(isDarkMode));
-  static TextStyle button({Color? color}) => GoogleFonts.poppins(
+  static TextStyle button({Color? color}) => font(
     fontSize: fontSizeBody,
     fontWeight: weightSemiBold,
     color: color ?? Colors.white,
   );
-  static TextStyle actionLabel() => GoogleFonts.poppins(
+  static TextStyle actionLabel() => font(
     fontSize: fontSizeCaption,
     fontWeight: weightMedium,
     color: Colors.white.withValues(alpha: 0.9),

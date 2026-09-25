@@ -12,7 +12,7 @@
 #include "utils.h"
 
 // The AppUserModelID used for SMTC identification.
-static const wchar_t kAppUserModelId[] = L"com.anand.noize";
+static const wchar_t kAppUserModelId[] = L"com.psuedotube.app";
 static const wchar_t kAppDisplayName[] = L"Noize";
 
 // Creates a Start Menu shortcut with the AppUserModelID so that Windows SMTC

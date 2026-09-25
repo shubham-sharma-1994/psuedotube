@@ -97,7 +97,7 @@ class SmtcService {
     _smtc!.updateMetadata(
       MusicMetadata(
         title: song.name,
-        album: 'Noize',
+        album: 'PsuedoTube',
         albumArtist: song.artists.map((a) => a.name).join(', '),
         artist: song.artists.map((a) => a.name).join(', '),
         thumbnail: song.thumbnails.isNotEmpty ? song.thumbnails.last.url : '',

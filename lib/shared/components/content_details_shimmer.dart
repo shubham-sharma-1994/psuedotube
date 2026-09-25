@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/player_provider.dart';
 import '../../core/providers/settings_provider.dart';
+import '../../core/constants/app_text_styles.dart';
 
 class ContentShimmer {
   static Widget albumShimmer(BuildContext context) {
@@ -107,7 +107,7 @@ class ContentShimmer {
         children: [
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: AppTextStyles.font(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Provider.of<SettingsProvider>(

@@ -392,7 +392,7 @@ class _NoizeAppState extends State<NoizeApp> with WidgetsBindingObserver {
       supportedLocales: context.supportedLocales,
       locale: context.locale,
 
-      title: 'Noize',
+      title: 'PsuedoTube',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: settingsProvider.themeMode,

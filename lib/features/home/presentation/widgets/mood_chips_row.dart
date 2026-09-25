@@ -1,73 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../../../core/constants/app_dimens.dart';
-import '../../../../core/constants/app_text_styles.dart';
-import '../../../../core/providers/settings_provider.dart';
 import '../../../search/presentation/screens/search_screen.dart';
+import 'ytm_home_widgets.dart';
 
-/// Horizontally scrollable mood / category chips (YTM Home style).
-/// Tapping a chip opens Search so the user can explore that mood.
+/// Mood / category chips at the top of Home (YTM style). Tapping a chip
+/// opens Search with that mood already searched.
 class MoodChipsRow extends StatelessWidget {
   const MoodChipsRow({super.key});
 
   static const _moods = <String>[
-    'Workout',
-    'Commute',
-    'Focus',
+    'Podcasts',
     'Relax',
-    'Energize',
-    'Party',
-    'Sleep',
     'Romance',
+    'Energise',
+    'Feel good',
+    'Workout',
+    'Party',
+    'Commute',
+    'Sad',
+    'Focus',
+    'Sleep',
   ];
 
-  void _openSearch(BuildContext context) {
+  void _openMood(BuildContext context, String mood) {
+    final query = mood == 'Podcasts' ? 'podcasts' : '$mood songs';
     Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(builder: (_) => const SearchScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) => SearchScreen(initialQuery: query),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = context.select((SettingsProvider p) => p.accentColor);
-
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingLg),
-        physics: const BouncingScrollPhysics(),
-        itemCount: _moods.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppDimens.spacingSm),
-        itemBuilder: (context, index) {
-          final label = _moods[index];
-          return ActionChip(
-            label: Text(
-              label,
-              style: AppTextStyles.chipLabel(isDarkMode: isDark),
-            ),
-            onPressed: () => _openSearch(context),
-            backgroundColor: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.06),
-            side: BorderSide(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.08),
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            // Subtle accent on first chip to match YTM "selected" affordance
-            surfaceTintColor: index == 0 ? accent : null,
-          );
-        },
-      ),
+    return YtmChipsRow(
+      labels: _moods,
+      onSelected: (mood) => _openMood(context, mood),
     );
   }
 }

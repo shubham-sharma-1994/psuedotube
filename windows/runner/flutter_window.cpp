@@ -62,7 +62,7 @@ bool FlutterWindow::OnCreate() {
   file_channel_ =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           flutter_controller_->engine()->messenger(),
-          "com.anand.noize/file_open",
+          "com.psuedotube.app/file_open",
           &flutter::StandardMethodCodec::GetInstance());
 
   file_channel_->SetMethodCallHandler(

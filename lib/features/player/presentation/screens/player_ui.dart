@@ -29,7 +29,9 @@ import '../widgets/queued_bottomsheet.dart';
 import '../widgets/sleep_timer_bottomsheet.dart';
 import '../widgets/volume_bottomsheet.dart';
 import '../widgets/video_mode_dialog.dart';
+import '../../../main_screen/presentation/widgets/audio_output_bottomsheet.dart';
 import '../../../../shared/components/app_snackbar.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class PlayerUI extends StatefulWidget {
   final bool showFullScreen;
@@ -121,7 +123,7 @@ class PlayerUIState extends State<PlayerUI>
         if (_lastBgColorSongId != songId) {
           _lastBgColorSongId = songId;
           _playerService.updateBackgroundColor(
-            currentSong.thumbnails.first.url,
+            thumbUrl(currentSong.thumbnails),
           );
           _favoriteSongProvider.setCurrentSong(currentSong);
         }
@@ -739,7 +741,7 @@ class PlayerUIState extends State<PlayerUI>
                 name: artist.name,
                 thumbnails: [
                   ThumbnailFull(
-                    url: song.thumbnails.first.url,
+                    url: thumbUrl(song.thumbnails),
                     width: 0,
                     height: 0,
                   ),
@@ -776,7 +778,7 @@ class PlayerUIState extends State<PlayerUI>
                     name: selectedArtist.name,
                     thumbnails: [
                       ThumbnailFull(
-                        url: song.thumbnails.first.url,
+                        url: thumbUrl(song.thumbnails),
                         width: 0,
                         height: 0,
                       ),
@@ -813,10 +815,16 @@ class PlayerUIState extends State<PlayerUI>
     final thumbnailSize = isWideScreen
         ? AppDimens.thumbnailLarge
         : (isCompact ? AppDimens.thumbnailMini : AppDimens.thumbnailDefault);
-    const miniPlayerBorderRadius = BorderRadius.only(
-      topLeft: Radius.circular(16),
-      topRight: Radius.circular(16),
-    );
+    final effectiveThumbnailSize =
+        widget.isEmbedded && !isWideScreen && !isCompact ? 48.0 : thumbnailSize;
+    // Embedded phone mini player is a flat YTM bar; the host paints it.
+    final isFlatBar = widget.isEmbedded && !isWideScreen;
+    final miniPlayerBorderRadius = isFlatBar
+        ? BorderRadius.zero
+        : const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          );
 
     return GestureDetector(
       onTap: widget.onExpand,
@@ -824,38 +832,41 @@ class PlayerUIState extends State<PlayerUI>
         child: ClipRRect(
           borderRadius: miniPlayerBorderRadius,
           child: BackdropFilter(
+            enabled: !isFlatBar,
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Container(
               height: miniPlayerHeight,
               constraints: const BoxConstraints(
                 maxWidth: AppDimens.maxModalWidth,
               ),
-              decoration: BoxDecoration(
-                borderRadius: miniPlayerBorderRadius,
-                gradient: LinearGradient(
-                  colors: [
-                    MainScreenColors.getSurfaceColor(
-                      isDarkMode,
-                    ).withValues(alpha: 0.78),
-                    MainScreenColors.getSurfaceColor(
-                      isDarkMode,
-                    ).withValues(alpha: 0.56),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: widget.isEmbedded
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: AppDimens.opacityMedium,
-                          ),
-                          blurRadius: AppDimens.elevationHigh,
-                          offset: Offset(0, AppDimens.shadowOffsetSmall),
-                        ),
-                      ],
-              ),
+              decoration: isFlatBar
+                  ? const BoxDecoration(color: Colors.transparent)
+                  : BoxDecoration(
+                      borderRadius: miniPlayerBorderRadius,
+                      gradient: LinearGradient(
+                        colors: [
+                          MainScreenColors.getSurfaceColor(
+                            isDarkMode,
+                          ).withValues(alpha: 0.78),
+                          MainScreenColors.getSurfaceColor(
+                            isDarkMode,
+                          ).withValues(alpha: 0.56),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      boxShadow: widget.isEmbedded
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: AppDimens.opacityMedium,
+                                ),
+                                blurRadius: AppDimens.elevationHigh,
+                                offset: Offset(0, AppDimens.shadowOffsetSmall),
+                              ),
+                            ],
+                    ),
               child: Column(
                 children: [
                   Expanded(
@@ -866,7 +877,7 @@ class PlayerUIState extends State<PlayerUI>
                           isDarkMode: isDarkMode,
                           playerProvider: _playerProvider,
                           playerService: _playerService,
-                          thumbnailSize: thumbnailSize,
+                          thumbnailSize: effectiveThumbnailSize,
                         ),
                         if (isWideScreen)
                           SizedBox(
@@ -909,6 +920,9 @@ class PlayerUIState extends State<PlayerUI>
                           handlePrevious: _handlePrevious,
                           handlePlayPause: _handlePlayPause,
                           handleNext: _handleNext,
+                          onCast: isFlatBar && Platform.isAndroid
+                              ? _showAudioOutput
+                              : null,
                         ),
                         // YTM mini: no Like on embedded compact chrome
                         if (!widget.isEmbedded &&
@@ -992,6 +1006,15 @@ class PlayerUIState extends State<PlayerUI>
           ),
         ),
       ),
+    );
+  }
+
+  void _showAudioOutput() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    showAudioOutputBottomSheet(
+      context,
+      isDarkMode: settings.themeMode == ThemeMode.dark,
+      accentColor: settings.accentColor,
     );
   }
 

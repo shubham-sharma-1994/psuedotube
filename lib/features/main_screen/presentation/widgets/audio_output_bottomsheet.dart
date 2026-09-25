@@ -4,10 +4,10 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_output_service.dart';
+import '../../../../core/constants/app_text_styles.dart';
 
 Future<void> showAudioOutputBottomSheet(
   BuildContext context, {
@@ -216,7 +216,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                   children: [
                                     Text(
                                       'switch_audio_output'.tr(),
-                                      style: GoogleFonts.poppins(
+                                      style: AppTextStyles.font(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
                                         color: MainScreenColors.getTextColor(
@@ -227,7 +227,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                     const SizedBox(height: 4),
                                     Text(
                                       'audio_output_sheet_instruction'.tr(),
-                                      style: GoogleFonts.poppins(
+                                      style: AppTextStyles.font(
                                         fontSize: 13,
                                         color: MainScreenColors.getTextColor(
                                           widget.isDarkMode,
@@ -326,7 +326,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                                   : (device.port == 'bluetooth'
                                                         ? 'Bluetooth Device'
                                                         : 'Unknown Device'),
-                                              style: GoogleFonts.poppins(
+                                              style: AppTextStyles.font(
                                                 fontSize: 15,
                                                 fontWeight: isCurrent
                                                     ? FontWeight.w700
@@ -341,7 +341,7 @@ class _AudioOutputModalState extends State<AudioOutputModal>
                                             Text(
                                               device.port[0].toUpperCase() +
                                                   device.port.substring(1),
-                                              style: GoogleFonts.poppins(
+                                              style: AppTextStyles.font(
                                                 fontSize: 12,
                                                 color:
                                                     MainScreenColors.getTextColor(

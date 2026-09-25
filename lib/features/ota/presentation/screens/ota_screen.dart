@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
@@ -264,7 +263,7 @@ class _OTAScreenState extends State<OTAScreen>
                 ),
                 child: Text(
                   'ota_update_available'.tr(),
-                  style: GoogleFonts.poppins(
+                  style: AppTextStyles.font(
                     color: accentColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -343,7 +342,7 @@ class _OTAScreenState extends State<OTAScreen>
         const SizedBox(height: 8),
         Text(
           title,
-          style: GoogleFonts.poppins(
+          style: AppTextStyles.font(
             color: MainScreenColors.getTextColor(
               isDarkMode,
             ).withValues(alpha: 0.7),
@@ -354,7 +353,7 @@ class _OTAScreenState extends State<OTAScreen>
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: AppTextStyles.font(
             color: MainScreenColors.getTextColor(isDarkMode),
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -390,7 +389,7 @@ class _OTAScreenState extends State<OTAScreen>
           const SizedBox(height: 16),
           Text(
             'New Features:',
-            style: GoogleFonts.poppins(
+            style: AppTextStyles.font(
               color: MainScreenColors.getTextColor(isDarkMode),
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -668,7 +667,7 @@ class _OTAScreenState extends State<OTAScreen>
             Text(
               'ota_ready_to_install_message'.tr(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
+              style: AppTextStyles.font(
                 color: MainScreenColors.getTextColor(
                   isDarkMode,
                 ).withValues(alpha: 0.7),

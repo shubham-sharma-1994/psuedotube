@@ -85,7 +85,11 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  /// When set, the screen opens with this query already searched
+  /// (used by the Home mood chips).
+  final String? initialQuery;
+
+  const SearchScreen({Key? key, this.initialQuery}) : super(key: key);
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -127,7 +131,15 @@ class _SearchScreenState extends State<SearchScreen>
     super.initState();
     _tabController = TabController(length: _getTabCount(), vsync: this);
     _initializeSearchHistory();
-    _focusNode.requestFocus();
+    final initialQuery = widget.initialQuery?.trim() ?? '';
+    if (initialQuery.isNotEmpty) {
+      _searchController.text = initialQuery;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _onSearch(initialQuery);
+      });
+    } else {
+      _focusNode.requestFocus();
+    }
     _services.isLoadingRelatedSongsNotifier.addListener(
       _onLoadingRelatedSongsChanged,
     );

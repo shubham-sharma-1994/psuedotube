@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/providers/player_provider.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../playlist_album_content/presentation/screens/playlist_album_content_screen.dart';
+import '../../../../core/utils/thumbnail_utils.dart';
 
 class AlbumListScreen extends StatelessWidget {
   final String title;
@@ -154,7 +155,7 @@ class AlbumCard extends StatelessWidget {
                 top: Radius.circular(AppDimens.radiusLg),
               ),
               child: CachedNetworkImage(
-                imageUrl: album.thumbnails.last.url,
+                imageUrl: thumbUrl(album.thumbnails, last: true),
                 height: AppDimens.headerImageMd,
                 width: AppDimens.shimmerGridItem,
                 fit: BoxFit.cover,

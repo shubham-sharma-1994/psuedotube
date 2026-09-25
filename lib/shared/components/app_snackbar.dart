@@ -49,7 +49,12 @@ class AppSnackBar {
             ? const Duration(seconds: 4)
             : const Duration(seconds: 3));
 
-    ScaffoldMessenger.of(context)
+    // Often called after an await; the caller may already be disposed.
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+
+    messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
